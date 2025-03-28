@@ -27,7 +27,6 @@ class WorkFlow:
         working_dir: Path,
         app_name: str,
         processes: list,
-        user_params: list[str] = [],
         generate_report: bool = True,
         verbose: bool = True,
     ):
@@ -42,12 +41,19 @@ class WorkFlow:
         self.generate_report = generate_report
         self.verbose = verbose
 
-        # # ---------------------- #
-        # # Define user parameters #
-        # # ---------------------- #
-        # user_params = []
-        # for _, process in enumerate(self.processes):
-        #     user_params.extend(process["userParams"])
+        # ---------------------- #
+        # Define user parameters #
+        # ---------------------- #
+        user_params = []
+        for _, process in enumerate(self.processes):
+            for param in process["userParams"]:
+                user_params.append(param)
+        
+        # Delete duplicates of parameters
+        user_params = list(dict.fromkeys(user_params))
+
+        # Add On/Off parameter to specify cases that should be executed
+        user_params.append("EXECUTE")
 
         # ------------------------ #
         # Define working directory #
@@ -137,22 +143,34 @@ class WorkFlow:
 
     def __call__(self):
         """Launch workflow of processes."""
+
+        # # Initialize list of known parameters
+        # known_params = []
         
         # --------------- #
         # Launch workflow #
         # --------------- #
         for step, process in enumerate(self.processes):
 
-            module = process["module"]
+            if not process["execute"]:
+                continue
+
+            # # Update with current process parameters
+            # known_params.extend(process["userParams"])
             
             # Define class object for the current process
+            module = process["module"]
             this_process:AllProcesses = module(
                 df_inputs=self.df_inputs,
                 dict_paths=self.dict_paths,
+                # params=known_params,
                 params=process["userParams"],
                 verbose=process["verbose"],
                 include_dir=Path(os.getcwd()) / "INCLUDE",
             )
+
+            # if this_process.is_case:
+            #     this_process.on_params_update()
 
             # Initialize build list
             this_process.build = []
@@ -182,7 +200,9 @@ class WorkFlow:
 
             # Printing
             print("---------------------------------------------------------")
-            print(f" STEP {step+1} : {name}")
+            print("---------------------------------------------------------")
+            print(f"| PROCESS {step+1} : {name}")
+            print("---------------------------------------------------------")
             print("---------------------------------------------------------")
 
             # Define working folder associated to the current process
@@ -196,26 +216,18 @@ class WorkFlow:
                 # Define sub-folders associated to each ID of the inputs dataframe
                 for idx in this_process.df_params.index:
 
-                    # Printing
-                    print(f"> Processing {idx} with set of parameters :")
-
                     # Update process index
                     this_process.index = idx
                     
                     subfolder_path = self.working_dir / folder_name / str(idx)
                     subfolder_path.mkdir(exist_ok=True, parents=True)
                     os.chdir(subfolder_path)
+                    
+                    # Update dictionary of parameters for the current case ID
+                    this_process.update_dict_params()
 
-                    this_process.dict_params = {}
-                    for param in this_process.df_params.columns:
-                        value = self.convert_value(this_process.df_params.at[idx, param])
-                        this_process.dict_params[param] = value
-                        
-                        # Printing
-                        print(f"  > {param} = {value}")
-
-                    # Printing
-                    print("---------------------------------------------------------")
+                    # # Printing
+                    # print("---------------------------------------------------------")
 
                     # Write json file containing current parameters
                     with open("parameters.json", "w") as f:
@@ -223,7 +235,9 @@ class WorkFlow:
 
                     # Launch process
                     if this_process.is_processed:
+                        print(">>> START <<<")
                         this_process()
+                        print(">>> COMPLETED <<<")
                     else:
                         # Printing
                         print(" > WARNING : Process is skipped !")
@@ -236,11 +250,15 @@ class WorkFlow:
             
                 # Launch process
                 if this_process.is_processed:
+                    print(">>> START <<<")
                     this_process()
+                    print(">>> COMPLETED <<<")
                 else:
                     # Printing
                     print(" > WARNING : Process is skipped !")
                     print("---------------------------------------------------------")
+            
+            print("")
 
             # Update inputs dataframe and paths dictonary
             self.df_inputs = this_process.df_inputs
@@ -317,32 +335,70 @@ class AllProcesses():
 
     name: str = attrs.field(default=None)
     df_inputs: pd.DataFrame = attrs.field(default=None)
-    dict_paths: dict = attrs.field(default=None)
+    # dict_paths: dict = attrs.field(default=None)
+    dict_paths: dict = attrs.field(factory=dict)
     include_dir: Path = attrs.field(default=None)
-    kwargs: dict = attrs.field(default={})
+    kwargs: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
-    params: list = attrs.field(default=[])
+    params: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
-    dict_params: dict = attrs.field(default=None)
-    build: list = attrs.field(default=None)
+    # dict_params: dict = attrs.field(default=None)
+    dict_params: dict = attrs.field(factory=dict)
+    # build: list = attrs.field(default=None)
+    build: list = attrs.field(factory=list)
     require: list = attrs.field(default=None)
     verbose: bool = attrs.field(default=True)
     index: str = None
 
-    # def _attrs_post_init__
+    def __attrs_post_init__(self):
 
-    def __setattr__(self, name, value):
+        self.on_params_update()
 
-        super().__setattr__(name, value)
-        if name == "params" and hasattr(self, "dict_params"):
-            self.on_params_update()
+    # def __setattr__(self, name, value):
+
+    #     super().__setattr__(name, value)
+    #     if name == "params" and hasattr(self, "dict_params"):
+    #         self.on_params_update()
 
     def on_params_update(self):
 
         df = self.df_inputs.reset_index().groupby(self.params)["ID"].agg(list).reset_index(name="ID")
         df["ID"] = df["ID"].apply(lambda x: "_".join(x))
         self.df_params = df.set_index("ID")
+    
+    def update_dict_params(self):
+
+        # Printing
+        print("")
+        print(f"> Processing {self.index} with set of parameters :")
+
+        self.dict_params = {}
+        for param in self.df_params.columns:
+            value = self.convert_value(self.df_params.at[self.index, param])
+            self.dict_params[param] = value
+            
+            # Printing
+            print(f"|--> {param} = {value}")
+        
+        # Printing
+        print("")
+
+    def convert_value(self, value):
+        """Function to convert values in python native types"""
+
+        if value == "NA":
+            return None
+        elif isinstance(value, (bool, np.bool_)):
+            return bool(value)
+        elif isinstance(value, (int, np.int64)):
+            return int(value)
+        elif isinstance(value, (float, np.float64)):
+            return float(value)
+        elif isinstance(value, str):
+            return str(value)
+        else:
+            return value
 
     def get_build_path(self,
         build: str,
@@ -373,14 +429,14 @@ class AllProcesses():
                 # Add build entity if not existing
                 if build not in self.build:
                     self.build.append(build)
-                
+
                 # Execute check function
                 is_stopped = self.check(build)
 
-                if is_stopped:
-                    # Printing
-                    print(f"> WARNING : [{build}] is already built !")
-                    return
+                # if is_stopped:
+                #     # Printing
+                #     print(f"> WARNING : [{build}] is already built !")
+                #     return
                 
                 # Call decorated function
                 result = func(self, *args, **kwargs)
