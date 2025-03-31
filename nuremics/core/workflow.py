@@ -121,18 +121,6 @@ class WorkFlow:
         except:
             self.dict_paths = {} 
 
-        # # ---------------------------- #
-        # # Initialize jinja environment #
-        # # ---------------------------- #
-        # loader = jinja2.PackageLoader("applications", f"{self.app_name}")
-        # self.env = jinja2.Environment(
-        #     loader=loader,
-        #     trim_blocks=True,
-        #     variable_start_string="<<",
-        #     variable_end_string=">>",
-        # )
-        # self.env.globals.update(zip=zip)
-
         # --------------------------- #
         # Initialize pylatex document #
         # --------------------------- #
@@ -143,9 +131,6 @@ class WorkFlow:
 
     def __call__(self):
         """Launch workflow of processes."""
-
-        # # Initialize list of known parameters
-        # known_params = []
         
         # --------------- #
         # Launch workflow #
@@ -154,23 +139,22 @@ class WorkFlow:
 
             if not process["execute"]:
                 continue
-
-            # # Update with current process parameters
-            # known_params.extend(process["userParams"])
             
             # Define class object for the current process
             module = process["module"]
+            if "fixedParams" in process:
+                dict_fixed_params = process["fixedParams"]
+            else:
+                dict_fixed_params = {}
+            
             this_process:AllProcesses = module(
                 df_inputs=self.df_inputs,
                 dict_paths=self.dict_paths,
-                # params=known_params,
                 params=process["userParams"],
+                dict_fixed_params=dict_fixed_params,
                 verbose=process["verbose"],
                 include_dir=Path(os.getcwd()) / "INCLUDE",
             )
-
-            # if this_process.is_case:
-            #     this_process.on_params_update()
 
             # Initialize build list
             this_process.build = []
@@ -226,9 +210,6 @@ class WorkFlow:
                     # Update dictionary of parameters for the current case ID
                     this_process.update_dict_params()
 
-                    # # Printing
-                    # print("---------------------------------------------------------")
-
                     # Write json file containing current parameters
                     with open("parameters.json", "w") as f:
                         json.dump(this_process.dict_params, f, indent=4)
@@ -266,45 +247,12 @@ class WorkFlow:
 
             with open(os.path.join(self.working_dir, "paths.json"), "w") as f:
                 json.dump(self.dict_paths, f, indent=4)
-
-
-
-
-
-            # # Test existance of files
-            # for _, value in self.dict_paths.items():
-                
-            #     if (not Path(value).is_file()) and (not Path(value).is_dir()):
-            #         directory = os.path.split(value)[0]
-            #         filename = os.path.split(value)[1]
-            #         print(f"Missing file/folder {filename} in {directory}.")
-
-                    # return
-            
-            # # Update report
-            # try:
-            #     tpl = self.env.get_template(f"{this_process.__class__.__name__}.j2")
-            #     self.doc.append(NoEscape(tpl.render(**this_process.kwargs)))
-            # except jinja2.exceptions.TemplateNotFound:
-            #     pass
             
             # Go back to working directory
             os.chdir(self.working_dir)
         
-        # with open("paths.json", "w") as f:
-        #     json.dump(self.dict_paths, f, indent=4)
         with open("diagram.json", "w") as f:
             json.dump(self.diagram, f, indent=4)
-        
-        # # --------------------- #
-        # # Generate final report #
-        # # --------------------- #
-        # if self.generate_report:
-        #     self.doc.generate_pdf(
-        #         filepath="report",
-        #         clean_tex=False,
-        #         compiler_args=["--shell-escape"],
-        #     )
 
     def convert_value(self, value):
         """Function to convert values in python native types"""
@@ -335,31 +283,27 @@ class AllProcesses():
 
     name: str = attrs.field(default=None)
     df_inputs: pd.DataFrame = attrs.field(default=None)
-    # dict_paths: dict = attrs.field(default=None)
     dict_paths: dict = attrs.field(factory=dict)
     include_dir: Path = attrs.field(default=None)
     kwargs: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
+    user_params: list = attrs.field(factory=list)
     params: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
-    # dict_params: dict = attrs.field(default=None)
     dict_params: dict = attrs.field(factory=dict)
-    # build: list = attrs.field(default=None)
+    dict_fixed_params: dict = attrs.field(factory=dict)
     build: list = attrs.field(factory=list)
     require: list = attrs.field(default=None)
     verbose: bool = attrs.field(default=True)
-    index: str = None
+    index: str = attrs.field(default=None)
 
     def __attrs_post_init__(self):
 
-        self.on_params_update()
+        self.user_params = self.params.copy()
 
-    # def __setattr__(self, name, value):
-
-    #     super().__setattr__(name, value)
-    #     if name == "params" and hasattr(self, "dict_params"):
-    #         self.on_params_update()
+        if self.is_case:
+            self.on_params_update()
 
     def on_params_update(self):
 
