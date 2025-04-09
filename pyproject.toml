@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nuremics" 
+version = "beta"
+description = "A Python™ programming framework to turn scientific prototypes into production-grade software components."
+authors = [
+  { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy==2.0.1",
+  "pandas==2.2.2",
+  "attrs==24.1.0",
+  "imageio==2.34.2",
+  "openpyxl==3.1.5"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/nuremics/nuremics.git"
