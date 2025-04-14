@@ -13,11 +13,14 @@ class Process():
 
     name: str = attrs.field(default=None)
     df_inputs: pd.DataFrame = attrs.field(default=None)
+    dict_inputs: dict = attrs.field(default=None)
     dict_paths: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
     user_params: list = attrs.field(factory=list)
     params: list = attrs.field(factory=list)
+    variable_params: list = attrs.field(factory=list)
+    fixed_params: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(factory=dict)
     dict_fixed_params: dict = attrs.field(factory=dict)
@@ -30,6 +33,8 @@ class Process():
     def __attrs_post_init__(self):
 
         self.user_params = self.params.copy()
+        self.variable_params = list(set(self.df_inputs.columns) & set(self.params))
+        self.fixed_params = list(set(list(self.dict_inputs.keys())) & set(self.params))
 
         if self.is_case:
             self.on_params_update()
@@ -46,9 +51,17 @@ class Process():
 
     def on_params_update(self):
 
-        df = self.df_inputs.reset_index().groupby(self.params)["ID"].agg(list).reset_index(name="ID")
-        df["ID"] = df["ID"].apply(lambda x: "_".join(x))
+        # Create parameters dataframe and fill with variable parameters
+        if len(self.variable_params) > 0:
+            df = self.df_inputs.reset_index().groupby(self.variable_params)["ID"].agg(list).reset_index(name="ID")
+            df["ID"] = df["ID"].apply(lambda x: "_".join(x))
+        else:
+            df = pd.DataFrame({"ID": self.df_inputs.index})
         self.df_params = df.set_index("ID")
+        
+        # Add fixed parameters to the dataframe
+        for param in self.fixed_params:
+            self.df_params[param] = self.dict_inputs[param]
     
     def update_dict_params(self):
 
