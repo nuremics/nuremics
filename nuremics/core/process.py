@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import attrs
+import json
 
 import numpy as np
 import pandas as pd
@@ -17,87 +18,126 @@ class Process():
     dict_paths: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
-    user_params: list = attrs.field(factory=list)
     params: list = attrs.field(factory=list)
+    allparams: list = attrs.field(factory=list)
     variable_params: list = attrs.field(factory=list)
     fixed_params: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(factory=dict)
-    dict_fixed_params: dict = attrs.field(factory=dict)
+    dict_hard_params: dict = attrs.field(factory=dict)
+    dict_out_to_in: dict = attrs.field(default={})
     build: list = attrs.field(factory=list)
     require: list = attrs.field(default=[])
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
     erase: bool = attrs.field(default=False)
+    diagram: dict = attrs.field(default={})
 
     def __attrs_post_init__(self):
 
-        self.user_params = self.params.copy()
-        self.variable_params = list(set(self.df_inputs.columns) & set(self.params))
-        self.fixed_params = list(set(list(self.dict_inputs.keys())) & set(self.params))
+        self.variable_params = list(
+            set(self.df_inputs.columns) & 
+            set(self.params)
+        )
+        self.fixed_params = list(
+            set(list(self.dict_inputs.keys())) & 
+            set(self.params)
+        )
+    
+    def init_params(self):
+
+        # Define list with all parameters considering dependencies with previous processes
+        self.allparams = self.params.copy()
+        for require in self.require:
+            for _, value in self.diagram.items():
+                if require in value.get("build"):
+                    self.allparams = concat_lists_unique(
+                        list1=self.params,
+                        list2=value["allparams"],
+                    )
 
         if self.is_case:
             self.on_params_update()
 
     def __call__(self):
 
-        for param in self.user_params:
-            setattr(self, param, self.dict_params[param])
-        for param in self.dict_fixed_params.keys():
-            setattr(self, param, self.dict_fixed_params[param])
-        
         for output in self.require:
-            setattr(self, output, self.get_build_path(output))
+            output_path = self.get_build_path(output)
+            setattr(self, output, output_path)
+            self.dict_out_to_in[output] = output_path
+
+        # Update dictionary of parameters
+        self.update_dict_params()
+
+        for param in self.params:
+            setattr(self, param, self.dict_params[param])
+        for param in self.dict_hard_params.keys():
+            setattr(self, param, self.dict_hard_params[param])
 
     def on_params_update(self):
 
         # Create parameters dataframe and fill with variable parameters
         if len(self.variable_params) > 0:
-            df = self.df_inputs.reset_index().groupby(self.variable_params)["ID"].agg(list).reset_index(name="ID")
-            df["ID"] = df["ID"].apply(lambda x: "_".join(x))
+            self.df_params = self.df_inputs[self.variable_params].copy()
         else:
-            df = pd.DataFrame({"ID": self.df_inputs.index})
-        self.df_params = df.set_index("ID")
+            # Check parameters dependencies
+            variable_params = list(
+                set(self.df_inputs.columns) & 
+                set(self.allparams)
+            )
+            if len(variable_params) == 0:
+                self.is_case = False
+            else:
+                self.df_params = pd.DataFrame(self.df_inputs.index, columns=["ID"]).set_index("ID")
         
         # Add fixed parameters to the dataframe
-        for param in self.fixed_params:
-            self.df_params[param] = self.dict_inputs[param]
+        if self.is_case:
+            for param in self.fixed_params:
+                self.df_params[param] = self.dict_inputs[param]
     
     def update_dict_params(self):
 
-        # Printing
-        print("")
-        print(f"> Processing {self.index} with set of parameters :")
+        if self.is_case:
 
-        self.dict_params = {}
-        for param in self.df_params.columns:
-            value = self.convert_value(self.df_params.at[self.index, param])
-            self.dict_params[param] = value
-            
             # Printing
-            print(f"|--> {param} = {value}")
+            print("")
+            print(f"> Processing {self.index} with inputs :")
+
+            self.dict_params = {}
+            for param in self.df_params.columns:
+                value = convert_value(self.df_params.at[self.index, param])
+                self.dict_params[param] = value
+                
+                # Printing
+                print(f"|--> {param} = {value}")
+            
+            if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
+                self.is_processed = False
+        
+        else:
+
+            # Printing
+            print("")
+            print(f"> Processing inputs :")
+
+            self.dict_params = {param: self.dict_inputs[param] for param in self.fixed_params}
+            for param, value in self.dict_params.items():
+
+                # Printing
+                print(f"|--> {param} = {value}")
+        
+        for out, path in self.dict_out_to_in.items():
+
+                # Printing
+                print(f"|--> {out} = {path}")
         
         # Printing
         print("")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>> START <<<<<<<<<<<<<<<<<<<<<<<<<")
 
-        if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
-            self.is_processed = False
-
-    def convert_value(self, value):
-        """Function to convert values in python native types"""
-
-        if value == "NA":
-            return None
-        elif isinstance(value, (bool, np.bool_)):
-            return bool(value)
-        elif isinstance(value, (int, np.int64)):
-            return int(value)
-        elif isinstance(value, (float, np.float64)):
-            return float(value)
-        elif isinstance(value, str):
-            return str(value)
-        else:
-            return value
+        # Write json file containing current parameters
+        with open("parameters.json", "w") as f:
+            json.dump(self.dict_params, f, indent=4)
 
     def get_build_path(self,
         build: str,
@@ -107,17 +147,13 @@ class Process():
         # Initialize path to return
         path = None
 
-        for key, value in self.dict_paths[build].items():
+        if isinstance(self.dict_paths[build], dict):
+            for key, value in self.dict_paths[build].items():
+                if key == self.index:
+                    path = value
+        else:
+            path = self.dict_paths[build]
 
-            # Split key into list
-            key_parts = key.split("_")
-            # Split index into list
-            index_parts = self.index.split("_")
-            
-            # Verify that index is in the key 
-            if all(term in key_parts for term in index_parts):
-                path = value
-            
         return path
 
     @classmethod
@@ -187,3 +223,31 @@ class Process():
             self.dict_paths[build][self.index] = os.path.join(os.getcwd(), dump)
         else:
             self.dict_paths[build] = os.path.join(os.getcwd(), dump)
+
+    def finalize(self):
+
+        print(">>>>>>>>>>>>>>>>>>>>>>> COMPLETED <<<<<<<<<<<<<<<<<<<<<<<")
+
+
+def convert_value(value):
+    """Function to convert values in python native types"""
+
+    if value == "NA":
+        return None
+    elif isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    elif isinstance(value, (int, np.int64)):
+        return int(value)
+    elif isinstance(value, (float, np.float64)):
+        return float(value)
+    elif isinstance(value, str):
+        return str(value)
+    else:
+        return value
+
+
+def concat_lists_unique(
+    list1: list,
+    list2: list,
+):
+    return list(dict.fromkeys(list1 + list2))

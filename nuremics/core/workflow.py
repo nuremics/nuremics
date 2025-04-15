@@ -249,37 +249,29 @@ class WorkFlow:
                 
                 # Define class object for the current process
                 process = proc["process"]
-                if "fixedParams" in proc:
-                    dict_fixed_params = proc["fixedParams"]
+                if "hardParams" in proc:
+                    dict_hard_params = proc["hardParams"]
                 else:
-                    dict_fixed_params = {}
+                    dict_hard_params = {}
                 
                 this_process:Process = process(
                     df_inputs=self.dict_variable_inputs[study],
                     dict_inputs=self.dict_fixed_inputs[study],
                     dict_paths=self.dict_paths[study],
                     params=proc["userParams"],
-                    dict_fixed_params=dict_fixed_params,
+                    dict_hard_params=dict_hard_params,
                     erase=self.erase,
                     is_processed=proc["execute"],
                     verbose=proc["verbose"],
+                    diagram=self.diagram,
                 )
-
-                # Initialize build list
-                this_process.build = []
+                this_process.init_params()
 
                 # Define process name
                 if this_process.name is None:
                     name = this_process.__class__.__name__
                 else:
                     name = this_process.name
-
-                # Update process diagram
-                self.diagram[name] = {
-                    "params": this_process.params,
-                    "build": this_process.build,
-                    "require": this_process.require,
-                }
 
                 # Printing
                 print("---------------------------------------------------------")
@@ -303,19 +295,11 @@ class WorkFlow:
                         subfolder_path = study_dir / folder_name / str(idx)
                         subfolder_path.mkdir(exist_ok=True, parents=True)
                         os.chdir(subfolder_path)
-                        
-                        # Update dictionary of parameters for the current case ID
-                        this_process.update_dict_params()
-
-                        # Write json file containing current parameters
-                        with open("parameters.json", "w") as f:
-                            json.dump(this_process.dict_params, f, indent=4)
 
                         # Launch process
                         if this_process.is_processed:
-                            print(">>> START <<<")
                             this_process()
-                            print(">>> COMPLETED <<<")
+                            this_process.finalize()
                         else:
                             # Printing
                             print("> WARNING : Process is skipped /!\\")
@@ -328,15 +312,22 @@ class WorkFlow:
                 
                     # Launch process
                     if this_process.is_processed:
-                        print(">>> START <<<")
                         this_process()
-                        print(">>> COMPLETED <<<")
+                        this_process.finalize()
                     else:
                         # Printing
                         print(" > WARNING : Process is skipped /!\\")
                         print("---------------------------------------------------------")
                 
                 print("")
+
+                # Update process diagram
+                self.diagram[name] = {
+                    "params": this_process.params,
+                    "allparams": this_process.allparams,
+                    "build": this_process.build,
+                    "require": this_process.require,
+                }
 
                 # Update paths dictonary
                 self.dict_paths[study] = this_process.dict_paths
