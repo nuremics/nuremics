@@ -8,8 +8,10 @@ from tkinter import *
 import json
 import pandas as pd
 from pathlib import Path
+from termcolor import colored
 
 from .process import Process
+from importlib.resources import files
 
 
 class Application:
@@ -17,6 +19,7 @@ class Application:
     
     def __init__(
         self,
+        app_name:str = None,
         working_dir: Path = None,
         processes: list = None,
         studies: list = None,
@@ -27,6 +30,7 @@ class Application:
         # Define workflow object #
         # ---------------------- #
         self.workflow = WorkFlow(
+            app_name=app_name,
             working_dir=working_dir,
             processes=processes,
             studies=studies,
@@ -47,6 +51,7 @@ class WorkFlow:
     
     def __init__(
         self,
+        app_name: str,
         working_dir: Path,
         processes: list,
         studies: list = None,
@@ -54,15 +59,32 @@ class WorkFlow:
         verbose: bool = True,
     ):
         """Initialization."""
-        
+
         # -------------------- #
         # Initialize variables #
         # -------------------- #
+        self.app_name = app_name
         self.dict_studies = {}
         self.processes = processes
         self.diagram = {}
         self.erase = erase
         self.verbose = verbose
+
+        # ----------------------------------------------- #
+        # Print ASCII NUREMICS logo with application name #
+        # ----------------------------------------------- #
+        ascii_logo_path:str = files("nuremics.resources").joinpath("logo.txt")
+        f = open(ascii_logo_path, "r")
+        for line in f:
+            lines = f.readlines()
+        print("")
+        for line in lines:
+            print(line.rstrip())
+
+        print("")
+        print(
+            colored(f"| NUREMICS application : {self.app_name} |", "blue", attrs=["reverse"]),
+        )
 
         # ------------------------ #
         # Define working directory #
@@ -137,7 +159,8 @@ class WorkFlow:
         for study in studies:
             for param in user_params:
                 if self.dict_studies[study]["params"][param] is None:
-                    sys.exit(f"/!\\ {study} must be configured /!\\")
+                    print("")
+                    sys.exit(colored(f"(X) Please configure {study} in studies.json file (X)", "red"))
 
         # -------------------- #
         # Initialize data tree #
@@ -192,7 +215,8 @@ class WorkFlow:
 
             # Check if variable input parameters have been defined
             if df_inputs.empty:
-                sys.exit(f"/!\\ Please complete {study} parameters in inputs.csv file /!\\")
+                print("")
+                sys.exit(colored(f"(X) Please complete {study} parameters in inputs.csv file (X)", "red"))
             
             # Define inputs dictionary with fixed parameters
             if not os.path.exists(f"{study}/inputs.json"):
@@ -215,7 +239,7 @@ class WorkFlow:
             # Check if fixed input parameters have been defined
             for key, value in dict_inputs.items():
                 if value is None:
-                    sys.exit(f"/!\\ Please complete {study} parameters in inputs.json file /!\\")
+                    sys.exit(colored(f"(X) Please complete {study} parameters in inputs.json file (X)", "red"))
         
             # Initialize dictionary containing all paths
             try:
@@ -232,15 +256,7 @@ class WorkFlow:
         # --------------- #
         # Launch workflow #
         # --------------- #
-        for study in list(self.dict_studies.keys()):
-
-            # Printing
-            print("---------------------------------------------------------")
-            print("---------------------------------------------------------")
-            print(f"| STUDY : {study}")
-            print("---------------------------------------------------------")
-            print("---------------------------------------------------------")
-            print("")
+        for n, study in enumerate(list(self.dict_studies.keys())):
 
             study_dir:Path = self.working_dir / study
             os.chdir(study_dir)
@@ -273,11 +289,6 @@ class WorkFlow:
                 else:
                     name = this_process.name
 
-                # Printing
-                print("---------------------------------------------------------")
-                print(f"| PROCESS {step+1} : {name}")
-                print("---------------------------------------------------------")
-
                 # Define working folder associated to the current process
                 folder_name = f"{step+1}_{name}"
                 folder_path:Path = study_dir / folder_name
@@ -288,6 +299,21 @@ class WorkFlow:
 
                     # Define sub-folders associated to each ID of the inputs dataframe
                     for idx in this_process.df_params.index:
+                        
+                        # Printing
+                        print("")
+                        print(
+                            colored(f"STUDY {n+1} :", "cyan", attrs=["underline"]),
+                            colored(f"{study}", "cyan"),
+                        )
+                        print(
+                            colored(f"PROCESS {step+1} :", "cyan", attrs=["underline"]),
+                            colored(f"{name}", "cyan"),
+                        )
+                        print(
+                            colored(f"DATASET :", "cyan", attrs=["underline"]),
+                            colored(f"{idx}", "cyan"),
+                        )
 
                         # Update process index
                         this_process.index = idx
@@ -302,13 +328,24 @@ class WorkFlow:
                             this_process.finalize()
                         else:
                             # Printing
-                            print("> WARNING : Process is skipped /!\\")
-                            print("---------------------------------------------------------")
+                            print("")
+                            print(colored("/!\\ Process is skipped /!\\", "yellow"))
 
                         # Go back to working folder
                         os.chdir(folder_path)
                     
                 else:
+
+                    # Printing
+                    print("")
+                    print(
+                        colored(f"STUDY {n+1} :", "cyan", attrs=["underline"]),
+                        colored(f"{study}", "cyan"),
+                    )
+                    print(
+                        colored(f"PROCESS {step+1} :", "cyan", attrs=["underline"]),
+                        colored(f"{name}", "cyan"),
+                    )
                 
                     # Launch process
                     if this_process.is_processed:
@@ -316,10 +353,8 @@ class WorkFlow:
                         this_process.finalize()
                     else:
                         # Printing
-                        print(" > WARNING : Process is skipped /!\\")
-                        print("---------------------------------------------------------")
-                
-                print("")
+                        print("")
+                        print(colored("/!\\ Process is skipped /!\\", "yellow"))
 
                 # Update process diagram
                 self.diagram[name] = {

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import attrs
 import json
+from termcolor import colored
 
 import numpy as np
 import pandas as pd
@@ -23,17 +24,16 @@ class Process():
     variable_params: list = attrs.field(factory=list)
     fixed_params: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
-    dict_params: dict = attrs.field(factory=dict)
+    dict_params: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
-    dict_out_to_in: dict = attrs.field(default={})
     build: list = attrs.field(factory=list)
     require: list = attrs.field(default=[])
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
-    erase: bool = attrs.field(default=False)
+    erase: bool = attrs.field(default=True)
     diagram: dict = attrs.field(default={})
-
-    def __attrs_post_init__(self):
+    
+    def init_params(self):
 
         self.variable_params = list(
             set(self.df_inputs.columns) & 
@@ -43,8 +43,6 @@ class Process():
             set(list(self.dict_inputs.keys())) & 
             set(self.params)
         )
-    
-    def init_params(self):
 
         # Define list with all parameters considering dependencies with previous processes
         self.allparams = self.params.copy()
@@ -61,32 +59,41 @@ class Process():
 
     def __call__(self):
 
-        for output in self.require:
-            output_path = self.get_build_path(output)
-            setattr(self, output, output_path)
-            self.dict_out_to_in[output] = output_path
-
         # Update dictionary of parameters
-        self.update_dict_params()
+        if self.dict_params is None:
+            self.update_dict_params()
 
-        for param in self.params:
-            setattr(self, param, self.dict_params[param])
-        for param in self.dict_hard_params.keys():
-            setattr(self, param, self.dict_hard_params[param])
+        # Printing
+        print("")
+        print(colored(f"> Processing inputs :", "green"))
+
+        for param, value in self.dict_params.items():
+            setattr(self, param, value)
+
+            # Printing
+            print(colored(f"|--> {param} = {value}", "green"))
+        
+        # Printing
+        print("")
+        print(colored(">>> START <<<", "magenta"))
 
     def on_params_update(self):
 
         # Create parameters dataframe and fill with variable parameters
         if len(self.variable_params) > 0:
             self.df_params = self.df_inputs[self.variable_params].copy()
+        
+        # There is no variable parameters
         else:
             # Check parameters dependencies
             variable_params = list(
                 set(self.df_inputs.columns) & 
                 set(self.allparams)
             )
+            # There is no variable parameter from previous process
             if len(variable_params) == 0:
                 self.is_case = False
+            # There are variable parameters from previous process
             else:
                 self.df_params = pd.DataFrame(self.df_inputs.index, columns=["ID"]).set_index("ID")
         
@@ -97,45 +104,27 @@ class Process():
     
     def update_dict_params(self):
 
+        # Add user parameters
         if self.is_case:
-
-            # Printing
-            print("")
-            print(f"> Processing {self.index} with inputs :")
-
             self.dict_params = {}
             for param in self.df_params.columns:
                 value = convert_value(self.df_params.at[self.index, param])
                 self.dict_params[param] = value
-                
-                # Printing
-                print(f"|--> {param} = {value}")
-            
             if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
                 self.is_processed = False
-        
         else:
-
-            # Printing
-            print("")
-            print(f"> Processing inputs :")
-
             self.dict_params = {param: self.dict_inputs[param] for param in self.fixed_params}
-            for param, value in self.dict_params.items():
-
-                # Printing
-                print(f"|--> {param} = {value}")
         
-        for out, path in self.dict_out_to_in.items():
-
-                # Printing
-                print(f"|--> {out} = {path}")
+        # Add hard parameters
+        for param, value in self.dict_hard_params.items():
+            self.dict_params[param] = value
         
-        # Printing
-        print("")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>> START <<<<<<<<<<<<<<<<<<<<<<<<<")
+        # Add previous outputs
+        for output in self.require:
+            output_path = self.get_build_path(output)
+            self.dict_params[output] = output_path
 
-        # Write json file containing current parameters
+        # Write json file containing all parameters
         with open("parameters.json", "w") as f:
             json.dump(self.dict_params, f, indent=4)
 
@@ -170,7 +159,8 @@ class Process():
 
                 if is_stopped and not self.erase:
                     # Printing
-                    print(f"> WARNING : [{build}] is already built !")
+                    print("")
+                    print(colored("/!\\ Process is skipped /!\\", "yellow"))
                     return
                 
                 # Call decorated function
@@ -226,7 +216,7 @@ class Process():
 
     def finalize(self):
 
-        print(">>>>>>>>>>>>>>>>>>>>>>> COMPLETED <<<<<<<<<<<<<<<<<<<<<<<")
+        print(colored(">>> COMPLETED <<<", "magenta"))
 
 
 def convert_value(value):
