@@ -16,13 +16,21 @@ class Process():
     name: str = attrs.field(default=None)
     df_inputs: pd.DataFrame = attrs.field(default=None)
     dict_inputs: dict = attrs.field(default=None)
+    dict_inputfiles: dict = attrs.field(default=None)
     dict_paths: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
     params: list = attrs.field(factory=list)
     allparams: list = attrs.field(factory=list)
-    variable_params: list = attrs.field(factory=list)
-    fixed_params: list = attrs.field(factory=list)
+    inputfiles: list = attrs.field(factory=list)
+    fixed_params: list = attrs.field(default=None)
+    variable_params: list = attrs.field(default=None)
+    fixed_inputfiles: list = attrs.field(default=None)
+    variable_inputfiles: list = attrs.field(default=None)
+    fixed_params_proc: list = attrs.field(factory=list)
+    variable_params_proc: list = attrs.field(factory=list)
+    fixed_inputfiles_proc: list = attrs.field(factory=list)
+    variable_inputfiles_proc: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
@@ -35,14 +43,10 @@ class Process():
     
     def init_params(self):
 
-        self.variable_params = list(
-            set(self.df_inputs.columns) & 
-            set(self.params)
-        )
-        self.fixed_params = list(
-            set(list(self.dict_inputs.keys())) & 
-            set(self.params)
-        )
+        self.variable_params_proc = [x for x in self.variable_params if x in self.params]
+        self.fixed_params_proc = [x for x in self.fixed_params if x in self.params]
+        self.fixed_inputfiles_proc = [x for x in self.fixed_inputfiles if x in self.inputfiles]
+        self.variable_inputfiles_proc = [x for x in self.variable_inputfiles if x in self.inputfiles]
 
         # Define list with all parameters considering dependencies with previous processes
         self.allparams = self.params.copy()
@@ -60,36 +64,27 @@ class Process():
     def __call__(self):
 
         # Update dictionary of parameters
-        if self.dict_params is None:
-            self.update_dict_params()
-
-        # Printing
-        print("")
-        print(colored(f"> Processing inputs :", "green"))
+        self.update_dict_params()
 
         for param, value in self.dict_params.items():
             setattr(self, param, value)
 
             # Printing
-            print(colored(f"|--> {param} = {value}", "green"))
+            print(colored(f"> {param} = {value}", "blue"))
         
         # Printing
-        print("")
-        print(colored(">>> START <<<", "magenta"))
+        print(colored(">>> START", "green"))
 
     def on_params_update(self):
 
         # Create parameters dataframe and fill with variable parameters
-        if len(self.variable_params) > 0:
-            self.df_params = self.df_inputs[self.variable_params].copy()
+        if len(self.variable_params_proc) > 0:
+            self.df_params = self.df_inputs[self.variable_params_proc].copy()
         
         # There is no variable parameters
         else:
             # Check parameters dependencies
-            variable_params = list(
-                set(self.df_inputs.columns) & 
-                set(self.allparams)
-            )
+            variable_params = [x for x in self.variable_params if x in self.allparams]
             # There is no variable parameter from previous process
             if len(variable_params) == 0:
                 self.is_case = False
@@ -99,13 +94,14 @@ class Process():
         
         # Add fixed parameters to the dataframe
         if self.is_case:
-            for param in self.fixed_params:
+            for param in self.fixed_params_proc:
                 self.df_params[param] = self.dict_inputs[param]
     
     def update_dict_params(self):
 
         # Add user parameters
         if self.is_case:
+
             self.dict_params = {}
             for param in self.df_params.columns:
                 value = convert_value(self.df_params.at[self.index, param])
@@ -113,11 +109,20 @@ class Process():
             if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
                 self.is_processed = False
         else:
-            self.dict_params = {param: self.dict_inputs[param] for param in self.fixed_params}
+
+            self.dict_params = {param: self.dict_inputs[param] for param in self.fixed_params_proc}
         
         # Add hard parameters
         for param, value in self.dict_hard_params.items():
             self.dict_params[param] = value
+
+        # Add inputfiles
+        for file in self.fixed_inputfiles_proc:
+            key = os.path.splitext(file)[0]
+            self.dict_params[key] = self.dict_inputfiles[key]
+        for file in self.variable_inputfiles_proc:
+            key = os.path.splitext(file)[0]
+            self.dict_params[key] = self.dict_inputfiles[key][self.index]
         
         # Add previous outputs
         for output in self.require:
@@ -160,7 +165,7 @@ class Process():
                 if is_stopped and not self.erase:
                     # Printing
                     print("")
-                    print(colored("/!\\ Process is skipped /!\\", "yellow"))
+                    print(colored("(!) Process is skipped.", "yellow"))
                     return
                 
                 # Call decorated function
@@ -216,7 +221,7 @@ class Process():
 
     def finalize(self):
 
-        print(colored(">>> COMPLETED <<<", "magenta"))
+        print(colored("COMPLETED <<<", "green"))
 
 
 def convert_value(value):

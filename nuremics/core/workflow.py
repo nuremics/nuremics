@@ -77,10 +77,7 @@ class WorkFlow:
         self.variable_inputfiles = {}
         self.dict_fixed_params = {}
         self.dict_variable_params = {}
-        self.dict_fixed_inputfiles = {}
-        self.dict_variable_inputfiles = {}
-        self.dict_fixed_inputs = {}
-        self.dict_variable_inputs = {}
+        # self.dict_fixed_inputfiles = {}
         self.dict_inputfiles = {}
         self.dict_paths = {}
         self.diagram = {}
@@ -194,6 +191,12 @@ class WorkFlow:
             for param in list(self.dict_studies[study]["params"]):
                 if param not in self.user_params:
                     del self.dict_studies[study]["params"][param]
+        
+        # Clean inputfiles
+        for study in list(self.dict_studies.keys()):
+            for file in list(self.dict_studies[study]["inputfiles"]):
+                if file not in self.inputfiles:
+                    del self.dict_studies[study]["inputfiles"][file]
 
         # Initialize parameters
         for study in self.studies:
@@ -317,22 +320,23 @@ class WorkFlow:
             self.fixed_inputfiles[study] = fixed_inputfiles
             self.variable_inputfiles[study] = variable_inputfiles
 
+            self.dict_inputfiles[study] = {}
             self.init_fixed_inputs(study)
             self.init_variable_inputs(study)
 
-            # # -------------------------------------------#
-            # # Initialize dictionary containing all paths #
-            # # -------------------------------------------#
-            # try:
-            #     with open("paths.json") as f:
-            #         dict_paths = json.load(f)
-            # except:
-            #     dict_paths = {}
+            # -------------------------------------------#
+            # Initialize dictionary containing all paths #
+            # -------------------------------------------#
+            try:
+                with open("paths.json") as f:
+                    dict_paths = json.load(f)
+            except:
+                dict_paths = {}
             
-            # self.dict_paths[study] = dict_paths
+            self.dict_paths[study] = dict_paths
 
-            # # Go back to working directory
-            # os.chdir(self.working_dir)
+            # Go back to working directory
+            os.chdir(self.working_dir)
 
     def init_fixed_inputs(self,
         study: str,
@@ -340,7 +344,6 @@ class WorkFlow:
         """Define inputs dictionary with fixed parameters/inputfiles"""
 
         self.dict_fixed_params[study] = {}
-        self.dict_fixed_inputfiles[study] = {}
         
         # ---------- #
         # Parameters #
@@ -383,13 +386,19 @@ class WorkFlow:
         # ---------- #
         # Inputfiles #
         # ---------- #
-        # if len(self.fixed_inputfiles[study]) > 0:
+        dict_inputfiles = {}
+        for file in self.fixed_inputfiles[study]:
+            key = os.path.splitext(file)[0]
+            dict_inputfiles[key] = str(Path(os.getcwd()) / "0_inputs" / file)
 
-        #     self.dict_fixed_inputfiles[study]
+        # Delete useless input files
+        if len(self.inputfiles) > 0:
+            input_files = [f for f in Path("0_inputs").iterdir() if f.is_file()]
+            for file in input_files:
+                if os.path.split(file)[-1] not in self.fixed_inputfiles[study]:
+                    file.unlink()
 
-        # for file in self.fixed_inputfiles[study]:
-
-        #     self.dict_fixed_inputfiles[study][file] = 
+        self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
 
         # --------------------------------------- #
         # Check if fixed inputs have been defined #
@@ -463,12 +472,33 @@ class WorkFlow:
                     path_or_buf="inputs.csv",
                 )
 
-            # Delete useless input folders
-            input_folders = [f for f in Path("0_inputs").iterdir() if f.is_dir()]
-            for folder in input_folders:
-                id = os.path.split(folder)[-1]
-                if id not in df_inputs.index.tolist():
-                    shutil.rmtree(folder)
+            # ---------- #
+            # Inputfiles #
+            # ---------- #
+            dict_inputfiles = {}
+            for file in self.variable_inputfiles[study]:
+                key = os.path.splitext(file)[0]
+                dict_inputfiles[key] = {}
+                for idx in df_inputs.index:
+                    dict_inputfiles[key][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
+
+            self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
+
+            # Delete useless input folders / files
+            if len(self.inputfiles) > 0:
+                
+                input_folders = [f for f in Path("0_inputs").iterdir() if f.is_dir()]
+                for folder in input_folders:
+                    
+                    id = os.path.split(folder)[-1]
+                    if id not in df_inputs.index.tolist():
+                        shutil.rmtree(folder)
+                    
+                    path = Path("0_inputs") / id
+                    input_files = [f for f in path.iterdir() if f.is_file()]
+                    for file in input_files:
+                        if os.path.split(file)[-1] not in self.variable_inputfiles[study]:
+                            file.unlink()
             
             # Check if datasets have been defined
             if len(df_inputs.index) == 0:
@@ -521,7 +551,14 @@ class WorkFlow:
                 sys.exit()
 
             # Update inputs dictionary with variable parameters
-            self.dict_variable_inputs[study] = df_inputs
+            self.dict_variable_params[study] = df_inputs
+        
+        else:
+
+            if os.path.exists("inputs.csv"):
+                Path("inputs.csv").unlink()
+            
+            self.dict_variable_params[study] = pd.DataFrame()
 
     def __call__(self):
         """Launch workflow of processes."""
@@ -529,7 +566,12 @@ class WorkFlow:
         # --------------- #
         # Launch workflow #
         # --------------- #
-        for n, study in enumerate(list(self.dict_studies.keys())):
+        print("")
+        print(
+            colored("> RUNNING <", "blue", attrs=["reverse"]),
+        )
+
+        for study in list(self.dict_studies.keys()):
 
             study_dir:Path = self.working_dir / study
             os.chdir(study_dir)
@@ -543,12 +585,23 @@ class WorkFlow:
                 else:
                     dict_hard_params = {}
                 
+                if "userParams" in proc: user_params = proc["userParams"]
+                else: user_params = []
+                if "inputfiles" in proc: inputfiles = proc["inputfiles"]
+                else: inputfiles = []
+
                 this_process:Process = process(
-                    df_inputs=self.dict_variable_inputs[study],
-                    dict_inputs=self.dict_fixed_inputs[study],
+                    df_inputs=self.dict_variable_params[study],
+                    dict_inputs=self.dict_fixed_params[study],
+                    dict_inputfiles=self.dict_inputfiles[study],
                     dict_paths=self.dict_paths[study],
-                    params=proc["userParams"],
+                    params=user_params,
+                    inputfiles=inputfiles,
                     dict_hard_params=dict_hard_params,
+                    fixed_params=self.fixed_params[study],
+                    variable_params=self.variable_params[study],
+                    fixed_inputfiles=self.fixed_inputfiles[study],
+                    variable_inputfiles=self.variable_inputfiles[study],
                     erase=self.erase,
                     is_processed=proc["execute"],
                     verbose=proc["verbose"],
@@ -561,7 +614,7 @@ class WorkFlow:
                     name = this_process.__class__.__name__
                 else:
                     name = this_process.name
-
+                
                 # Define working folder associated to the current process
                 folder_name = f"{step+1}_{name}"
                 folder_path:Path = study_dir / folder_name
@@ -572,20 +625,11 @@ class WorkFlow:
 
                     # Define sub-folders associated to each ID of the inputs dataframe
                     for idx in this_process.df_params.index:
-                        
+
                         # Printing
                         print("")
                         print(
-                            colored(f"STUDY {n+1} :", "cyan", attrs=["underline"]),
-                            colored(f"{study}", "cyan"),
-                        )
-                        print(
-                            colored(f"PROCESS {step+1} :", "cyan", attrs=["underline"]),
-                            colored(f"{name}", "cyan"),
-                        )
-                        print(
-                            colored(f"DATASET :", "cyan", attrs=["underline"]),
-                            colored(f"{idx}", "cyan"),
+                            colored(f"| {study} | {name} | {idx} |", "magenta"),
                         )
 
                         # Update process index
@@ -602,7 +646,7 @@ class WorkFlow:
                         else:
                             # Printing
                             print("")
-                            print(colored("/!\\ Process is skipped /!\\", "yellow"))
+                            print(colored("(!) Process is skipped.", "yellow"))
 
                         # Go back to working folder
                         os.chdir(folder_path)
@@ -612,12 +656,7 @@ class WorkFlow:
                     # Printing
                     print("")
                     print(
-                        colored(f"STUDY {n+1} :", "cyan", attrs=["underline"]),
-                        colored(f"{study}", "cyan"),
-                    )
-                    print(
-                        colored(f"PROCESS {step+1} :", "cyan", attrs=["underline"]),
-                        colored(f"{name}", "cyan"),
+                        colored(f"| {study} | {name} |", "magenta"),
                     )
                 
                     # Launch process
@@ -627,7 +666,7 @@ class WorkFlow:
                     else:
                         # Printing
                         print("")
-                        print(colored("/!\\ Process is skipped /!\\", "yellow"))
+                        print(colored("(!) Process is skipped.", "yellow"))
 
                 # Update process diagram
                 self.diagram[name] = {
@@ -642,9 +681,9 @@ class WorkFlow:
 
                 with open(os.path.join(self.working_dir, f"{study}/paths.json"), "w") as f:
                     json.dump(self.dict_paths[study], f, indent=4)
-                
-                # Go back to study directory
-                os.chdir(study_dir)
+
+            # Go back to study directory
+            os.chdir(study_dir)
             
             with open("diagram.json", "w") as f:
                 json.dump(self.diagram, f, indent=4)
