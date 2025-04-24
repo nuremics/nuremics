@@ -49,6 +49,8 @@ class Application:
         self.workflow.test_studies_settings()
         self.workflow.print_studies()
 
+        self.workflow.init_process_settings()
+
         self.workflow.configure_inputs()
         self.workflow.init_data_tree()
 
@@ -85,28 +87,30 @@ class WorkFlow:
         # -------------------- #
         self.app_name = app_name
         self.studies = studies
-        self.dict_studies = {}
         self.processes = processes
-        self.user_params = []
-        self.inputfiles = []
+        self.list_processes = []
+        self.dict_studies = {}
+        self.dict_process = {}
+        self.input_params = []
+        self.input_paths = []
         self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
         self.fixed_params_messages = {}
         self.fixed_params_config = {}
-        self.fixed_inputfiles_messages = {}
-        self.fixed_inputfiles_config = {}
+        self.fixed_paths_messages = {}
+        self.fixed_paths_config = {}
         self.variable_params_messages = {}
         self.variable_params_config = {}
-        self.variable_inputfiles_messages = {}
-        self.variable_inputfiles_config = {}
+        self.variable_paths_messages = {}
+        self.variable_paths_config = {}
         self.fixed_params = {}
-        self.fixed_inputfiles = {}
+        self.fixed_paths = {}
         self.variable_params = {}
-        self.variable_inputfiles = {}
+        self.variable_paths = {}
         self.dict_fixed_params = {}
         self.dict_variable_params = {}
-        self.dict_inputfiles = {}
+        self.dict_input_paths = {}
         self.dict_paths = {}
         self.diagram = {}
         self.erase = erase
@@ -135,26 +139,32 @@ class WorkFlow:
         # ----------------------- #
         os.chdir(self.working_dir)
 
-        # ---------------------- #
-        # Define user parameters #
-        # ---------------------- #
+        # ----------------------- #
+        # Define input parameters #
+        # ----------------------- #
         for _, process in enumerate(self.processes):
-            for param in process["userParams"]:
-                self.user_params.append(param)
+            for param in process["input_params"]:
+                self.input_params.append(param)
 
         # Delete duplicates of parameters
-        self.user_params = list(dict.fromkeys(self.user_params))
+        self.input_params = list(dict.fromkeys(self.input_params))
 
-        # ---------------------- #
-        # Define user inputfiles #
-        # ---------------------- #
+        # ------------------ #
+        # Define input paths #
+        # ------------------ #
         for _, process in enumerate(self.processes):
-            if "inputfiles" in process:
-                for file in process["inputfiles"]:
-                    self.inputfiles.append(file)
+            if "input_paths" in process:
+                for file in process["input_paths"]:
+                    self.input_paths.append(file)
         
-        # Delete duplicates of inputfiles
-        self.inputfiles = list(dict.fromkeys(self.inputfiles))
+        # Delete duplicates of paths
+        self.input_paths = list(dict.fromkeys(self.input_paths))
+
+        # ------------------------ #
+        # Define list of processes #
+        # ------------------------ #
+        for process in self.processes:
+            self.list_processes.append(process["process"].__name__)
 
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
@@ -189,12 +199,12 @@ class WorkFlow:
         print("")
         for i, process in enumerate(self.processes):
             text_inputs = ""
-            if "userParams" in process:
-                for param in process["userParams"]:
+            if "input_params" in process:
+                for param in process["input_params"]:
                     if text_inputs == "": text_inputs += param
                     else: text_inputs += ", "+param
-            if "inputfiles" in process:
-                for file in process["inputfiles"]:
+            if "input_paths" in process:
+                for file in process["input_paths"]:
                     if text_inputs == "": text_inputs += file
                     else: text_inputs += ", "+file
             text_inputs += "."
@@ -215,41 +225,41 @@ class WorkFlow:
             if study not in self.studies:
                 del self.dict_studies[study]
         
-        # Clean parameters
+        # Clean input parameters
         for study in list(self.dict_studies.keys()):
-            for param in list(self.dict_studies[study]["params"]):
-                if param not in self.user_params:
-                    del self.dict_studies[study]["params"][param]
+            for param in list(self.dict_studies[study]["input_params"]):
+                if param not in self.input_params:
+                    del self.dict_studies[study]["input_params"][param]
         
-        # Clean inputfiles
+        # Clean input paths
         for study in list(self.dict_studies.keys()):
-            for file in list(self.dict_studies[study]["inputfiles"]):
-                if file not in self.inputfiles:
-                    del self.dict_studies[study]["inputfiles"][file]
+            for file in list(self.dict_studies[study]["input_paths"]):
+                if file not in self.input_paths:
+                    del self.dict_studies[study]["input_paths"][file]
         
-        # Initialize parameters/inputfiles
+        # Initialize input parameters/paths
         for study in self.studies:
             
             if study not in self.dict_studies:
                 self.dict_studies[study] = {
                     "execute": True,
-                    "params": {},
-                    "inputfiles": {},
+                    "input_params": {},
+                    "input_paths": {},
                 }
             
-            for param in self.user_params:
-                if param not in self.dict_studies[study]["params"]:
+            for param in self.input_params:
+                if param not in self.dict_studies[study]["input_params"]:
                     if study == "Default":
-                        self.dict_studies[study]["params"][param] = False
+                        self.dict_studies[study]["input_params"][param] = False
                     else:
-                        self.dict_studies[study]["params"][param] = None
+                        self.dict_studies[study]["input_params"][param] = None
             
-            for file in self.inputfiles:
-                if file not in self.dict_studies[study]["inputfiles"]:
+            for file in self.input_paths:
+                if file not in self.dict_studies[study]["input_paths"]:
                     if study == "Default":
-                        self.dict_studies[study]["inputfiles"][file] = False
+                        self.dict_studies[study]["input_paths"][file] = False
                     else:
-                        self.dict_studies[study]["inputfiles"][file] = None
+                        self.dict_studies[study]["input_paths"][file] = None
 
         # Write studies json file
         with open("studies.json", "w") as f:
@@ -279,21 +289,21 @@ class WorkFlow:
             self.studies_messages[study] = []
             self.studies_config[study] = True
 
-            for param in self.user_params:
-                if self.dict_studies[study]["params"][param] is None:
+            for param in self.input_params:
+                if self.dict_studies[study]["input_params"][param] is None:
                     self.studies_messages[study].append(f"(X) {param} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["params"][param]: text = "variable"
+                    if self.dict_studies[study]["input_params"][param]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {param} is {text}.")
 
-            for file in self.inputfiles:
-                if self.dict_studies[study]["inputfiles"][file] is None:
+            for file in self.input_paths:
+                if self.dict_studies[study]["input_paths"][file] is None:
                     self.studies_messages[study].append(f"(X) {file} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["inputfiles"][file]: text = "variable"
+                    if self.dict_studies[study]["input_paths"][file]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {file} is {text}.")
 
@@ -326,29 +336,60 @@ class WorkFlow:
                 print(colored(f"> {str(Path.cwd() / "studies.json")}", "red"))
                 sys.exit()
 
+    def init_process_settings(self):
+        """Initialize process settings"""
+
+        # Loop over studies
+        for study in self.studies:
+
+            # Open process json file if existing
+            process_file = Path(study) / "process.json"
+            if os.path.exists(process_file):
+                with open(process_file) as f:
+                    self.dict_process[study] = json.load(f)
+            else:
+                self.dict_process[study] = {}
+
+            # Clean processes
+            for process in list(self.dict_process[study].keys()):
+                if process not in self.list_processes:
+                    del self.dict_process[study][process]
+
+            # Loop over processes
+            for process in self.list_processes:
+                if process not in self.dict_process[study]:
+                    self.dict_process[study][process] = {
+                        "execute": True,
+                        "verbose": False,
+                    }
+            
+            # Write studies json file
+            with open(process_file, "w") as f:
+                json.dump(self.dict_process[study], f, indent=4)
+
     def configure_inputs(self):
-       """Configure inputs with lists of fixed/variable parameters/inputfiles"""
+       """Configure inputs with lists of fixed/variable parameters/paths"""
 
        for study in self.studies:
 
             # Define list of fixed/variable parameters
             fixed_params = []
             variable_params = []
-            for key, value in self.dict_studies[study]["params"].items():
+            for key, value in self.dict_studies[study]["input_params"].items():
                 if value is True: variable_params.append(key)
                 else: fixed_params.append(key)
             
-            # Define list of fixed/variable inputfiles
-            fixed_inputfiles = []
-            variable_inputfiles = []
-            for key, value in self.dict_studies[study]["inputfiles"].items():
-                if value is True: variable_inputfiles.append(key)
-                else: fixed_inputfiles.append(key)
+            # Define list of fixed/variable paths
+            fixed_paths = []
+            variable_paths = []
+            for key, value in self.dict_studies[study]["input_paths"].items():
+                if value is True: variable_paths.append(key)
+                else: fixed_paths.append(key)
             
             self.fixed_params[study] = fixed_params
             self.variable_params[study] = variable_params
-            self.fixed_inputfiles[study] = fixed_inputfiles
-            self.variable_inputfiles[study] = variable_inputfiles
+            self.fixed_paths[study] = fixed_paths
+            self.variable_paths[study] = variable_paths
 
     def init_data_tree(self):
         """Initialize data tree"""
@@ -382,7 +423,7 @@ class WorkFlow:
             # Initialize inputs csv
             inputs_file:Path = study_dir / "inputs.csv"
             if (len(self.variable_params[study]) > 0) or \
-               (len(self.variable_inputfiles[study]) > 0):
+               (len(self.variable_paths[study]) > 0):
                 
                 if not inputs_file.exists():
 
@@ -418,7 +459,7 @@ class WorkFlow:
 
             # Initialize inputs directory
             inputs_dir:Path = study_dir / "0_inputs"
-            if len(self.inputfiles) > 0:
+            if len(self.input_paths) > 0:
 
                 # Create inputs directory (if necessary)
                 inputs_dir.mkdir(
@@ -426,14 +467,14 @@ class WorkFlow:
                     parents=True,
                 )
 
-                # Delete fixed inputfiles (if necessary)
+                # Delete fixed paths (if necessary)
                 inputs_files = [f for f in inputs_dir.iterdir() if f.is_file()]
                 for file in inputs_files:
-                    if os.path.split(file)[-1] not in self.fixed_inputfiles[study]:
+                    if os.path.split(file)[-1] not in self.fixed_paths[study]:
                         file.unlink()
                 
-                # Update inputs subfolders for variable inputfiles
-                if len(self.variable_inputfiles[study]) > 0:
+                # Update inputs subfolders for variable paths
+                if len(self.variable_paths[study]) > 0:
 
                     # Create subfolders (if necessary)    
                     for index in df_inputs.index:
@@ -444,10 +485,10 @@ class WorkFlow:
                             parents=True,
                         )
 
-                        # Delete variable inputfiles (if necessary)
+                        # Delete variable paths (if necessary)
                         inputs_files = [f for f in inputs_subfolder.iterdir() if f.is_file()]
                         for file in inputs_files:
-                            if os.path.split(file)[-1] not in self.variable_inputfiles[study]:
+                            if os.path.split(file)[-1] not in self.variable_paths[study]:
                                 file.unlink()
                     
                     # Delete subfolders (if necessary)
@@ -515,8 +556,8 @@ class WorkFlow:
             # Go to study directory
             os.chdir(study_dir)
 
-            # Initialize inputfiles dictionary
-            self.dict_inputfiles[study] = {}
+            # Initialize dictionary of input paths
+            self.dict_input_paths[study] = {}
 
             # Fixed parameters 
             if len(self.fixed_params[study]) > 0:
@@ -528,17 +569,17 @@ class WorkFlow:
             else:
                 self.dict_fixed_params[study] = {}
 
-            # Fixed inputfiles
-            dict_inputfiles = {}
-            for file in self.fixed_inputfiles[study]:
+            # Fixed paths
+            dict_input_paths = {}
+            for file in self.fixed_paths[study]:
                 key = os.path.splitext(file)[0]
-                dict_inputfiles[key] = str(Path(os.getcwd()) / "0_inputs" / file)
+                dict_input_paths[key] = str(Path(os.getcwd()) / "0_inputs" / file)
 
-            self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
+            self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
 
             # Variable parameters
             if (len(self.variable_params[study]) > 0) or \
-               (len(self.variable_inputfiles[study]) > 0):
+               (len(self.variable_paths[study]) > 0):
                 
                 # Read input dataframe
                 self.dict_variable_params[study] = pd.read_csv(
@@ -549,21 +590,21 @@ class WorkFlow:
             else:
                 self.dict_variable_params[study] = pd.DataFrame()
             
-            # Variable inputfiles
-            if len(self.variable_inputfiles[study]) > 0:
+            # Variable paths
+            if len(self.variable_paths[study]) > 0:
                 
-                dict_inputfiles = {}
+                dict_input_paths = {}
                 df_inputs = pd.read_csv(
                     filepath_or_buffer="inputs.csv",
                     index_col=0,
                 )
-                for file in self.variable_inputfiles[study]:
+                for file in self.variable_paths[study]:
                     key = os.path.splitext(file)[0]
-                    dict_inputfiles[key] = {}
+                    dict_input_paths[key] = {}
                     for idx in df_inputs.index:
-                        dict_inputfiles[key][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
+                        dict_input_paths[key][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
 
-                self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
+                self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
 
             # Go back to working directory
             os.chdir(self.working_dir)        
@@ -581,13 +622,13 @@ class WorkFlow:
             os.chdir(study_dir)
 
             self.fixed_params_messages[study] = []
-            self.fixed_inputfiles_messages[study] = []
+            self.fixed_paths_messages[study] = []
             self.fixed_params_config[study] = True
-            self.fixed_inputfiles_config[study] = True
+            self.fixed_paths_config[study] = True
             self.variable_params_messages[study] = {}
-            self.variable_inputfiles_messages[study] = {}
+            self.variable_paths_messages[study] = {}
             self.variable_params_config[study] = {}
-            self.variable_inputfiles_config[study] = {}
+            self.variable_paths_config[study] = {}
             
             # Fixed parameters
             for param, value in self.dict_fixed_params[study].items():
@@ -597,27 +638,27 @@ class WorkFlow:
                 else:
                     self.fixed_params_messages[study].append(f"(V) {param}")
             
-            # Fixed inputfiles
-            for file in self.fixed_inputfiles[study]:
+            # Fixed paths
+            for file in self.fixed_paths[study]:
                 file_path:Path = Path("0_inputs") / file
                 if not file_path.exists():
-                    self.fixed_inputfiles_messages[study].append(f"(X) {file}")
-                    self.fixed_inputfiles_config[study] = False
+                    self.fixed_paths_messages[study].append(f"(X) {file}")
+                    self.fixed_paths_config[study] = False
                 else:
-                    self.fixed_inputfiles_messages[study].append(f"(V) {file}")
+                    self.fixed_paths_messages[study].append(f"(V) {file}")
 
             # Variable inputs
             if (len(self.variable_params[study]) > 0) or \
-               (len(self.variable_inputfiles[study]) > 0):
+               (len(self.variable_paths[study]) > 0):
 
                 for index in self.dict_variable_params[study].index:
 
                     inputs_dir:Path = Path("0_inputs") / index
 
                     self.variable_params_messages[study][index] = []
-                    self.variable_inputfiles_messages[study][index] = []
+                    self.variable_paths_messages[study][index] = []
                     self.variable_params_config[study][index] = True
-                    self.variable_inputfiles_config[study][index] = True
+                    self.variable_paths_config[study][index] = True
                     
                     # Variable parameters
                     for param in self.variable_params[study]:
@@ -628,14 +669,14 @@ class WorkFlow:
                         else:
                             self.variable_params_messages[study][index].append(f"(V) {param}")
 
-                    # Variable inputfiles
-                    for file in self.variable_inputfiles[study]:
+                    # Variable paths
+                    for file in self.variable_paths[study]:
                         file_path:Path = inputs_dir / file
                         if not file_path.exists():
-                            self.variable_inputfiles_messages[study][index].append(f"(X) {file}")
-                            self.variable_inputfiles_config[study][index] = False
+                            self.variable_paths_messages[study][index].append(f"(X) {file}")
+                            self.variable_paths_config[study][index] = False
                         else:
-                            self.variable_inputfiles_messages[study][index].append(f"(V) {file}")
+                            self.variable_paths_messages[study][index].append(f"(V) {file}")
             
             # Go back to working directory
             os.chdir(self.working_dir) 
@@ -676,19 +717,19 @@ class WorkFlow:
                         list_errors.append(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
                     config = False
             
-            # Fixed inputfiles
-            for i, message in enumerate(self.fixed_inputfiles_messages[study]):
+            # Fixed paths
+            for i, message in enumerate(self.fixed_paths_messages[study]):
                 if "(V)" in message:
                     list_text.append(colored(message, "green"))
                 elif "(X)" in message:
-                    file = self.fixed_inputfiles[study][i]
+                    file = self.fixed_paths[study][i]
                     list_text.append(colored(message, "red"))
                     list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / file)}", "red"))
             
             # Printing
             print(*list_text)
 
-            if not self.fixed_params_config[study] or not self.fixed_inputfiles_config[study]:
+            if not self.fixed_params_config[study] or not self.fixed_paths_config[study]:
                 print("")
                 print(colored(f"(X) Please configure file(s) :", "red"))
                 for error in list_errors:
@@ -702,7 +743,7 @@ class WorkFlow:
             config = True
 
             if (len(self.variable_params[study]) > 0) or \
-               (len(self.variable_inputfiles[study]) > 0):
+               (len(self.variable_paths[study]) > 0):
                 
                 # Check if datasets have been defined
                 if len(self.dict_variable_params[study].index) == 0:
@@ -725,12 +766,12 @@ class WorkFlow:
                                 list_errors.append(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                             config = False
 
-                    # Variable inputfiles
-                    for i, message in enumerate(self.variable_inputfiles_messages[study][index]):
+                    # Variable paths
+                    for i, message in enumerate(self.variable_paths_messages[study][index]):
                         if "(V)" in message:
                             list_text.append(colored(message, "green"))
                         elif "(X)" in message:
-                            file = self.variable_inputfiles[study][i]
+                            file = self.variable_paths[study][i]
                             list_text.append(colored(message, "red"))
                             list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / index / file)}", "red"))
 
@@ -785,31 +826,31 @@ class WorkFlow:
                 
                 # Define class object for the current process
                 process = proc["process"]
-                if "hardParams" in proc:
-                    dict_hard_params = proc["hardParams"]
+                if "hard_params" in proc:
+                    dict_hard_params = proc["hard_params"]
                 else:
                     dict_hard_params = {}
                 
-                if "userParams" in proc: user_params = proc["userParams"]
-                else: user_params = []
-                if "inputfiles" in proc: inputfiles = proc["inputfiles"]
-                else: inputfiles = []
+                if "input_params" in proc: input_params = proc["input_params"]
+                else: input_params = []
+                if "input_paths" in proc: input_paths = proc["input_paths"]
+                else: input_paths = []
 
                 this_process:Process = process(
                     df_inputs=self.dict_variable_params[study],
                     dict_inputs=self.dict_fixed_params[study],
-                    dict_inputfiles=self.dict_inputfiles[study],
+                    dict_input_paths=self.dict_input_paths[study],
                     dict_paths=self.dict_paths[study],
-                    params=user_params,
-                    inputfiles=inputfiles,
+                    params=input_params,
+                    paths=input_paths,
                     dict_hard_params=dict_hard_params,
                     fixed_params=self.fixed_params[study],
                     variable_params=self.variable_params[study],
-                    fixed_inputfiles=self.fixed_inputfiles[study],
-                    variable_inputfiles=self.variable_inputfiles[study],
+                    fixed_paths=self.fixed_paths[study],
+                    variable_paths=self.variable_paths[study],
                     erase=self.erase,
-                    is_processed=proc["execute"],
-                    verbose=proc["verbose"],
+                    is_processed=self.dict_process[study][self.list_processes[step]]["execute"],
+                    verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
                     diagram=self.diagram,
                 )
                 this_process.init_params()
@@ -877,8 +918,8 @@ class WorkFlow:
                 self.diagram[name] = {
                     "params": this_process.params,
                     "allparams": this_process.allparams,
-                    "inputfiles": this_process.inputfiles,
-                    "allinputfiles": this_process.allinputfiles,
+                    "paths": this_process.paths,
+                    "allpaths": this_process.allpaths,
                     "build": this_process.build,
                     "require": this_process.require,
                 }

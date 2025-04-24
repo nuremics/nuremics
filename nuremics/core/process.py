@@ -16,22 +16,22 @@ class Process():
     name: str = attrs.field(default=None)
     df_inputs: pd.DataFrame = attrs.field(default=None)
     dict_inputs: dict = attrs.field(default=None)
-    dict_inputfiles: dict = attrs.field(default=None)
+    dict_input_paths: dict = attrs.field(default=None)
     dict_paths: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
     params: list = attrs.field(factory=list)
     allparams: list = attrs.field(factory=list)
-    inputfiles: list = attrs.field(factory=list)
-    allinputfiles: list = attrs.field(factory=list)
+    paths: list = attrs.field(factory=list)
+    allpaths: list = attrs.field(factory=list)
     fixed_params: list = attrs.field(default=None)
     variable_params: list = attrs.field(default=None)
-    fixed_inputfiles: list = attrs.field(default=None)
-    variable_inputfiles: list = attrs.field(default=None)
+    fixed_paths: list = attrs.field(default=None)
+    variable_paths: list = attrs.field(default=None)
     fixed_params_proc: list = attrs.field(factory=list)
     variable_params_proc: list = attrs.field(factory=list)
-    fixed_inputfiles_proc: list = attrs.field(factory=list)
-    variable_inputfiles_proc: list = attrs.field(factory=list)
+    fixed_paths_proc: list = attrs.field(factory=list)
+    variable_paths_proc: list = attrs.field(factory=list)
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
@@ -47,8 +47,8 @@ class Process():
 
         self.variable_params_proc = [x for x in self.variable_params if x in self.params]
         self.fixed_params_proc = [x for x in self.fixed_params if x in self.params]
-        self.fixed_inputfiles_proc = [x for x in self.fixed_inputfiles if x in self.inputfiles]
-        self.variable_inputfiles_proc = [x for x in self.variable_inputfiles if x in self.inputfiles]
+        self.fixed_paths_proc = [x for x in self.fixed_paths if x in self.paths]
+        self.variable_paths_proc = [x for x in self.variable_paths if x in self.paths]
 
         # Define list with all parameters considering dependencies with previous processes
         self.allparams = self.params.copy()
@@ -60,14 +60,14 @@ class Process():
                         list2=value["allparams"],
                     )
 
-        # Define list with all inputfiles considering dependencies with previous processes
-        self.allinputfiles = self.inputfiles.copy()
+        # Define list with all paths considering dependencies with previous processes
+        self.allpaths = self.paths.copy()
         for require in self.require:
             for _, value in self.diagram.items():
                 if require in value.get("build"):
-                    self.allinputfiles = concat_lists_unique(
-                        list1=self.inputfiles,
-                        list2=value["allinputfiles"],
+                    self.allpaths = concat_lists_unique(
+                        list1=self.paths,
+                        list2=value["allpaths"],
                     )
 
         if self.is_case:
@@ -91,16 +91,16 @@ class Process():
     def on_params_update(self):
 
         # Create parameters dataframe and fill with variable parameters
-        if (len(self.variable_params_proc) > 0) or (len(self.variable_inputfiles_proc) > 0):
+        if (len(self.variable_params_proc) > 0) or (len(self.variable_paths_proc) > 0):
             self.df_params = self.df_inputs[self.variable_params_proc].copy()
         
-        # There is no variable parameters / inputfiles
+        # There is no variable parameters / paths
         else:
-            # Check parameters / inputfiles dependencies
+            # Check parameters / paths dependencies
             variable_params = [x for x in self.variable_params if x in self.allparams]
-            variable_inputfiles = [x for x in self.variable_inputfiles if x in self.allinputfiles]
-            # There are variable parameters / inputfiles from previous process
-            if (len(variable_params) > 0) or (len(variable_inputfiles) > 0):
+            variable_paths = [x for x in self.variable_paths if x in self.paths]
+            # There are variable parameters / paths from previous process
+            if (len(variable_params) > 0) or (len(variable_paths) > 0):
                 self.df_params = pd.DataFrame(self.df_inputs.index, columns=["ID"]).set_index("ID")
             # There is no variable parameter from previous process
             else:
@@ -113,7 +113,7 @@ class Process():
     
     def update_dict_params(self):
 
-        # Add user parameters
+        # Add inputs parameters
         if self.is_case:
 
             self.dict_params = {}
@@ -130,13 +130,13 @@ class Process():
         for param, value in self.dict_hard_params.items():
             self.dict_params[param] = value
 
-        # Add inputfiles
-        for file in self.fixed_inputfiles_proc:
+        # Add input paths
+        for file in self.fixed_paths_proc:
             key = os.path.splitext(file)[0]
-            self.dict_params[key] = self.dict_inputfiles[key]
-        for file in self.variable_inputfiles_proc:
+            self.dict_params[key] = self.dict_input_paths[key]
+        for file in self.variable_paths_proc:
             key = os.path.splitext(file)[0]
-            self.dict_params[key] = self.dict_inputfiles[key][self.index]
+            self.dict_params[key] = self.dict_input_paths[key][self.index]
         
         # Add previous outputs
         for output in self.require:
