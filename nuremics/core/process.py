@@ -23,6 +23,7 @@ class Process():
     params: list = attrs.field(factory=list)
     allparams: list = attrs.field(factory=list)
     inputfiles: list = attrs.field(factory=list)
+    allinputfiles: list = attrs.field(factory=list)
     fixed_params: list = attrs.field(default=None)
     variable_params: list = attrs.field(default=None)
     fixed_inputfiles: list = attrs.field(default=None)
@@ -40,6 +41,7 @@ class Process():
     index: str = attrs.field(default=None)
     erase: bool = attrs.field(default=True)
     diagram: dict = attrs.field(default={})
+    from_inputs_json: bool = attrs.field(default=False)
     
     def init_params(self):
 
@@ -58,13 +60,24 @@ class Process():
                         list2=value["allparams"],
                     )
 
+        # Define list with all inputfiles considering dependencies with previous processes
+        self.allinputfiles = self.inputfiles.copy()
+        for require in self.require:
+            for _, value in self.diagram.items():
+                if require in value.get("build"):
+                    self.allinputfiles = concat_lists_unique(
+                        list1=self.inputfiles,
+                        list2=value["allinputfiles"],
+                    )
+
         if self.is_case:
             self.on_params_update()
 
     def __call__(self):
 
         # Update dictionary of parameters
-        self.update_dict_params()
+        if not self.from_inputs_json:
+            self.update_dict_params()
 
         for param, value in self.dict_params.items():
             setattr(self, param, value)
@@ -78,19 +91,20 @@ class Process():
     def on_params_update(self):
 
         # Create parameters dataframe and fill with variable parameters
-        if len(self.variable_params_proc) > 0:
+        if (len(self.variable_params_proc) > 0) or (len(self.variable_inputfiles_proc) > 0):
             self.df_params = self.df_inputs[self.variable_params_proc].copy()
         
-        # There is no variable parameters
+        # There is no variable parameters / inputfiles
         else:
-            # Check parameters dependencies
+            # Check parameters / inputfiles dependencies
             variable_params = [x for x in self.variable_params if x in self.allparams]
-            # There is no variable parameter from previous process
-            if len(variable_params) == 0:
-                self.is_case = False
-            # There are variable parameters from previous process
-            else:
+            variable_inputfiles = [x for x in self.variable_inputfiles if x in self.allinputfiles]
+            # There are variable parameters / inputfiles from previous process
+            if (len(variable_params) > 0) or (len(variable_inputfiles) > 0):
                 self.df_params = pd.DataFrame(self.df_inputs.index, columns=["ID"]).set_index("ID")
+            # There is no variable parameter from previous process
+            else:
+                self.is_case = False
         
         # Add fixed parameters to the dataframe
         if self.is_case:

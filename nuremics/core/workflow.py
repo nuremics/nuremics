@@ -45,6 +45,7 @@ class Application:
         self.workflow.print_processes()
 
         self.workflow.init_studies()
+        self.workflow.test_studies_modification()
         self.workflow.test_studies_settings()
         self.workflow.print_studies()
 
@@ -53,16 +54,9 @@ class Application:
 
         self.workflow.set_inputs()
         self.workflow.test_inputs_settings()
+        self.workflow.print_inputs()
 
-        print(self.workflow.fixed_params_messages)
-        print(self.workflow.fixed_inputfiles_messages)
-        print(self.workflow.fixed_params_config)
-        print(self.workflow.fixed_inputfiles_config)
-
-        print(self.workflow.variable_params_messages)
-        print(self.workflow.variable_inputfiles_messages)
-        print(self.workflow.variable_params_config)
-        print(self.workflow.variable_inputfiles_config)
+        self.workflow.init_paths()
 
     def __call__(self):
         
@@ -95,6 +89,7 @@ class WorkFlow:
         self.processes = processes
         self.user_params = []
         self.inputfiles = []
+        self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
         self.fixed_params_messages = {}
@@ -161,40 +156,6 @@ class WorkFlow:
         # Delete duplicates of inputfiles
         self.inputfiles = list(dict.fromkeys(self.inputfiles))
 
-        # # -------------------- #
-        # # Initialize data tree #
-        # # -------------------- #
-        # print("")
-        # print(
-        #     colored("> DATASETS <", "blue", attrs=["reverse"]),
-        # )
-        # for study in self.studies:
-
-        #     # Printing
-        #     print("")
-        #     print(colored(f"| {study} |", "magenta"))
-
-        #     # Go to study directory
-        #     os.chdir(study_dir)
-
-        #     self.dict_inputfiles[study] = {}
-        #     self.init_fixed_inputs(study)
-        #     self.init_variable_inputs(study)
-
-        #     # -------------------------------------------#
-        #     # Initialize dictionary containing all paths #
-        #     # -------------------------------------------#
-        #     try:
-        #         with open("paths.json") as f:
-        #             dict_paths = json.load(f)
-        #     except:
-        #         dict_paths = {}
-            
-        #     self.dict_paths[study] = dict_paths
-
-        #     # Go back to working directory
-        #     os.chdir(self.working_dir)
-
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
 
@@ -244,7 +205,7 @@ class WorkFlow:
     def init_studies(self):
         """Initialize studies"""
 
-        # Open studies json fil if existing
+        # Open studies json file if existing
         if os.path.exists("studies.json"):
             with open("studies.json") as f:
                 self.dict_studies = json.load(f)
@@ -294,9 +255,25 @@ class WorkFlow:
         with open("studies.json", "w") as f:
             json.dump(self.dict_studies, f, indent=4)
 
+    def test_studies_modification(self):
+        """Test if studies configurations have been modified"""
+
+        # Loop over studies
+        for study in self.studies:
+            
+            self.studies_modif[study] = False
+
+            study_file = Path(study) / ".study.json"
+            if study_file.exists():
+                with open(study_file) as f:
+                    dict_study = json.load(f)
+                if self.dict_studies[study] != dict_study:
+                    self.studies_modif[study] = True
+
     def test_studies_settings(self):
         """Check if studies has been properly configured"""
         
+        # Loop over studies
         for study in self.studies:
 
             self.studies_messages[study] = []
@@ -334,6 +311,10 @@ class WorkFlow:
             print(
                 colored(f"| {study} |", "magenta"),
             )
+            if self.studies_modif[study]:
+                print(
+                    colored(f"(!) Configuration has been modified.", "yellow"),
+                )
 
             for message in self.studies_messages[study]:
                 if "(V)" in message: print(colored(message, "green"))
@@ -381,6 +362,23 @@ class WorkFlow:
                 parents=True,
             )
 
+            # Delete outputs data and paths file (if necessary)
+            if self.studies_modif[study]:
+                
+                # Outputs data
+                outputs_folders = [f for f in study_dir.iterdir() if f.is_dir()]
+                for folder in outputs_folders:
+                    if os.path.split(folder)[-1] != "0_inputs":
+                        shutil.rmtree(folder)
+
+                # Paths file
+                paths_file = study_dir / ".paths.json"
+                if paths_file.exists(): paths_file.unlink()
+
+                # Write new study json file
+                with open(study_dir / ".study.json", "w") as f:
+                    json.dump(self.dict_studies[study], f, indent=4)
+            
             # Initialize inputs csv
             inputs_file:Path = study_dir / "inputs.csv"
             if (len(self.variable_params[study]) > 0) or \
@@ -584,10 +582,10 @@ class WorkFlow:
 
             self.fixed_params_messages[study] = []
             self.fixed_inputfiles_messages[study] = []
-            self.variable_params_messages[study] = {}
-            self.variable_inputfiles_messages[study] = {}
             self.fixed_params_config[study] = True
             self.fixed_inputfiles_config[study] = True
+            self.variable_params_messages[study] = {}
+            self.variable_inputfiles_messages[study] = {}
             self.variable_params_config[study] = {}
             self.variable_inputfiles_config[study] = {}
             
@@ -642,161 +640,130 @@ class WorkFlow:
             # Go back to working directory
             os.chdir(self.working_dir) 
 
-    def init_fixed_inputs(self,
-        study: str,
-    ):
-        """Define inputs dictionary with fixed parameters/inputfiles"""
+    def print_inputs(self):
+        """Print inputs"""
 
-        self.dict_fixed_params[study] = {}
-        
+        print("")
+        print(
+            colored("> INPUTS <", "blue", attrs=["reverse"]),
+        )
+        for study in self.studies:
 
-        # ---------- #
-        # Inputfiles #
-        # ---------- #
-        dict_inputfiles = {}
-        for file in self.fixed_inputfiles[study]:
-            key = os.path.splitext(file)[0]
-            dict_inputfiles[key] = str(Path(os.getcwd()) / "0_inputs" / file)
-
-        self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
-
-        # --------------------------------------- #
-        # Check if fixed inputs have been defined #
-        # --------------------------------------- #
-        list_text = [colored(f"> Common :", "blue")]
-        list_errors = []
-        config = True
-        for param, value in self.dict_fixed_params[study].items():
-            if value is None:
-                list_text.append(colored(f"(X) {param}", "red"))
-                if config:
-                    list_errors.append(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
-                config = False
-            else:
-                list_text.append(colored(f"(V) {param}", "green"))
-        
-        for file in self.fixed_inputfiles[study]:
-            file_path:Path = Path("0_inputs") / file
-            if not file_path.exists():
-                list_text.append(colored(f"(X) {file}", "red"))
-                list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / file)}", "red"))
-            else:
-                list_text.append(colored(f"(V) {file}", "green"))
+            # Define study directory
+            study_dir:Path = self.working_dir / study
             
-        # Printing
-        print(*list_text)
-        
-        if len(list_errors) > 0:
+            # Go to study directory
+            os.chdir(study_dir)
+
+            # Printing
             print("")
-            print(colored(f"(X) Please configure file(s) :", "red"))
-            for error in list_errors:
-                print(error)
-            sys.exit()
+            print(colored(f"| {study} |", "magenta"))
 
-    def init_variable_inputs(self,
-        study,
-    ):
-        """Define inputs dictionary with variable parameters/inputfiles"""
-
-        # ----------------------- #
-        # Define inputs dataframe #
-        # ----------------------- #
-        if (len(self.variable_params[study]) > 0) or \
-           (len(self.variable_inputfiles[study]) > 0):
-            
-            # Read input dataframe
-            df_inputs = pd.read_csv(
-                filepath_or_buffer="inputs.csv",
-                index_col=0,
-            )
-
-            # ---------- #
-            # Inputfiles #
-            # ---------- #
-            dict_inputfiles = {}
-            for file in self.variable_inputfiles[study]:
-                key = os.path.splitext(file)[0]
-                dict_inputfiles[key] = {}
-                for idx in df_inputs.index:
-                    dict_inputfiles[key][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
-
-            self.dict_inputfiles[study] = {**self.dict_inputfiles[study], **dict_inputfiles}
-
-            # Delete useless input folders / files
-            if len(self.inputfiles) > 0:
-                
-                input_folders = [f for f in Path("0_inputs").iterdir() if f.is_dir()]
-                for folder in input_folders:
-                    
-                    id = os.path.split(folder)[-1]
-                    if id not in df_inputs.index.tolist():
-                        shutil.rmtree(folder)
-                    
-                    path = Path("0_inputs") / id
-                    input_files = [f for f in path.iterdir() if f.is_file()]
-                    for file in input_files:
-                        if os.path.split(file)[-1] not in self.variable_inputfiles[study]:
-                            file.unlink()
-            
-            # Check if datasets have been defined
-            if len(df_inputs.index) == 0:
-                print("")
-                print(colored(f"(X) Please define at least one dataset in file :", "red"))
-                print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
-                sys.exit()
-
+            # ------------ #
+            # Fixed inputs #
+            # ------------ #
+            list_text = [colored(f"> Common :", "blue")]
             list_errors = []
             config = True
-            for index in df_inputs.index:
+            
+            # Fixed parameters
+            for message in self.fixed_params_messages[study]:
+                if "(V)" in message:
+                    list_text.append(colored(message, "green"))
+                elif "(X)" in message:
+                    list_text.append(colored(message, "red"))
+                    if config:
+                        list_errors.append(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
+                    config = False
+            
+            # Fixed inputfiles
+            for i, message in enumerate(self.fixed_inputfiles_messages[study]):
+                if "(V)" in message:
+                    list_text.append(colored(message, "green"))
+                elif "(X)" in message:
+                    file = self.fixed_inputfiles[study][i]
+                    list_text.append(colored(message, "red"))
+                    list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / file)}", "red"))
+            
+            # Printing
+            print(*list_text)
 
-                # Create inputs folder (if necessary)
-                if len(self.variable_inputfiles[study]) > 0:
-                    inputs_dir:Path = Path("0_inputs") / index
-                    inputs_dir.mkdir(
-                        exist_ok=True,
-                        parents=True,
-                    )
-
-                list_text = [colored(f"> {index} :", "blue")]
-                for param in self.variable_params[study]:
-                    value = df_inputs.at[index, param]
-                    if pd.isna(value) or value == "":
-                        list_text.append(colored(f"(X) {param}", "red"))
-                        if config:
-                            list_errors.append(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
-                        config = False
-                    else:
-                        list_text.append(colored(f"(V) {param}", "green"))
-
-                for file in self.variable_inputfiles[study]:
-                    file_path:Path = inputs_dir / file
-                    if not file_path.exists():
-                        list_text.append(colored(f"(X) {file}", "red"))
-                        list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / index / file)}", "red"))
-                    else:
-                        list_text.append(colored(f"(V) {file}", "green"))
-
-                # Printing
-                print(*list_text)
-        
-            list_errors = sorted(list_errors, key=lambda x: '0_inputs' in x)
-
-            if len(list_errors) > 0:
+            if not self.fixed_params_config[study] or not self.fixed_inputfiles_config[study]:
                 print("")
                 print(colored(f"(X) Please configure file(s) :", "red"))
                 for error in list_errors:
                     print(error)
                 sys.exit()
-
-            # Update inputs dictionary with variable parameters
-            self.dict_variable_params[study] = df_inputs
-        
-        else:
-
-            if os.path.exists("inputs.csv"):
-                Path("inputs.csv").unlink()
             
-            self.dict_variable_params[study] = pd.DataFrame()
+            # --------------- #
+            # Variable inputs #
+            # --------------- #
+            list_errors = []
+            config = True
+
+            if (len(self.variable_params[study]) > 0) or \
+               (len(self.variable_inputfiles[study]) > 0):
+                
+                # Check if datasets have been defined
+                if len(self.dict_variable_params[study].index) == 0:
+                    print("")
+                    print(colored(f"(X) Please define at least one dataset in file :", "red"))
+                    print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
+                    sys.exit()
+
+                for index in self.dict_variable_params[study].index:
+
+                    list_text = [colored(f"> {index} :", "blue")]
+                    
+                    # Variable parameters
+                    for message in self.variable_params_messages[study][index]:
+                        if "(V)" in message:
+                            list_text.append(colored(message, "green"))
+                        elif "(X)" in message:
+                            list_text.append(colored(message, "red"))
+                            if config:
+                                list_errors.append(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
+                            config = False
+
+                    # Variable inputfiles
+                    for i, message in enumerate(self.variable_inputfiles_messages[study][index]):
+                        if "(V)" in message:
+                            list_text.append(colored(message, "green"))
+                        elif "(X)" in message:
+                            file = self.variable_inputfiles[study][i]
+                            list_text.append(colored(message, "red"))
+                            list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / index / file)}", "red"))
+
+                    # Printing
+                    print(*list_text)
+        
+                list_errors = sorted(list_errors, key=lambda x: '0_inputs' in x)
+                if len(list_errors) > 0:
+                    print("")
+                    print(colored(f"(X) Please configure file(s) :", "red"))
+                    for error in list_errors:
+                        print(error)
+                    sys.exit()
+
+            # Go back to working directory
+            os.chdir(self.working_dir) 
+
+    def init_paths(self):
+        """Initialize dictionary containing all paths"""
+
+        # Loop over studies
+        for study in self.studies:
+
+            # Define study directory
+            study_dir:Path = self.working_dir / study
+
+            try:
+                with open(study_dir / ".paths.json") as f:
+                    dict_paths = json.load(f)
+            except:
+                dict_paths = {}
+            
+            self.dict_paths[study] = dict_paths
 
     def __call__(self):
         """Launch workflow of processes."""
@@ -910,6 +877,8 @@ class WorkFlow:
                 self.diagram[name] = {
                     "params": this_process.params,
                     "allparams": this_process.allparams,
+                    "inputfiles": this_process.inputfiles,
+                    "allinputfiles": this_process.allinputfiles,
                     "build": this_process.build,
                     "require": this_process.require,
                 }
@@ -917,14 +886,20 @@ class WorkFlow:
                 # Update paths dictonary
                 self.dict_paths[study] = this_process.dict_paths
 
-                with open(os.path.join(self.working_dir, f"{study}/paths.json"), "w") as f:
+                # Write paths json file
+                with open(study_dir / ".paths.json", "w") as f:
                     json.dump(self.dict_paths[study], f, indent=4)
 
             # Go back to study directory
             os.chdir(study_dir)
             
-            with open("diagram.json", "w") as f:
+            # Write diagram json file
+            with open(".diagram.json", "w") as f:
                 json.dump(self.diagram, f, indent=4)
+
+            # Write study json file
+            with open(".study.json", "w") as f:
+                json.dump(self.dict_studies[study], f, indent=4)
         
         # Go back to working directory
         os.chdir(self.working_dir)
