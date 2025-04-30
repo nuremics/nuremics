@@ -35,43 +35,44 @@ class Process():
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
-    build: list = attrs.field(factory=list)
+    build: list = attrs.field(default=[])
     require: list = attrs.field(default=[])
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
-    erase: bool = attrs.field(default=True)
     diagram: dict = attrs.field(default={})
     from_inputs_json: bool = attrs.field(default=False)
     
-    def init_params(self):
+    def __attrs_post_init__(self):
 
-        self.variable_params_proc = [x for x in self.variable_params if x in self.params]
-        self.fixed_params_proc = [x for x in self.fixed_params if x in self.params]
-        self.fixed_paths_proc = [x for x in self.fixed_paths if x in self.paths]
-        self.variable_paths_proc = [x for x in self.variable_paths if x in self.paths]
+        if not self.from_inputs_json:
+            
+            self.variable_params_proc = [x for x in self.variable_params if x in self.params]
+            self.fixed_params_proc = [x for x in self.fixed_params if x in self.params]
+            self.fixed_paths_proc = [x for x in self.fixed_paths if x in self.paths]
+            self.variable_paths_proc = [x for x in self.variable_paths if x in self.paths]
 
-        # Define list with all parameters considering dependencies with previous processes
-        self.allparams = self.params.copy()
-        for require in self.require:
-            for _, value in self.diagram.items():
-                if require in value.get("build"):
-                    self.allparams = concat_lists_unique(
-                        list1=self.params,
-                        list2=value["allparams"],
-                    )
+            # Define list with all parameters considering dependencies with previous processes
+            self.allparams = self.params.copy()
+            for require in self.require:
+                for _, value in self.diagram.items():
+                    if require in value.get("build"):
+                        self.allparams = concat_lists_unique(
+                            list1=self.params,
+                            list2=value["allparams"],
+                        )
 
-        # Define list with all paths considering dependencies with previous processes
-        self.allpaths = self.paths.copy()
-        for require in self.require:
-            for _, value in self.diagram.items():
-                if require in value.get("build"):
-                    self.allpaths = concat_lists_unique(
-                        list1=self.paths,
-                        list2=value["allpaths"],
-                    )
+            # Define list with all paths considering dependencies with previous processes
+            self.allpaths = self.paths.copy()
+            for require in self.require:
+                for _, value in self.diagram.items():
+                    if require in value.get("build"):
+                        self.allpaths = concat_lists_unique(
+                            list1=self.paths,
+                            list2=value["allpaths"],
+                        )
 
-        if self.is_case:
-            self.on_params_update()
+            if self.is_case:
+                self.on_params_update()
 
     def __call__(self):
 
@@ -96,9 +97,11 @@ class Process():
         
         # There is no variable parameters / paths
         else:
+
             # Check parameters / paths dependencies
             variable_params = [x for x in self.variable_params if x in self.allparams]
             variable_paths = [x for x in self.variable_paths if x in self.paths]
+            
             # There are variable parameters / paths from previous process
             if (len(variable_params) > 0) or (len(variable_paths) > 0):
                 self.df_params = pd.DataFrame(self.df_inputs.index, columns=["ID"]).set_index("ID")
@@ -163,62 +166,6 @@ class Process():
             path = self.dict_paths[build]
 
         return path
-
-    @classmethod
-    def builder(cls, build=None):
-        def decorator(func):
-            def wrapper(self, *args, **kwargs):
-                
-                # Add build entity if not existing
-                if build not in self.build:
-                    self.build.append(build)
-
-                # Execute check function
-                is_stopped = self.check(build)
-
-                if is_stopped and not self.erase:
-                    # Printing
-                    print("")
-                    print(colored("(!) Process is skipped.", "yellow"))
-                    return
-                
-                # Call decorated function
-                result = func(self, *args, **kwargs)
-                
-                # Get dump from args or kwargs
-                if args:
-                    # First argument is taken in args list
-                    dump = args[0]
-                
-                elif kwargs:
-                    # First key is taken in kwargs dictionary
-                    first_key = next(iter(kwargs)) 
-                    # Get dump value
-                    dump = kwargs[first_key]
-                
-                else:
-                    dump = None
-                
-                # Execute update function if build is defined and dump is found
-                if build is not None and dump is not None:
-                    self.update(build, dump)
-                
-                return result
-            return wrapper
-        return decorator
-
-    def check(self,
-        build: str,
-    ):
-        is_stopped = False
-        if self.is_case:
-            if (build in self.dict_paths) and (self.index in self.dict_paths[build]):
-                is_stopped = True
-        else:
-            if (build in self.dict_paths):
-                is_stopped = True
-        
-        return is_stopped
 
     def update(self,
         build: str,

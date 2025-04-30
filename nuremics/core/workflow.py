@@ -25,7 +25,6 @@ class Application:
         working_dir: Path = None,
         processes: list = None,
         studies: list = None,
-        erase: bool = True,
         verbose: bool = True,
     ):
         # ---------------------- #
@@ -36,7 +35,6 @@ class Application:
             working_dir=working_dir,
             processes=processes,
             studies=studies,
-            erase=erase,
             verbose=verbose,
         )
 
@@ -49,10 +47,10 @@ class Application:
         self.workflow.test_studies_settings()
         self.workflow.print_studies()
 
-        self.workflow.init_process_settings()
-
         self.workflow.configure_inputs()
         self.workflow.init_data_tree()
+
+        self.workflow.init_process_settings()
 
         self.workflow.set_inputs()
         self.workflow.test_inputs_settings()
@@ -77,7 +75,6 @@ class WorkFlow:
         working_dir: Path,
         processes: list,
         studies: list = ["Default"],
-        erase: bool = True,
         verbose: bool = True,
     ):
         """Initialization."""
@@ -113,7 +110,6 @@ class WorkFlow:
         self.dict_input_paths = {}
         self.dict_paths = {}
         self.diagram = {}
-        self.erase = erase
         self.verbose = verbose
 
         # ------------------------ #
@@ -824,18 +820,19 @@ class WorkFlow:
 
             for step, proc in enumerate(self.processes):
                 
-                # Define class object for the current process
-                process = proc["process"]
-                if "hard_params" in proc:
-                    dict_hard_params = proc["hard_params"]
-                else:
-                    dict_hard_params = {}
-                
+                if "hard_params" in proc: dict_hard_params = proc["hard_params"]
+                else: dict_hard_params = {}
                 if "input_params" in proc: input_params = proc["input_params"]
                 else: input_params = []
                 if "input_paths" in proc: input_paths = proc["input_paths"]
                 else: input_paths = []
+                if "build" in proc: build = proc["build"]
+                else: build = []
+                if "require" in proc: require = proc["require"]
+                else: require = []
 
+                # Define class object for the current process
+                process = proc["process"]
                 this_process:Process = process(
                     df_inputs=self.dict_variable_params[study],
                     dict_inputs=self.dict_fixed_params[study],
@@ -848,12 +845,12 @@ class WorkFlow:
                     variable_params=self.variable_params[study],
                     fixed_paths=self.fixed_paths[study],
                     variable_paths=self.variable_paths[study],
-                    erase=self.erase,
+                    build=build,
+                    require=require,
                     is_processed=self.dict_process[study][self.list_processes[step]]["execute"],
                     verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
                     diagram=self.diagram,
                 )
-                this_process.init_params()
 
                 # Define process name
                 if this_process.name is None:
