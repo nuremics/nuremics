@@ -20,9 +20,9 @@ class Process():
     dict_paths: dict = attrs.field(factory=dict)
     is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
-    params: list = attrs.field(factory=list)
+    params: dict = attrs.field(factory=dict)
     allparams: list = attrs.field(factory=list)
-    paths: list = attrs.field(factory=list)
+    paths: dict = attrs.field(factory=dict)
     allpaths: list = attrs.field(factory=list)
     fixed_params: list = attrs.field(default=None)
     variable_params: list = attrs.field(default=None)
@@ -35,44 +35,42 @@ class Process():
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_params: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
-    build: list = attrs.field(default=[])
-    require: list = attrs.field(default=[])
+    build: dict = attrs.field(default={})
+    require: dict = attrs.field(default={})
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
     diagram: dict = attrs.field(default={})
     from_inputs_json: bool = attrs.field(default=False)
     
-    def __attrs_post_init__(self):
-
-        if not self.from_inputs_json:
+    def initialize(self):
             
-            self.variable_params_proc = [x for x in self.variable_params if x in self.params]
-            self.fixed_params_proc = [x for x in self.fixed_params if x in self.params]
-            self.fixed_paths_proc = [x for x in self.fixed_paths if x in self.paths]
-            self.variable_paths_proc = [x for x in self.variable_paths if x in self.paths]
+        self.variable_params_proc = [x for x in self.variable_params if x in list(self.params.values())]
+        self.fixed_params_proc = [x for x in self.fixed_params if x in list(self.params.values())]
+        self.fixed_paths_proc = [x for x in self.fixed_paths if x in list(self.paths.values())]
+        self.variable_paths_proc = [x for x in self.variable_paths if x in list(self.paths.values())]
 
-            # Define list with all parameters considering dependencies with previous processes
-            self.allparams = self.params.copy()
-            for require in self.require:
-                for _, value in self.diagram.items():
-                    if require in value.get("build"):
-                        self.allparams = concat_lists_unique(
-                            list1=self.params,
-                            list2=value["allparams"],
-                        )
+        # Define list with all parameters considering dependencies with previous processes
+        self.allparams = list(self.params.values()).copy()
+        for require in list(self.require.values()):
+            for _, value in self.diagram.items():
+                if require in value.get("build"):
+                    self.allparams = concat_lists_unique(
+                        list1=list(self.params.values()),
+                        list2=value["allparams"],
+                    )
 
-            # Define list with all paths considering dependencies with previous processes
-            self.allpaths = self.paths.copy()
-            for require in self.require:
-                for _, value in self.diagram.items():
-                    if require in value.get("build"):
-                        self.allpaths = concat_lists_unique(
-                            list1=self.paths,
-                            list2=value["allpaths"],
-                        )
+        # Define list with all paths considering dependencies with previous processes
+        self.allpaths = list(self.paths.values()).copy()
+        for require in list(self.require.values()):
+            for _, value in self.diagram.items():
+                if require in value.get("build"):
+                    self.allpaths = concat_lists_unique(
+                        list1=list(self.paths.values()),
+                        list2=value["allpaths"],
+                    )
 
-            if self.is_case:
-                self.on_params_update()
+        if self.is_case:
+            self.on_params_update()
 
     def __call__(self):
 
@@ -120,9 +118,10 @@ class Process():
         if self.is_case:
 
             self.dict_params = {}
+            params_inv = {v: k for k, v in self.params.items()}
             for param in self.df_params.columns:
                 value = convert_value(self.df_params.at[self.index, param])
-                self.dict_params[param] = value
+                self.dict_params[params_inv[param]] = value
             if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
                 self.is_processed = False
         else:
@@ -134,17 +133,16 @@ class Process():
             self.dict_params[param] = value
 
         # Add input paths
+        paths_inv = {v: k for k, v in self.paths.items()}
         for file in self.fixed_paths_proc:
-            key = os.path.splitext(file)[0]
-            self.dict_params[key] = self.dict_input_paths[key]
+            self.dict_params[paths_inv[file]] = self.dict_input_paths[file]
         for file in self.variable_paths_proc:
-            key = os.path.splitext(file)[0]
-            self.dict_params[key] = self.dict_input_paths[key][self.index]
+            self.dict_params[paths_inv[file]] = self.dict_input_paths[file][self.index]
         
         # Add previous outputs
-        for output in self.require:
-            output_path = self.get_build_path(output)
-            self.dict_params[output] = output_path
+        for key, value in self.require.items():
+            output_path = self.get_build_path(value)
+            self.dict_params[key] = output_path
 
         # Write json file containing all parameters
         with open("parameters.json", "w") as f:
@@ -181,6 +179,12 @@ class Process():
             self.dict_paths[build] = os.path.join(os.getcwd(), dump)
 
     def finalize(self):
+
+        for _, value in self.build.items():
+            self.update(
+                build=value,
+                dump=value,
+            )
 
         print(colored("COMPLETED <<<", "green"))
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import attrs
 from tkinter import filedialog
 from tkinter import *
 
@@ -23,7 +24,7 @@ class Application:
         self,
         app_name:str = None,
         working_dir: Path = None,
-        processes: list = None,
+        workflow: list = None,
         studies: list = None,
         verbose: bool = True,
     ):
@@ -33,13 +34,15 @@ class Application:
         self.workflow = WorkFlow(
             app_name=app_name,
             working_dir=working_dir,
-            processes=processes,
+            processes=workflow,
             studies=studies,
             verbose=verbose,
         )
 
         self.workflow.print_logo()
         self.workflow.print_application()
+
+        self.workflow.get_params_type()
         self.workflow.print_processes()
 
         self.workflow.init_studies()
@@ -90,6 +93,7 @@ class WorkFlow:
         self.dict_process = {}
         self.input_params = []
         self.input_paths = []
+        self.params_type = {}
         self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
@@ -139,8 +143,9 @@ class WorkFlow:
         # Define input parameters #
         # ----------------------- #
         for _, process in enumerate(self.processes):
-            for param in process["input_params"]:
-                self.input_params.append(param)
+            if "input_params" in process:
+                for param in list(process["input_params"].values()):
+                    self.input_params.append(param)
 
         # Delete duplicates of parameters
         self.input_params = list(dict.fromkeys(self.input_params))
@@ -150,7 +155,7 @@ class WorkFlow:
         # ------------------ #
         for _, process in enumerate(self.processes):
             if "input_paths" in process:
-                for file in process["input_paths"]:
+                for file in list(process["input_paths"].values()):
                     self.input_paths.append(file)
         
         # Delete duplicates of paths
@@ -159,8 +164,29 @@ class WorkFlow:
         # ------------------------ #
         # Define list of processes #
         # ------------------------ #
-        for process in self.processes:
-            self.list_processes.append(process["process"].__name__)
+        for proc in self.processes:
+            self.list_processes.append(proc["process"].__name__)
+
+    def get_params_type(self):
+
+        for proc in self.processes:
+
+            process = proc["process"]
+            name = proc["process"].__name__
+            this_process:Process = process()
+
+            self.params_type[name] = {}
+            for key, value_type in this_process.__class__.__annotations__.items():
+                # Get the module and type name
+                module_name = value_type.__module__
+                type_name = value_type.__name__
+
+                # Format depending on whether it's a built-in type or not
+                if ("input_params" in proc) and (key in proc["input_params"]):
+                    if module_name == "builtins":
+                        self.params_type[name][key] = type_name
+                    else:
+                        self.params_type[name][key] = f"{module_name}.{type_name}"
 
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
@@ -192,20 +218,52 @@ class WorkFlow:
         print(
             colored("> PROCESSES <", "blue", attrs=["reverse"]),
         )
-        print("")
-        for i, process in enumerate(self.processes):
+        for proc in self.processes:
+
+            name = proc["process"].__name__
+
+            text_dependencies = ""
+            if "require" in proc:
+                for _, value in proc["require"].items():
+                    if text_dependencies == "": text_dependencies += value
+                    else: text_dependencies += ", "+value
+            if text_dependencies == "": text_dependencies += "None"
+            text_dependencies += "."
+
             text_inputs = ""
-            if "input_params" in process:
-                for param in process["input_params"]:
-                    if text_inputs == "": text_inputs += param
-                    else: text_inputs += ", "+param
-            if "input_paths" in process:
-                for file in process["input_paths"]:
+            if "input_params" in proc:
+                for key, value in proc["input_params"].items():
+                    type = self.params_type[name][key]
+                    if text_inputs == "": text_inputs += f"{value} ({type})"
+                    else: text_inputs += ", "+f"{value} ({type})"
+            if "input_paths" in proc:
+                for _, file in proc["input_paths"].items():
                     if text_inputs == "": text_inputs += file
                     else: text_inputs += ", "+file
+            if text_inputs == "": text_inputs += "None"
             text_inputs += "."
+
+            text_outputs = ""
+            if "build" in proc:
+                for _, build in proc["build"].items():
+                    if text_outputs == "": text_outputs += build
+                    else: text_outputs += ", "+build
+            if text_outputs == "": text_outputs += "None"
+            text_outputs += "."
+
+            # Printing
+            print("")
             print(
-                colored(f"{i+1}. {process["process"].__name__}, with inputs : {text_inputs}", "blue"),
+                colored(f"| {name} |", "magenta"),
+            )
+            print(
+                colored(f"> Dependencies : {text_dependencies}", "blue"),
+            )
+            print(
+                colored(f"> Inputs : {text_inputs}", "blue"),
+            )
+            print(
+                colored(f"> Outputs : {text_outputs}", "blue"),
             )
 
     def init_studies(self):
@@ -321,6 +379,7 @@ class WorkFlow:
                 print(
                     colored(f"(!) Configuration has been modified.", "yellow"),
                 )
+                self.clean_output_data(study)
 
             for message in self.studies_messages[study]:
                 if "(V)" in message: print(colored(message, "green"))
@@ -399,18 +458,9 @@ class WorkFlow:
                 parents=True,
             )
 
-            # Delete outputs data and paths file (if necessary)
+            # Write study json if configuration has changed
             if self.studies_modif[study]:
-                
-                # Outputs data
-                outputs_folders = [f for f in study_dir.iterdir() if f.is_dir()]
-                for folder in outputs_folders:
-                    if os.path.split(folder)[-1] != "0_inputs":
-                        shutil.rmtree(folder)
 
-                # Paths file
-                paths_file = study_dir / ".paths.json"
-                if paths_file.exists(): paths_file.unlink()
 
                 # Write new study json file
                 with open(study_dir / ".study.json", "w") as f:
@@ -540,6 +590,24 @@ class WorkFlow:
                 # Delete file
                 if inputs_file.exists(): inputs_file.unlink()
 
+    def clean_output_data(self,
+        study: str,
+    ):
+        """Clean output data for a specific study"""
+
+        # Initialize study directory
+        study_dir:Path = self.working_dir / study
+
+        # Outputs data
+        outputs_folders = [f for f in study_dir.iterdir() if f.is_dir()]
+        for folder in outputs_folders:
+            if os.path.split(folder)[-1] != "0_inputs":
+                shutil.rmtree(folder)
+
+        # Paths file
+        paths_file = study_dir / ".paths.json"
+        if paths_file.exists(): paths_file.unlink()
+
     def set_inputs(self):
         """Set all inputs"""
 
@@ -568,8 +636,7 @@ class WorkFlow:
             # Fixed paths
             dict_input_paths = {}
             for file in self.fixed_paths[study]:
-                key = os.path.splitext(file)[0]
-                dict_input_paths[key] = str(Path(os.getcwd()) / "0_inputs" / file)
+                dict_input_paths[file] = str(Path(os.getcwd()) / "0_inputs" / file)
 
             self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
 
@@ -595,10 +662,9 @@ class WorkFlow:
                     index_col=0,
                 )
                 for file in self.variable_paths[study]:
-                    key = os.path.splitext(file)[0]
-                    dict_input_paths[key] = {}
+                    dict_input_paths[file] = {}
                     for idx in df_inputs.index:
-                        dict_input_paths[key][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
+                        dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
 
                 self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
 
@@ -823,13 +889,13 @@ class WorkFlow:
                 if "hard_params" in proc: dict_hard_params = proc["hard_params"]
                 else: dict_hard_params = {}
                 if "input_params" in proc: input_params = proc["input_params"]
-                else: input_params = []
+                else: input_params = {}
                 if "input_paths" in proc: input_paths = proc["input_paths"]
-                else: input_paths = []
-                if "build" in proc: build = proc["build"]
-                else: build = []
+                else: input_paths = {}
                 if "require" in proc: require = proc["require"]
-                else: require = []
+                else: require = {}
+                if "build" in proc: build = proc["build"]
+                else: build = {}
 
                 # Define class object for the current process
                 process = proc["process"]
@@ -845,12 +911,13 @@ class WorkFlow:
                     variable_params=self.variable_params[study],
                     fixed_paths=self.fixed_paths[study],
                     variable_paths=self.variable_paths[study],
-                    build=build,
                     require=require,
+                    build=build,
                     is_processed=self.dict_process[study][self.list_processes[step]]["execute"],
                     verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
                     diagram=self.diagram,
                 )
+                this_process.initialize()
 
                 # Define process name
                 if this_process.name is None:
@@ -917,8 +984,8 @@ class WorkFlow:
                     "allparams": this_process.allparams,
                     "paths": this_process.paths,
                     "allpaths": this_process.allpaths,
-                    "build": this_process.build,
-                    "require": this_process.require,
+                    "require": list(this_process.require.values()),
+                    "build": list(this_process.build.values()),
                 }
 
                 # Update paths dictonary
@@ -935,9 +1002,9 @@ class WorkFlow:
             with open(".diagram.json", "w") as f:
                 json.dump(self.diagram, f, indent=4)
 
-            # Write study json file
-            with open(".study.json", "w") as f:
-                json.dump(self.dict_studies[study], f, indent=4)
+            # # Write study json file
+            # with open(".study.json", "w") as f:
+            #     json.dump(self.dict_studies[study], f, indent=4)
         
         # Go back to working directory
         os.chdir(self.working_dir)
