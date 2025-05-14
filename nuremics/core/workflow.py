@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import attrs
 from tkinter import filedialog
 from tkinter import *
 
@@ -94,6 +93,7 @@ class WorkFlow:
         self.input_params = []
         self.input_paths = []
         self.params_type = {}
+        self.params_type_by_process = {}
         self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
@@ -169,13 +169,14 @@ class WorkFlow:
 
     def get_params_type(self):
 
+        # Get types of parameters by process
         for proc in self.processes:
 
             process = proc["process"]
             name = proc["process"].__name__
             this_process:Process = process()
 
-            self.params_type[name] = {}
+            self.params_type_by_process[name] = {}
             for key, value_type in this_process.__class__.__annotations__.items():
                 # Get the module and type name
                 module_name = value_type.__module__
@@ -183,10 +184,22 @@ class WorkFlow:
 
                 # Format depending on whether it's a built-in type or not
                 if ("input_params" in proc) and (key in proc["input_params"]):
+                    user_key = proc["input_params"][key]
+                    self.params_type_by_process[name][user_key] = [value_type]
                     if module_name == "builtins":
-                        self.params_type[name][key] = type_name
+                        self.params_type_by_process[name][user_key].append(type_name)
                     else:
-                        self.params_type[name][key] = f"{module_name}.{type_name}"
+                        self.params_type_by_process[name][user_key].append(f"{module_name}.{type_name}")
+        
+        # Gather all types of parameters
+        for proc, params in self.params_type_by_process.items():
+            for param, type in params.items():
+                if (param in self.params_type) and (self.params_type[param][0] != type[0]):
+                    print("")
+                    print(colored(f"(X) {param} is defined both as ({self.params_type[param][1]}) and ({type[1]}) :", "red"))
+                    print(colored(f"> Please consider defining a new user parameter.", "red"))
+                    sys.exit()
+                self.params_type[param] = type
 
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
@@ -216,12 +229,15 @@ class WorkFlow:
 
         print("")
         print(
-            colored("> PROCESSES <", "blue", attrs=["reverse"]),
+            colored("> WORKFLOW <", "blue", attrs=["reverse"]),
         )
         for proc in self.processes:
 
             name = proc["process"].__name__
 
+            # ------------ #
+            # Dependencies #
+            # ------------ #
             text_dependencies = ""
             if "require" in proc:
                 for _, value in proc["require"].items():
@@ -230,12 +246,14 @@ class WorkFlow:
             if text_dependencies == "": text_dependencies += "None"
             text_dependencies += "."
 
+            # ------ #
+            # Inputs #
+            # ------ #
             text_inputs = ""
-            if "input_params" in proc:
-                for key, value in proc["input_params"].items():
-                    type = self.params_type[name][key]
-                    if text_inputs == "": text_inputs += f"{value} ({type})"
-                    else: text_inputs += ", "+f"{value} ({type})"
+            for key, value in self.params_type_by_process[name].items():
+                if text_inputs == "": text_inputs += f"{key} ({value[1]})"
+                else: text_inputs += ", "+f"{key} ({value[1]})"
+            
             if "input_paths" in proc:
                 for _, file in proc["input_paths"].items():
                     if text_inputs == "": text_inputs += file
@@ -243,6 +261,9 @@ class WorkFlow:
             if text_inputs == "": text_inputs += "None"
             text_inputs += "."
 
+            # ------- #
+            # Outputs #
+            # ------- #
             text_outputs = ""
             if "build" in proc:
                 for _, build in proc["build"].items():
@@ -461,7 +482,6 @@ class WorkFlow:
             # Write study json if configuration has changed
             if self.studies_modif[study]:
 
-
                 # Write new study json file
                 with open(study_dir / ".study.json", "w") as f:
                     json.dump(self.dict_studies[study], f, indent=4)
@@ -493,6 +513,9 @@ class WorkFlow:
                     # Update variable parameters
                     df_inputs = df_inputs.assign(**{param: np.nan for param in self.variable_params[study] if param not in df_inputs.columns})
                     df_inputs = df_inputs[[col for col in self.variable_params[study] if col in df_inputs.columns] + ["EXECUTE"]]
+
+                    # Set default execution
+                    df_inputs["EXECUTE"] = df_inputs["EXECUTE"].fillna(1).astype(int)
 
                     # Write input dataframe
                     df_inputs.to_csv(
@@ -698,7 +721,10 @@ class WorkFlow:
                     self.fixed_params_messages[study].append(f"(X) {param}")
                     self.fixed_params_config[study] = False
                 else:
-                    self.fixed_params_messages[study].append(f"(V) {param}")
+                    if not isinstance(value, self.params_type[param][0]):
+                        self.fixed_params_messages[study].append(f"(!) {param} ({self.params_type[param][1]} expected)")
+                    else:
+                        self.fixed_params_messages[study].append(f"(V) {param}")
             
             # Fixed paths
             for file in self.fixed_paths[study]:
@@ -721,7 +747,7 @@ class WorkFlow:
                     self.variable_paths_messages[study][index] = []
                     self.variable_params_config[study][index] = True
                     self.variable_paths_config[study][index] = True
-                    
+
                     # Variable parameters
                     for param in self.variable_params[study]:
                         value = self.dict_variable_params[study].at[index, param]
@@ -729,7 +755,12 @@ class WorkFlow:
                             self.variable_params_messages[study][index].append(f"(X) {param}")
                             self.variable_params_config[study][index] = False
                         else:
-                            self.variable_params_messages[study][index].append(f"(V) {param}")
+                            if isinstance(value, (np.integer, np.floating, np.bool_)):
+                                value = value.item()
+                            if not isinstance(value, self.params_type[param][0]):
+                                self.variable_params_messages[study][index].append(f"(!) {param} ({self.params_type[param][1]} expected)")
+                            else:
+                                self.variable_params_messages[study][index].append(f"(V) {param}")
 
                     # Variable paths
                     for file in self.variable_paths[study]:
@@ -768,6 +799,7 @@ class WorkFlow:
             list_text = [colored(f"> Common :", "blue")]
             list_errors = []
             config = True
+            type_error = False
             
             # Fixed parameters
             for message in self.fixed_params_messages[study]:
@@ -778,6 +810,9 @@ class WorkFlow:
                     if config:
                         list_errors.append(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
                     config = False
+                elif "(!)" in message:
+                    list_text.append(colored(message, "yellow"))
+                    type_error = True
             
             # Fixed paths
             for i, message in enumerate(self.fixed_paths_messages[study]):
@@ -797,12 +832,19 @@ class WorkFlow:
                 for error in list_errors:
                     print(error)
                 sys.exit()
+
+            if type_error:
+                print("")
+                print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
+                print(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
+                sys.exit()
             
             # --------------- #
             # Variable inputs #
             # --------------- #
             list_errors = []
             config = True
+            type_error = False
 
             if (len(self.variable_params[study]) > 0) or \
                (len(self.variable_paths[study]) > 0):
@@ -827,6 +869,9 @@ class WorkFlow:
                             if config:
                                 list_errors.append(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                             config = False
+                        elif "(!)" in message:
+                            list_text.append(colored(message, "yellow"))
+                            type_error = True
 
                     # Variable paths
                     for i, message in enumerate(self.variable_paths_messages[study][index]):
@@ -846,6 +891,12 @@ class WorkFlow:
                     print(colored(f"(X) Please configure file(s) :", "red"))
                     for error in list_errors:
                         print(error)
+                    sys.exit()
+                
+                if type_error:
+                    print("")
+                    print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
+                    print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                     sys.exit()
 
             # Go back to working directory
@@ -1001,10 +1052,6 @@ class WorkFlow:
             # Write diagram json file
             with open(".diagram.json", "w") as f:
                 json.dump(self.diagram, f, indent=4)
-
-            # # Write study json file
-            # with open(".study.json", "w") as f:
-            #     json.dump(self.dict_studies[study], f, indent=4)
         
         # Go back to working directory
         os.chdir(self.working_dir)
