@@ -122,9 +122,9 @@ class WorkFlow:
         if working_dir is None:
             root = Tk()
             root.withdraw()
-            self.working_dir = Path(filedialog.askdirectory())
+            self.working_dir = Path(filedialog.askdirectory()) / self.app_name
         else:
-            self.working_dir = Path(working_dir)
+            self.working_dir = working_dir / self.app_name
 
         # ------------------------ #
         # Create working directory #

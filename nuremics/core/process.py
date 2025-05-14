@@ -125,8 +125,7 @@ class Process():
             if self.df_inputs.loc[self.index, "EXECUTE"] == 0:
                 self.is_processed = False
         else:
-
-            self.dict_params = {param: self.dict_inputs[param] for param in self.fixed_params_proc}
+            self.dict_params = {k: self.dict_inputs[v] for k, v in self.params.items()}
         
         # Add hard parameters
         for param, value in self.dict_hard_params.items():
