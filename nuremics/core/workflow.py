@@ -13,59 +13,13 @@ from pathlib import Path
 from termcolor import colored
 
 from .process import Process
+from .utils import (
+    get_self_method_calls,
+    only_function_calls,
+    extract_inputs_and_types,
+    extract_self_build_keys,
+)
 from importlib.resources import files
-
-
-class Application:
-    """Create application."""
-    
-    def __init__(
-        self,
-        app_name:str = None,
-        working_dir: Path = None,
-        workflow: list = None,
-        studies: list = None,
-        verbose: bool = True,
-    ):
-        # ---------------------- #
-        # Define workflow object #
-        # ---------------------- #
-        self.workflow = WorkFlow(
-            app_name=app_name,
-            working_dir=working_dir,
-            processes=workflow,
-            studies=studies,
-            verbose=verbose,
-        )
-
-        self.workflow.print_logo()
-        self.workflow.print_application()
-
-        self.workflow.get_params_type()
-        self.workflow.print_processes()
-
-        self.workflow.init_studies()
-        self.workflow.test_studies_modification()
-        self.workflow.test_studies_settings()
-        self.workflow.print_studies()
-
-        self.workflow.configure_inputs()
-        self.workflow.init_data_tree()
-
-        self.workflow.init_process_settings()
-
-        self.workflow.set_inputs()
-        self.workflow.test_inputs_settings()
-        self.workflow.print_inputs()
-
-        self.workflow.init_paths()
-
-    def __call__(self):
-        
-        # --------------- #
-        # Launch workflow #
-        # --------------- #
-        self.workflow()
 
 
 class WorkFlow:
@@ -90,10 +44,18 @@ class WorkFlow:
         self.list_processes = []
         self.dict_studies = {}
         self.dict_process = {}
-        self.input_params = []
-        self.input_paths = []
+        self.user_params = []
+        self.user_paths = []
+        self.output_paths = []
         self.params_type = {}
-        self.params_type_by_process = {}
+        self.operations_by_process = {}
+        self.inputs_by_process = {}
+        self.params_by_process = {}
+        self.paths_by_process = {}
+        self.outputs_by_process = {}
+        self.params_plug = {}
+        self.paths_plug = {}
+        self.outputs_plug = {}
         self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
@@ -111,7 +73,7 @@ class WorkFlow:
         self.variable_paths = {}
         self.dict_fixed_params = {}
         self.dict_variable_params = {}
-        self.dict_input_paths = {}
+        self.dict_user_paths = {}
         self.dict_paths = {}
         self.diagram = {}
         self.verbose = verbose
@@ -138,68 +100,12 @@ class WorkFlow:
         # Go to working directory #
         # ----------------------- #
         os.chdir(self.working_dir)
-
-        # ----------------------- #
-        # Define input parameters #
-        # ----------------------- #
-        for _, process in enumerate(self.processes):
-            if "input_params" in process:
-                for param in list(process["input_params"].values()):
-                    self.input_params.append(param)
-
-        # Delete duplicates of parameters
-        self.input_params = list(dict.fromkeys(self.input_params))
-
-        # ------------------ #
-        # Define input paths #
-        # ------------------ #
-        for _, process in enumerate(self.processes):
-            if "input_paths" in process:
-                for file in list(process["input_paths"].values()):
-                    self.input_paths.append(file)
         
-        # Delete duplicates of paths
-        self.input_paths = list(dict.fromkeys(self.input_paths))
-
         # ------------------------ #
         # Define list of processes #
         # ------------------------ #
         for proc in self.processes:
             self.list_processes.append(proc["process"].__name__)
-
-    def get_params_type(self):
-
-        # Get types of parameters by process
-        for proc in self.processes:
-
-            process = proc["process"]
-            name = proc["process"].__name__
-            this_process:Process = process()
-
-            self.params_type_by_process[name] = {}
-            for key, value_type in this_process.__class__.__annotations__.items():
-                # Get the module and type name
-                module_name = value_type.__module__
-                type_name = value_type.__name__
-
-                # Format depending on whether it's a built-in type or not
-                if ("input_params" in proc) and (key in proc["input_params"]):
-                    user_key = proc["input_params"][key]
-                    self.params_type_by_process[name][user_key] = [value_type]
-                    if module_name == "builtins":
-                        self.params_type_by_process[name][user_key].append(type_name)
-                    else:
-                        self.params_type_by_process[name][user_key].append(f"{module_name}.{type_name}")
-        
-        # Gather all types of parameters
-        for proc, params in self.params_type_by_process.items():
-            for param, type in params.items():
-                if (param in self.params_type) and (self.params_type[param][0] != type[0]):
-                    print("")
-                    print(colored(f"(X) {param} is defined both as ({self.params_type[param][1]}) and ({type[1]}) :", "red"))
-                    print(colored(f"> Please consider defining a new user parameter.", "red"))
-                    sys.exit()
-                self.params_type[param] = type
 
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
@@ -213,78 +119,415 @@ class WorkFlow:
             print(line.rstrip())
 
     def print_application(self):
-        """Print application name"""
+        """Print application"""
 
+        # Printing
         print("")
         print(
             colored("> APPLICATION <", "blue", attrs=["reverse"]),
         )
         print("")
         print(
-            colored(self.app_name, "blue"),
+            colored(f"| Workflow |", "magenta"),
         )
+        print(
+            colored(f"{self.app_name}_____", "blue"),
+        )
+
+        # Define number of spaces taken by the workflow print
+        nb_spaces_app = len(self.app_name)+5
+
+        # Print diagram of processes and operations
+        error = False
+        for i, proc in enumerate(self.processes):
+
+            proc_name = proc["process"].__name__
+            process = proc["process"]
+            this_process:Process = process()
+
+            # Define number of spaces taken by the application print
+            nb_spaces_proc = len(proc_name)+10
+
+            # Get list of operations for current process
+            self.operations_by_process[proc_name] = get_self_method_calls(this_process.__class__)
+
+            # Test if process call contains only call to operations
+            valid_call = only_function_calls(
+                method=this_process.__call__, 
+                allowed_methods=self.operations_by_process[proc_name]
+            )
+
+            # Printing
+            if valid_call:
+                print(
+                    colored(" "*nb_spaces_app+f"|_____{proc_name}_____", "blue"),
+                )
+                for op_name in self.operations_by_process[proc_name]:
+
+                    if i < len(self.processes)-1:
+                        text = " "*nb_spaces_app+"|"+" "*nb_spaces_proc+f"|_____{op_name}"
+                    else:
+                        text = " "*(nb_spaces_app+1)+" "*nb_spaces_proc+f"|_____{op_name}"
+
+                    # Printing
+                    print(
+                        colored(text, "blue"),
+                    )
+            else:
+                print(
+                    colored(" "*nb_spaces_app+f"|_____{proc_name}_____", "blue") + \
+                    colored("(X)", "red")
+                )
+                error = True
+
+            if i < len(self.processes)-1:
+                print(
+                    colored(" "*nb_spaces_app+"|", "blue"),
+                )
+        
+        if error:
+            print("")
+            print(colored(f"(X) Each process must only call its internal function(s):", "red"))
+            print("")
+            print(colored(f"    def __call__(self):", "red"))
+            print(colored(f"        super().__call__()", "red"))
+            print("")
+            print(colored(f"        self.operation1()", "red"))
+            print(colored(f"        self.operation2()", "red"))
+            print(colored(f"        self.operation3()", "red"))
+            print(colored(f"        ...", "red"))
+            sys.exit()
+
+    def get_inputs(self):
+        """Get inputs"""
+        
+        for proc in self.processes:
+
+            process = proc["process"]
+            name = proc["process"].__name__
+            this_process:Process = process()
+
+            self.inputs_by_process[name] = extract_inputs_and_types(this_process)
+
+            self.params_by_process[name] = {}
+            self.paths_by_process[name] = []
+            self.params_plug[name] = {}
+            self.paths_plug[name] = {}
+            
+            for key, value_type in self.inputs_by_process[name].items():
+                
+                # Get the module and type name
+                module_name = value_type.__module__
+                type_name = value_type.__name__
+
+                if module_name == "builtins":
+                    type = type_name
+                else:
+                    type = f"{module_name}.{type_name}"
+
+                if type == "pathlib.Path":
+                    self.paths_by_process[name].append(key)
+                    if ("user_paths" in proc) and (key in proc["user_paths"]):
+                        self.paths_plug[name][key] = [proc["user_paths"][key], "user_paths"]
+                    elif ("require" in proc) and (key in proc["require"]):
+                        self.paths_plug[name][key] = [proc["require"][key], "require"]
+                    else:
+                        self.paths_plug[name][key] = None
+                
+                else:
+                    self.params_by_process[name][key] = [value_type, type]
+                    if ("user_params" in proc) and (key in proc["user_params"]):
+                        self.params_plug[name][key] = [proc["user_params"][key], "user_params"]
+                    elif ("hard_params" in proc) and (key in proc["hard_params"]):
+                        self.params_plug[name][key] = [proc["hard_params"][key], "hard_params"]
+                    else:
+                        self.params_plug[name][key] = None
+
+    def get_outputs(self):
+        """Get outputs"""
+
+        for proc in self.processes:
+
+            process = proc["process"]
+            name = proc["process"].__name__
+            this_process:Process = process()
+
+            self.outputs_by_process[name] = []
+            self.outputs_plug[name] = {}
+
+            for op in self.operations_by_process[name]:
+                outputs = extract_self_build_keys(getattr(this_process, op))
+                self.outputs_by_process[name].extend(outputs)
+            
+            for output in self.outputs_by_process[name]:
+                if ("build" in proc) and (output in proc["build"]):
+                    self.outputs_plug[name][output] = proc["build"][output]
+                else:
+                    self.outputs_plug[name][output] = None
+
+    def init_config(self):
+        """Initialize configuration"""
+
+        for _, process in enumerate(self.processes):
+
+            name = process["process"].__name__
+
+            # Define list of user parameters
+            if "user_params" in process:
+                for key, value in process["user_params"].items():
+                    if key in self.params_by_process[name]:
+                        self.user_params.append(value)
+                    else:
+                        print("")
+                        print(colored(f'(X) {key} defined in "user_params" is not an input parameter of {name}.', "red"))
+                        sys.exit()
+            
+            # Check on hard parameters
+            if "hard_params" in process:
+                for key, _ in process["hard_params"].items():
+                    if key not in self.params_by_process[name]:
+                        print("")
+                        print(colored(f'(X) {key} defined in "hard_params" is not an input parameter of {name}.', "red"))
+                        sys.exit()
+
+            # Define list of user paths
+            if "user_paths" in process:
+                for key, value in process["user_paths"].items():
+                    if key in self.paths_by_process[name]:
+                        self.user_paths.append(value)
+                    else:
+                        print("")
+                        print(colored(f"(X) {key} is not an input path of {name}.", "red"))
+                        sys.exit()
+
+            # Check on require
+            if "require" in process:
+                for _, value in process["require"].items():
+                    if value not in self.output_paths:
+                        print("")
+                        print(colored(f'(X) {value} defined in {name} "require" must be defined in previous process "build".', "red"))
+                        sys.exit()
+            
+            # Define list of output paths
+            if "build" in process:
+                for key, value in process["build"].items():
+                    if key in self.outputs_by_process[name]:
+                        if value in self.output_paths:
+                            print("")
+                            print(colored(f'(X) {value} is defined twice in "build".', "red"))
+                            sys.exit()
+                        else:
+                            self.output_paths.append(value)
+                    else:
+                        print("")
+                        print(colored(f"(X) {key} is not an output path of {name}.", "red"))
+                        sys.exit()
+
+        # Delete duplicates
+        self.user_params = list(dict.fromkeys(self.user_params))
+        self.user_paths = list(dict.fromkeys(self.user_paths))
 
     def print_processes(self):
         """Print processes"""
 
-        print("")
-        print(
-            colored("> WORKFLOW <", "blue", attrs=["reverse"]),
-        )
         for proc in self.processes:
 
             name = proc["process"].__name__
-
-            # ------------ #
-            # Dependencies #
-            # ------------ #
-            text_dependencies = ""
-            if "require" in proc:
-                for _, value in proc["require"].items():
-                    if text_dependencies == "": text_dependencies += value
-                    else: text_dependencies += ", "+value
-            if text_dependencies == "": text_dependencies += "None"
-            text_dependencies += "."
-
-            # ------ #
-            # Inputs #
-            # ------ #
-            text_inputs = ""
-            for key, value in self.params_type_by_process[name].items():
-                if text_inputs == "": text_inputs += f"{key} ({value[1]})"
-                else: text_inputs += ", "+f"{key} ({value[1]})"
-            
-            if "input_paths" in proc:
-                for _, file in proc["input_paths"].items():
-                    if text_inputs == "": text_inputs += file
-                    else: text_inputs += ", "+file
-            if text_inputs == "": text_inputs += "None"
-            text_inputs += "."
-
-            # ------- #
-            # Outputs #
-            # ------- #
-            text_outputs = ""
-            if "build" in proc:
-                for _, build in proc["build"].items():
-                    if text_outputs == "": text_outputs += build
-                    else: text_outputs += ", "+build
-            if text_outputs == "": text_outputs += "None"
-            text_outputs += "."
 
             # Printing
             print("")
             print(
                 colored(f"| {name} |", "magenta"),
             )
+
+            # ---------------- #
+            # Input parameters #
+            # ---------------- #
             print(
-                colored(f"> Dependencies : {text_dependencies}", "blue"),
+                colored(f"> Input Parameter(s) :", "blue"),
             )
+            if len(self.params_by_process[name]) == 0:
+                print(
+                    colored("None.", "blue"),
+                )
+            else:
+                lines_proc = []
+                lines_user = []
+                error = False
+                for key, value in self.params_by_process[name].items():
+
+                    # Process
+                    text_type_proc = f"({value[1]})"
+                    text_variable_proc = key
+                    lines_proc.append((text_type_proc, text_variable_proc))
+
+                    # User
+                    if self.params_plug[name][key] is not None:
+                        text_variable_user = str(self.params_plug[name][key][0])
+                        text_definition_user = f"({self.params_plug[name][key][1]})"
+                        lines_user.append((text_variable_user, text_definition_user))
+                    else:
+                        lines_user.append(("Not defined", "(X)"))
+                        error = True
+
+                type_proc_width = max(len(t) for t, _ in lines_proc)+1
+                variable_proc_width = max(len(p) for _, p in lines_proc)+1
+                variable_user_width = max(len(t) for t, _ in lines_user)+1
+                definition_user_width = max(len(p) for _, p in lines_user)+1
+
+                for (type_proc, var_proc), (user_var, user_def) in zip(lines_proc, lines_user):
+                    proc_str = type_proc.ljust(type_proc_width)+var_proc.ljust(variable_proc_width)+"-----|"
+                    user_str = "|----- "+user_var.ljust(variable_user_width)+user_def.ljust(definition_user_width)
+                    if "(X)" in user_str: color = "red"
+                    else: color = "green"
+                    print(colored(proc_str, "blue")+colored(user_str, color))
+                
+                if error:
+                    print("")
+                    print(colored('(X) Please define all input parameters either in "user_params" or "hard_params".', "red"))
+                    sys.exit()
+            
+            # ----------- #
+            # Input paths #
+            # ----------- #
             print(
-                colored(f"> Inputs : {text_inputs}", "blue"),
+                colored(f"> Input Path(s) :", "blue"),
             )
+            if len(self.paths_by_process[name]) == 0:
+                print(
+                    colored("None.", "blue"),
+                )
+            else:
+                lines_proc = []
+                lines_user = []
+                error = False
+                for path in self.paths_by_process[name]:
+
+                    # Process
+                    lines_proc.append(path)
+
+                    # User
+                    if self.paths_plug[name][path] is not None:
+                        text_variable_user = self.paths_plug[name][path][0]
+                        text_definition_user = f"({self.paths_plug[name][path][1]})"
+                        lines_user.append((text_variable_user, text_definition_user))
+                    else:
+                        lines_user.append(("Not defined", "(X)"))
+                        error = True
+                
+                proc_width = max(len(t) for t in lines_proc)+1
+                variable_user_width = max(len(t) for t, _ in lines_user)+1
+                definition_user_width = max(len(p) for _, p in lines_user)+1
+
+                for (proc), (user_var, user_def) in zip(lines_proc, lines_user):
+                    proc_str = proc.ljust(proc_width)+"-----|"
+                    user_str = "|----- "+user_var.ljust(variable_user_width)+user_def.ljust(definition_user_width)
+                    if "(X)" in user_str: color = "red"
+                    else: color = "green"
+                    print(colored(proc_str, "blue")+colored(user_str, color))
+
+                if error:
+                    print("")
+                    print(colored('(X) Please define all input paths either in "user_paths" or "require".', "red"))
+                    sys.exit()
+
+            # ------------ #
+            # Output paths #
+            # ------------ #
             print(
-                colored(f"> Outputs : {text_outputs}", "blue"),
+                colored(f"> Output Path(s) :", "blue"),
+            )
+            if len(self.outputs_by_process[name]) == 0:
+                print(
+                    colored("None.", "blue"),
+                )
+            else:
+                lines_proc = []
+                lines_user = []
+                error = False
+                for path in self.outputs_by_process[name]:
+
+                    # Process
+                    lines_proc.append(path)
+
+                    # User
+                    if self.outputs_plug[name][path] is not None:
+                        text_variable_user = self.outputs_plug[name][path]
+                        text_definition_user = "(build)"
+                        lines_user.append((text_variable_user, text_definition_user))
+                    else:
+                        lines_user.append(("Not defined", "(X)"))
+                        error = True
+                
+                proc_width = max(len(t) for t in lines_proc)+1
+                variable_user_width = max(len(t) for t, _ in lines_user)+1
+                definition_user_width = max(len(p) for _, p in lines_user)+1
+
+                for (proc), (user_var, user_def) in zip(lines_proc, lines_user):
+                    proc_str = proc.ljust(proc_width)+"-----|"
+                    user_str = "|----- "+user_var.ljust(variable_user_width)+user_def.ljust(definition_user_width)
+                    if "(X)" in user_str: color = "red"
+                    else: color = "green"
+                    print(colored(proc_str, "blue")+colored(user_str, color))
+
+                if error:
+                    print("")
+                    print(colored('(X) Please define all output paths in "build".', "red"))
+                    sys.exit()
+
+    def set_user_params_types(self):
+        """Set types of user parameters"""
+
+        # Gather all types of parameters
+        for proc, params in self.params_by_process.items():
+            for param, type in params.items():
+                user_param = self.params_plug[proc][param][0]
+                if user_param in self.user_params:
+                    if (user_param in self.params_type) and (self.params_type[user_param][0] != type[0]):
+                        print("")
+                        print(colored(f"(X) {user_param} is defined both as ({self.params_type[user_param][1]}) and ({type[1]}) :", "red"))
+                        print(colored(f'> Please consider defining a new user parameter in "user_params".', "red"))
+                        sys.exit()
+                    self.params_type[user_param] = type
+
+    def print_io(self):
+        """Print inputs / outputs"""
+
+        # Printing
+        print("")
+        print(
+            colored("> INPUTS <", "blue", attrs=["reverse"]),
+        )
+
+        # Print input parameters
+        print("")
+        print(
+            colored(f"| User Parameters |", "magenta"),
+        )
+        for param, type in self.params_type.items():
+            print(
+                colored(f"> {param} ({type[1]})", "blue"),
+            )
+
+        # Print input paths
+        print("")
+        print(
+            colored(f"| User Paths |", "magenta"),
+        )
+        for path in self.user_paths:
+            print(
+                colored(f"> {path}", "blue"),
+            )
+
+        # Printing
+        print("")
+        print(
+            colored("> OUTPUTS <", "blue", attrs=["reverse"]),
+        )
+        print("")
+        for path in self.output_paths:
+            print(
+                colored(f"> {path}", "blue"),
             )
 
     def init_studies(self):
@@ -302,15 +545,15 @@ class WorkFlow:
         
         # Clean input parameters
         for study in list(self.dict_studies.keys()):
-            for param in list(self.dict_studies[study]["input_params"]):
-                if param not in self.input_params:
-                    del self.dict_studies[study]["input_params"][param]
+            for param in list(self.dict_studies[study]["user_params"]):
+                if param not in self.user_params:
+                    del self.dict_studies[study]["user_params"][param]
         
         # Clean input paths
         for study in list(self.dict_studies.keys()):
-            for file in list(self.dict_studies[study]["input_paths"]):
-                if file not in self.input_paths:
-                    del self.dict_studies[study]["input_paths"][file]
+            for file in list(self.dict_studies[study]["user_paths"]):
+                if file not in self.user_paths:
+                    del self.dict_studies[study]["user_paths"][file]
         
         # Initialize input parameters/paths
         for study in self.studies:
@@ -318,23 +561,27 @@ class WorkFlow:
             if study not in self.dict_studies:
                 self.dict_studies[study] = {
                     "execute": True,
-                    "input_params": {},
-                    "input_paths": {},
+                    "user_params": {},
+                    "user_paths": {},
                 }
             
-            for param in self.input_params:
-                if param not in self.dict_studies[study]["input_params"]:
+            for param in self.user_params:
+                if param not in self.dict_studies[study]["user_params"]:
                     if study == "Default":
-                        self.dict_studies[study]["input_params"][param] = False
+                        self.dict_studies[study]["user_params"][param] = False
                     else:
-                        self.dict_studies[study]["input_params"][param] = None
+                        self.dict_studies[study]["user_params"][param] = None
             
-            for file in self.input_paths:
-                if file not in self.dict_studies[study]["input_paths"]:
+            for file in self.user_paths:
+                if file not in self.dict_studies[study]["user_paths"]:
                     if study == "Default":
-                        self.dict_studies[study]["input_paths"][file] = False
+                        self.dict_studies[study]["user_paths"][file] = False
                     else:
-                        self.dict_studies[study]["input_paths"][file] = None
+                        self.dict_studies[study]["user_paths"][file] = None
+
+            # Reordering
+            self.dict_studies[study]["user_params"] = {k: self.dict_studies[study]["user_params"][k] for k in self.user_params}
+            self.dict_studies[study]["user_paths"] = {k: self.dict_studies[study]["user_paths"][k] for k in self.user_paths}
 
         # Write studies json file
         with open("studies.json", "w") as f:
@@ -364,21 +611,21 @@ class WorkFlow:
             self.studies_messages[study] = []
             self.studies_config[study] = True
 
-            for param in self.input_params:
-                if self.dict_studies[study]["input_params"][param] is None:
+            for param in self.user_params:
+                if self.dict_studies[study]["user_params"][param] is None:
                     self.studies_messages[study].append(f"(X) {param} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["input_params"][param]: text = "variable"
+                    if self.dict_studies[study]["user_params"][param]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {param} is {text}.")
 
-            for file in self.input_paths:
-                if self.dict_studies[study]["input_paths"][file] is None:
+            for file in self.user_paths:
+                if self.dict_studies[study]["user_paths"][file] is None:
                     self.studies_messages[study].append(f"(X) {file} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["input_paths"][file]: text = "variable"
+                    if self.dict_studies[study]["user_paths"][file]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {file} is {text}.")
 
@@ -451,14 +698,14 @@ class WorkFlow:
             # Define list of fixed/variable parameters
             fixed_params = []
             variable_params = []
-            for key, value in self.dict_studies[study]["input_params"].items():
+            for key, value in self.dict_studies[study]["user_params"].items():
                 if value is True: variable_params.append(key)
                 else: fixed_params.append(key)
             
             # Define list of fixed/variable paths
             fixed_paths = []
             variable_paths = []
-            for key, value in self.dict_studies[study]["input_paths"].items():
+            for key, value in self.dict_studies[study]["user_paths"].items():
                 if value is True: variable_paths.append(key)
                 else: fixed_paths.append(key)
             
@@ -528,7 +775,7 @@ class WorkFlow:
 
             # Initialize inputs directory
             inputs_dir:Path = study_dir / "0_inputs"
-            if len(self.input_paths) > 0:
+            if len(self.user_paths) > 0:
 
                 # Create inputs directory (if necessary)
                 inputs_dir.mkdir(
@@ -644,7 +891,7 @@ class WorkFlow:
             os.chdir(study_dir)
 
             # Initialize dictionary of input paths
-            self.dict_input_paths[study] = {}
+            self.dict_user_paths[study] = {}
 
             # Fixed parameters 
             if len(self.fixed_params[study]) > 0:
@@ -661,7 +908,7 @@ class WorkFlow:
             for file in self.fixed_paths[study]:
                 dict_input_paths[file] = str(Path(os.getcwd()) / "0_inputs" / file)
 
-            self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
+            self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
 
             # Variable parameters
             if (len(self.variable_params[study]) > 0) or \
@@ -689,7 +936,7 @@ class WorkFlow:
                     for idx in df_inputs.index:
                         dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
 
-                self.dict_input_paths[study] = {**self.dict_input_paths[study], **dict_input_paths}
+                self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
 
             # Go back to working directory
             os.chdir(self.working_dir)        
@@ -774,12 +1021,12 @@ class WorkFlow:
             # Go back to working directory
             os.chdir(self.working_dir) 
 
-    def print_inputs(self):
-        """Print inputs"""
+    def print_inputs_settings(self):
+        """Print inputs settings"""
 
         print("")
         print(
-            colored("> INPUTS <", "blue", attrs=["reverse"]),
+            colored("> SETTINGS <", "blue", attrs=["reverse"]),
         )
         for study in self.studies:
 
@@ -939,10 +1186,10 @@ class WorkFlow:
                 
                 if "hard_params" in proc: dict_hard_params = proc["hard_params"]
                 else: dict_hard_params = {}
-                if "input_params" in proc: input_params = proc["input_params"]
-                else: input_params = {}
-                if "input_paths" in proc: input_paths = proc["input_paths"]
-                else: input_paths = {}
+                if "user_params" in proc: user_params = proc["user_params"]
+                else: user_params = {}
+                if "user_paths" in proc: user_paths = proc["user_paths"]
+                else: user_paths = {}
                 if "require" in proc: require = proc["require"]
                 else: require = {}
                 if "build" in proc: build = proc["build"]
@@ -951,12 +1198,12 @@ class WorkFlow:
                 # Define class object for the current process
                 process = proc["process"]
                 this_process:Process = process(
-                    df_inputs=self.dict_variable_params[study],
-                    dict_inputs=self.dict_fixed_params[study],
-                    dict_input_paths=self.dict_input_paths[study],
+                    df_user_params=self.dict_variable_params[study],
+                    dict_user_params=self.dict_fixed_params[study],
+                    dict_user_paths=self.dict_user_paths[study],
                     dict_paths=self.dict_paths[study],
-                    params=input_params,
-                    paths=input_paths,
+                    params=user_params,
+                    paths=user_paths,
                     dict_hard_params=dict_hard_params,
                     fixed_params=self.fixed_params[study],
                     variable_params=self.variable_params[study],

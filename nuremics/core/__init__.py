@@ -1,2 +1,2 @@
-from .workflow import Application, WorkFlow
+from .application import Application
 from .process import Process
