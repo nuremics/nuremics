@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+import sys
 import attrs
 import json
+from pathlib import Path
 from termcolor import colored
 
 import pandas as pd
@@ -18,11 +20,11 @@ class Process():
     """Mother class of all classes of process."""
 
     name: str = attrs.field(default=None)
+    study: str = attrs.field(default=None)
     df_user_params: pd.DataFrame = attrs.field(default=None)
     dict_user_params: dict = attrs.field(default=None)
     dict_user_paths: dict = attrs.field(default=None)
     dict_paths: dict = attrs.field(factory=dict)
-    is_processed: bool = attrs.field(default=True)
     is_case: bool = attrs.field(default=True)
     params: dict = attrs.field(factory=dict)
     allparams: list = attrs.field(factory=list)
@@ -39,8 +41,8 @@ class Process():
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_inputs: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
-    build: dict = attrs.field(default={})
-    require: dict = attrs.field(default={})
+    output_paths: dict = attrs.field(default={})
+    required_paths: dict = attrs.field(default={})
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
     diagram: dict = attrs.field(default={})
@@ -55,9 +57,9 @@ class Process():
 
         # Define list with all parameters considering dependencies with previous processes
         self.allparams = list(self.params.values()).copy()
-        for require in list(self.require.values()):
+        for required_paths in list(self.required_paths.values()):
             for _, value in self.diagram.items():
-                if require in value.get("build"):
+                if required_paths in value.get("output_paths"):
                     self.allparams = concat_lists_unique(
                         list1=list(self.params.values()),
                         list2=value["allparams"],
@@ -65,14 +67,14 @@ class Process():
 
         # Define list with all paths considering dependencies with previous processes
         self.allpaths = list(self.paths.values()).copy()
-        for require in list(self.require.values()):
+        for required_path in list(self.required_paths.values()):
             for _, value in self.diagram.items():
-                if require in value.get("build"):
+                if required_path in value.get("output_paths"):
                     self.allpaths = concat_lists_unique(
                         list1=list(self.paths.values()),
                         list2=value["allpaths"],
                     )
-
+        
         if self.is_case:
             self.on_params_update()
 
@@ -102,7 +104,7 @@ class Process():
 
             # Check parameters / paths dependencies
             variable_params = [x for x in self.variable_params if x in self.allparams]
-            variable_paths = [x for x in self.variable_paths if x in self.paths]
+            variable_paths = [x for x in self.variable_paths if x in self.allpaths]
             
             # There are variable parameters / paths from previous process
             if (len(variable_params) > 0) or (len(variable_paths) > 0):
@@ -126,8 +128,6 @@ class Process():
             for param in self.df_params.columns:
                 value = convert_value(self.df_params.at[self.index, param])
                 self.dict_inputs[params_inv[param]] = value
-            if self.df_user_params.loc[self.index, "EXECUTE"] == 0:
-                self.is_processed = False
         else:
             self.dict_inputs = {k: self.dict_user_params[v] for k, v in self.params.items()}
         
@@ -142,50 +142,59 @@ class Process():
         for file in self.variable_paths_proc:
             self.dict_inputs[paths_inv[file]] = self.dict_user_paths[file][self.index]
         
-        # Add previous outputs
-        for key, value in self.require.items():
-            output_path = self.get_build_path(value)
+        # Add previous output paths
+        for key, value in self.required_paths.items():
+            output_path = self.get_output_path(value)
             self.dict_inputs[key] = output_path
 
         # Write json file containing all parameters
         with open("inputs.json", "w") as f:
             json.dump(self.dict_inputs, f, indent=4)
 
-    def get_build_path(self,
-        build: str,
+    def get_output_path(self,
+        output_path: str,
     ):
-        """Function to get the path to a build within the paths dictionary"""
+        """Function to get the path to an output within the paths dictionary"""
         
         # Initialize path to return
         path = None
 
-        if isinstance(self.dict_paths[build], dict):
-            for key, value in self.dict_paths[build].items():
+        if isinstance(self.dict_paths[output_path], dict):
+            for key, value in self.dict_paths[output_path].items():
                 if key == self.index:
                     path = value
         else:
-            path = self.dict_paths[build]
+            path = self.dict_paths[output_path]
+        
+        if not Path(path).exists():
+            
+            # Printing
+            print("")
+            print(colored(f"(X) Required {output_path} is missing :", "red"))
+            print(colored(f"> Please execute the necessary previous process that will build it.", "red"))
+            
+            sys.exit()
 
         return path
 
     def update(self,
-        build: str,
+        output_path: str,
         dump: str,
     ):
 
-        if build not in self.dict_paths:
-            self.dict_paths[build] = {}
+        if output_path not in self.dict_paths:
+            self.dict_paths[output_path] = {}
 
         if self.is_case:
-            self.dict_paths[build][self.index] = os.path.join(os.getcwd(), dump)
+            self.dict_paths[output_path][self.index] = os.path.join(os.getcwd(), dump)
         else:
-            self.dict_paths[build] = os.path.join(os.getcwd(), dump)
+            self.dict_paths[output_path] = os.path.join(os.getcwd(), dump)
 
     def finalize(self):
 
-        for _, value in self.build.items():
+        for _, value in self.output_paths.items():
             self.update(
-                build=value,
+                output_path=value,
                 dump=value,
             )
 

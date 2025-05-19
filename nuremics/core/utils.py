@@ -111,9 +111,9 @@ def extract_inputs_and_types(obj) -> dict:
 
 
 # From chatGPT
-def extract_self_build_keys(method):
+def extract_self_output_keys(method):
     """
-    Extracts all dictionary keys used in self.build[...] from a method.
+    Extracts all dictionary keys used in self.output_paths[...] from a method.
     Returns a list of key names as strings.
     """
     keys = []
@@ -123,13 +123,13 @@ def extract_self_build_keys(method):
     source = textwrap.dedent(source)
     tree = ast.parse(source)
 
-    class BuildKeyVisitor(ast.NodeVisitor):
+    class OutputKeyVisitor(ast.NodeVisitor):
         def visit_Subscript(self, node):
-            # Check if it's self.build[...]
+            # Check if it's self.output_paths[...]
             if (isinstance(node.value, ast.Attribute) and
                 isinstance(node.value.value, ast.Name) and
-                node.value.value.id == 'self' and
-                node.value.attr == 'build'):
+                node.value.value.id == "self" and
+                node.value.attr == "output_paths"):
 
                 # Extract the key if it's a constant (string)
                 if isinstance(node.slice, ast.Constant):
@@ -141,5 +141,5 @@ def extract_self_build_keys(method):
             # Continue visiting child nodes
             self.generic_visit(node)
 
-    BuildKeyVisitor().visit(tree)
+    OutputKeyVisitor().visit(tree)
     return keys

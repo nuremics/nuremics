@@ -17,7 +17,7 @@ from .utils import (
     get_self_method_calls,
     only_function_calls,
     extract_inputs_and_types,
-    extract_self_build_keys,
+    extract_self_output_keys,
 )
 from importlib.resources import files
 
@@ -229,8 +229,8 @@ class WorkFlow:
                     self.paths_by_process[name].append(key)
                     if ("user_paths" in proc) and (key in proc["user_paths"]):
                         self.paths_plug[name][key] = [proc["user_paths"][key], "user_paths"]
-                    elif ("require" in proc) and (key in proc["require"]):
-                        self.paths_plug[name][key] = [proc["require"][key], "require"]
+                    elif ("required_paths" in proc) and (key in proc["required_paths"]):
+                        self.paths_plug[name][key] = [proc["required_paths"][key], "required_paths"]
                     else:
                         self.paths_plug[name][key] = None
                 
@@ -256,12 +256,12 @@ class WorkFlow:
             self.outputs_plug[name] = {}
 
             for op in self.operations_by_process[name]:
-                outputs = extract_self_build_keys(getattr(this_process, op))
-                self.outputs_by_process[name].extend(outputs)
+                output_paths = extract_self_output_keys(getattr(this_process, op))
+                self.outputs_by_process[name].extend(output_paths)
             
             for output in self.outputs_by_process[name]:
-                if ("build" in proc) and (output in proc["build"]):
-                    self.outputs_plug[name][output] = proc["build"][output]
+                if ("output_paths" in proc) and (output in proc["output_paths"]):
+                    self.outputs_plug[name][output] = proc["output_paths"][output]
                 else:
                     self.outputs_plug[name][output] = None
 
@@ -300,21 +300,21 @@ class WorkFlow:
                         print(colored(f"(X) {key} is not an input path of {name}.", "red"))
                         sys.exit()
 
-            # Check on require
-            if "require" in process:
-                for _, value in process["require"].items():
+            # Check on required paths
+            if "required_paths" in process:
+                for _, value in process["required_paths"].items():
                     if value not in self.output_paths:
                         print("")
-                        print(colored(f'(X) {value} defined in {name} "require" must be defined in previous process "build".', "red"))
+                        print(colored(f'(X) {value} defined in {name} "required_paths" must be defined in previous process "output_paths".', "red"))
                         sys.exit()
             
             # Define list of output paths
-            if "build" in process:
-                for key, value in process["build"].items():
+            if "output_paths" in process:
+                for key, value in process["output_paths"].items():
                     if key in self.outputs_by_process[name]:
                         if value in self.output_paths:
                             print("")
-                            print(colored(f'(X) {value} is defined twice in "build".', "red"))
+                            print(colored(f'(X) {value} is defined twice in "output_paths".', "red"))
                             sys.exit()
                         else:
                             self.output_paths.append(value)
@@ -428,7 +428,7 @@ class WorkFlow:
 
                 if error:
                     print("")
-                    print(colored('(X) Please define all input paths either in "user_paths" or "require".', "red"))
+                    print(colored('(X) Please define all input paths either in "user_paths" or "required_paths".', "red"))
                     sys.exit()
 
             # ------------ #
@@ -453,7 +453,7 @@ class WorkFlow:
                     # User
                     if self.outputs_plug[name][path] is not None:
                         text_variable_user = self.outputs_plug[name][path]
-                        text_definition_user = "(build)"
+                        text_definition_user = "(output_paths)"
                         lines_user.append((text_variable_user, text_definition_user))
                     else:
                         lines_user.append(("Not defined", "(X)"))
@@ -472,7 +472,7 @@ class WorkFlow:
 
                 if error:
                     print("")
-                    print(colored('(X) Please define all output paths in "build".', "red"))
+                    print(colored('(X) Please define all output paths in "output_paths".', "red"))
                     sys.exit()
 
     def set_user_params_types(self):
@@ -563,6 +563,7 @@ class WorkFlow:
                     "execute": True,
                     "user_params": {},
                     "user_paths": {},
+                    "clean_outputs": {},
                 }
             
             for param in self.user_params:
@@ -578,6 +579,10 @@ class WorkFlow:
                         self.dict_studies[study]["user_paths"][file] = False
                     else:
                         self.dict_studies[study]["user_paths"][file] = None
+            
+            for path in self.output_paths:
+                if path not in self.dict_studies[study]["clean_outputs"]:
+                    self.dict_studies[study]["clean_outputs"][path] = False
 
             # Reordering
             self.dict_studies[study]["user_params"] = {k: self.dict_studies[study]["user_params"][k] for k in self.user_params}
@@ -599,7 +604,8 @@ class WorkFlow:
             if study_file.exists():
                 with open(study_file) as f:
                     dict_study = json.load(f)
-                if self.dict_studies[study] != dict_study:
+                if (self.dict_studies[study]["user_params"] != dict_study["user_params"]) or \
+                   (self.dict_studies[study]["user_paths"] != dict_study["user_paths"]):
                     self.studies_modif[study] = True
 
     def test_studies_settings(self):
@@ -647,7 +653,7 @@ class WorkFlow:
                 print(
                     colored(f"(!) Configuration has been modified.", "yellow"),
                 )
-                self.clean_output_data(study)
+                self.clean_output_tree(study)
 
             for message in self.studies_messages[study]:
                 if "(V)" in message: print(colored(message, "green"))
@@ -686,6 +692,9 @@ class WorkFlow:
                         "verbose": False,
                     }
             
+            # Reordering
+            self.dict_process[study] = {k: self.dict_process[study][k] for k in self.list_processes}
+
             # Write studies json file
             with open(process_file, "w") as f:
                 json.dump(self.dict_process[study], f, indent=4)
@@ -860,7 +869,7 @@ class WorkFlow:
                 # Delete file
                 if inputs_file.exists(): inputs_file.unlink()
 
-    def clean_output_data(self,
+    def clean_output_tree(self,
         study: str,
     ):
         """Clean output data for a specific study"""
@@ -1166,6 +1175,30 @@ class WorkFlow:
             
             self.dict_paths[study] = dict_paths
 
+    def clean_outputs(self):
+        """Clean outputs."""
+
+        # Function to remove output path, either file or directory
+        def _remove_output(output: str):
+            output_path = Path(output)
+            if output_path.exists():
+                if output_path.is_dir():
+                    shutil.rmtree(output)
+                else:
+                    output_path.unlink()
+            
+        # Loop over studies
+        for study, study_dict in self.dict_studies.items():
+
+            # Delete specified outputs
+            for key, value in study_dict["clean_outputs"].items():
+                if value:
+                    if type(self.dict_paths[study][key]) == str:
+                        _remove_output(self.dict_paths[study][key])
+                    else:
+                        for _, value in self.dict_paths[study][key].items():
+                            _remove_output(value)
+
     def __call__(self):
         """Launch workflow of processes."""
         
@@ -1177,7 +1210,20 @@ class WorkFlow:
             colored("> RUNNING <", "blue", attrs=["reverse"]),
         )
 
-        for study in list(self.dict_studies.keys()):
+        for study, dict_study in self.dict_studies.items():
+
+            # Check if study must be executed
+            if not dict_study["execute"]:
+                
+                # Printing
+                print("")
+                print(
+                    colored(f"| {study} |", "magenta"),
+                )
+                print("")
+                print(colored("(!) Study is skipped.", "yellow"))
+                
+                continue
 
             study_dir:Path = self.working_dir / study
             os.chdir(study_dir)
@@ -1190,14 +1236,15 @@ class WorkFlow:
                 else: user_params = {}
                 if "user_paths" in proc: user_paths = proc["user_paths"]
                 else: user_paths = {}
-                if "require" in proc: require = proc["require"]
-                else: require = {}
-                if "build" in proc: build = proc["build"]
-                else: build = {}
+                if "required_paths" in proc: required_paths = proc["required_paths"]
+                else: required_paths = {}
+                if "output_paths" in proc: output_paths = proc["output_paths"]
+                else: output_paths = {}
 
                 # Define class object for the current process
                 process = proc["process"]
                 this_process:Process = process(
+                    study=study,
                     df_user_params=self.dict_variable_params[study],
                     dict_user_params=self.dict_fixed_params[study],
                     dict_user_paths=self.dict_user_paths[study],
@@ -1209,22 +1256,31 @@ class WorkFlow:
                     variable_params=self.variable_params[study],
                     fixed_paths=self.fixed_paths[study],
                     variable_paths=self.variable_paths[study],
-                    require=require,
-                    build=build,
-                    is_processed=self.dict_process[study][self.list_processes[step]]["execute"],
+                    required_paths=required_paths,
+                    output_paths=output_paths,
                     verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
                     diagram=self.diagram,
                 )
                 this_process.initialize()
 
                 # Define process name
-                if this_process.name is None:
-                    name = this_process.__class__.__name__
-                else:
-                    name = this_process.name
+                process_name = this_process.__class__.__name__
+
+                # Check if process must be executed
+                if not self.dict_process[study][self.list_processes[step]]["execute"]:
+                    
+                    # Printing
+                    print("")
+                    print(
+                        colored(f"| {study} | {process_name} |", "magenta"),
+                    )
+                    print("")
+                    print(colored("(!) Process is skipped.", "yellow"))
+                    
+                    continue
                 
                 # Define working folder associated to the current process
-                folder_name = f"{step+1}_{name}"
+                folder_name = f"{step+1}_{process_name}"
                 folder_path:Path = study_dir / folder_name
                 folder_path.mkdir(exist_ok=True, parents=True)
                 os.chdir(folder_path)
@@ -1237,8 +1293,17 @@ class WorkFlow:
                         # Printing
                         print("")
                         print(
-                            colored(f"| {study} | {name} | {idx} |", "magenta"),
+                            colored(f"| {study} | {process_name} | {idx} |", "magenta"),
                         )
+
+                        # Check if dataset must be executed
+                        if self.dict_variable_params[study].loc[idx, "EXECUTE"] == 0:
+                            
+                            # Printing
+                            print("")
+                            print(colored("(!) Dataset is skipped.", "yellow"))
+
+                            continue
 
                         # Update process index
                         this_process.index = idx
@@ -1248,13 +1313,8 @@ class WorkFlow:
                         os.chdir(subfolder_path)
 
                         # Launch process
-                        if this_process.is_processed:
-                            this_process()
-                            this_process.finalize()
-                        else:
-                            # Printing
-                            print("")
-                            print(colored("(!) Process is skipped.", "yellow"))
+                        this_process()
+                        this_process.finalize()
 
                         # Go back to working folder
                         os.chdir(folder_path)
@@ -1264,26 +1324,21 @@ class WorkFlow:
                     # Printing
                     print("")
                     print(
-                        colored(f"| {study} | {name} |", "magenta"),
+                        colored(f"| {study} | {process_name} |", "magenta"),
                     )
                 
                     # Launch process
-                    if this_process.is_processed:
-                        this_process()
-                        this_process.finalize()
-                    else:
-                        # Printing
-                        print("")
-                        print(colored("(!) Process is skipped.", "yellow"))
+                    this_process()
+                    this_process.finalize()
 
                 # Update process diagram
-                self.diagram[name] = {
+                self.diagram[process_name] = {
                     "params": this_process.params,
                     "allparams": this_process.allparams,
                     "paths": this_process.paths,
                     "allpaths": this_process.allpaths,
-                    "require": list(this_process.require.values()),
-                    "build": list(this_process.build.values()),
+                    "required_paths": list(this_process.required_paths.values()),
+                    "output_paths": list(this_process.output_paths.values()),
                 }
 
                 # Update paths dictonary
@@ -1302,3 +1357,6 @@ class WorkFlow:
         
         # Go back to working directory
         os.chdir(self.working_dir)
+
+        # Delete unecessary outputs
+        self.clean_outputs()
