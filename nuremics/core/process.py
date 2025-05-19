@@ -169,7 +169,7 @@ class Process():
         if not Path(path).exists():
             
             # Printing
-            print("")
+            print()
             print(colored(f"(X) Required {output_path} is missing :", "red"))
             print(colored(f"> Please execute the necessary previous process that will build it.", "red"))
             

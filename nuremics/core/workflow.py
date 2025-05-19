@@ -114,7 +114,7 @@ class WorkFlow:
         f = open(ascii_logo_path, "r")
         for line in f:
             lines = f.readlines()
-        print("")
+        print()
         for line in lines:
             print(line.rstrip())
 
@@ -122,11 +122,11 @@ class WorkFlow:
         """Print application"""
 
         # Printing
-        print("")
+        print()
         print(
             colored("> APPLICATION <", "blue", attrs=["reverse"]),
         )
-        print("")
+        print()
         print(
             colored(f"| Workflow |", "magenta"),
         )
@@ -186,12 +186,12 @@ class WorkFlow:
                 )
         
         if error:
-            print("")
+            print()
             print(colored(f"(X) Each process must only call its internal function(s):", "red"))
-            print("")
+            print()
             print(colored(f"    def __call__(self):", "red"))
             print(colored(f"        super().__call__()", "red"))
-            print("")
+            print()
             print(colored(f"        self.operation1()", "red"))
             print(colored(f"        self.operation2()", "red"))
             print(colored(f"        self.operation3()", "red"))
@@ -278,7 +278,7 @@ class WorkFlow:
                     if key in self.params_by_process[name]:
                         self.user_params.append(value)
                     else:
-                        print("")
+                        print()
                         print(colored(f'(X) {key} defined in "user_params" is not an input parameter of {name}.', "red"))
                         sys.exit()
             
@@ -286,7 +286,7 @@ class WorkFlow:
             if "hard_params" in process:
                 for key, _ in process["hard_params"].items():
                     if key not in self.params_by_process[name]:
-                        print("")
+                        print()
                         print(colored(f'(X) {key} defined in "hard_params" is not an input parameter of {name}.', "red"))
                         sys.exit()
 
@@ -296,7 +296,7 @@ class WorkFlow:
                     if key in self.paths_by_process[name]:
                         self.user_paths.append(value)
                     else:
-                        print("")
+                        print()
                         print(colored(f"(X) {key} is not an input path of {name}.", "red"))
                         sys.exit()
 
@@ -304,7 +304,7 @@ class WorkFlow:
             if "required_paths" in process:
                 for _, value in process["required_paths"].items():
                     if value not in self.output_paths:
-                        print("")
+                        print()
                         print(colored(f'(X) {value} defined in {name} "required_paths" must be defined in previous process "output_paths".', "red"))
                         sys.exit()
             
@@ -313,13 +313,13 @@ class WorkFlow:
                 for key, value in process["output_paths"].items():
                     if key in self.outputs_by_process[name]:
                         if value in self.output_paths:
-                            print("")
+                            print()
                             print(colored(f'(X) {value} is defined twice in "output_paths".', "red"))
                             sys.exit()
                         else:
                             self.output_paths.append(value)
                     else:
-                        print("")
+                        print()
                         print(colored(f"(X) {key} is not an output path of {name}.", "red"))
                         sys.exit()
 
@@ -335,7 +335,7 @@ class WorkFlow:
             name = proc["process"].__name__
 
             # Printing
-            print("")
+            print()
             print(
                 colored(f"| {name} |", "magenta"),
             )
@@ -383,7 +383,7 @@ class WorkFlow:
                     print(colored(proc_str, "blue")+colored(user_str, color))
                 
                 if error:
-                    print("")
+                    print()
                     print(colored('(X) Please define all input parameters either in "user_params" or "hard_params".', "red"))
                     sys.exit()
             
@@ -427,7 +427,7 @@ class WorkFlow:
                     print(colored(proc_str, "blue")+colored(user_str, color))
 
                 if error:
-                    print("")
+                    print()
                     print(colored('(X) Please define all input paths either in "user_paths" or "required_paths".', "red"))
                     sys.exit()
 
@@ -471,7 +471,7 @@ class WorkFlow:
                     print(colored(proc_str, "blue")+colored(user_str, color))
 
                 if error:
-                    print("")
+                    print()
                     print(colored('(X) Please define all output paths in "output_paths".', "red"))
                     sys.exit()
 
@@ -484,7 +484,7 @@ class WorkFlow:
                 user_param = self.params_plug[proc][param][0]
                 if user_param in self.user_params:
                     if (user_param in self.params_type) and (self.params_type[user_param][0] != type[0]):
-                        print("")
+                        print()
                         print(colored(f"(X) {user_param} is defined both as ({self.params_type[user_param][1]}) and ({type[1]}) :", "red"))
                         print(colored(f'> Please consider defining a new user parameter in "user_params".', "red"))
                         sys.exit()
@@ -494,13 +494,13 @@ class WorkFlow:
         """Print inputs / outputs"""
 
         # Printing
-        print("")
+        print()
         print(
             colored("> INPUTS <", "blue", attrs=["reverse"]),
         )
 
         # Print input parameters
-        print("")
+        print()
         print(
             colored(f"| User Parameters |", "magenta"),
         )
@@ -510,7 +510,7 @@ class WorkFlow:
             )
 
         # Print input paths
-        print("")
+        print()
         print(
             colored(f"| User Paths |", "magenta"),
         )
@@ -520,11 +520,11 @@ class WorkFlow:
             )
 
         # Printing
-        print("")
+        print()
         print(
             colored("> OUTPUTS <", "blue", attrs=["reverse"]),
         )
-        print("")
+        print()
         for path in self.output_paths:
             print(
                 colored(f"> {path}", "blue"),
@@ -638,14 +638,14 @@ class WorkFlow:
     def print_studies(self):
         """Print studies"""
 
-        print("")
+        print()
         print(
             colored("> STUDIES <", "blue", attrs=["reverse"]),
         )
         for study in self.studies:
 
             # Printing
-            print("")
+            print()
             print(
                 colored(f"| {study} |", "magenta"),
             )
@@ -660,7 +660,7 @@ class WorkFlow:
                 elif "(X)" in message: print(colored(message, "red"))
         
             if not self.studies_config[study]:
-                print("")
+                print()
                 print(colored(f"(X) Please configure file :", "red"))
                 print(colored(f"> {str(Path.cwd() / "studies.json")}", "red"))
                 sys.exit()
@@ -689,7 +689,7 @@ class WorkFlow:
                 if process not in self.dict_process[study]:
                     self.dict_process[study][process] = {
                         "execute": True,
-                        "verbose": False,
+                        "verbose": self.verbose,
                     }
             
             # Reordering
@@ -1033,7 +1033,7 @@ class WorkFlow:
     def print_inputs_settings(self):
         """Print inputs settings"""
 
-        print("")
+        print()
         print(
             colored("> SETTINGS <", "blue", attrs=["reverse"]),
         )
@@ -1046,7 +1046,7 @@ class WorkFlow:
             os.chdir(study_dir)
 
             # Printing
-            print("")
+            print()
             print(colored(f"| {study} |", "magenta"))
 
             # ------------ #
@@ -1083,14 +1083,14 @@ class WorkFlow:
             print(*list_text)
 
             if not self.fixed_params_config[study] or not self.fixed_paths_config[study]:
-                print("")
+                print()
                 print(colored(f"(X) Please configure file(s) :", "red"))
                 for error in list_errors:
                     print(error)
                 sys.exit()
 
             if type_error:
-                print("")
+                print()
                 print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
                 print(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
                 sys.exit()
@@ -1107,7 +1107,7 @@ class WorkFlow:
                 
                 # Check if datasets have been defined
                 if len(self.dict_variable_params[study].index) == 0:
-                    print("")
+                    print()
                     print(colored(f"(X) Please define at least one dataset in file :", "red"))
                     print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                     sys.exit()
@@ -1143,14 +1143,14 @@ class WorkFlow:
         
                 list_errors = sorted(list_errors, key=lambda x: '0_inputs' in x)
                 if len(list_errors) > 0:
-                    print("")
+                    print()
                     print(colored(f"(X) Please configure file(s) :", "red"))
                     for error in list_errors:
                         print(error)
                     sys.exit()
                 
                 if type_error:
-                    print("")
+                    print()
                     print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
                     print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                     sys.exit()
@@ -1205,7 +1205,7 @@ class WorkFlow:
         # --------------- #
         # Launch workflow #
         # --------------- #
-        print("")
+        print()
         print(
             colored("> RUNNING <", "blue", attrs=["reverse"]),
         )
@@ -1216,11 +1216,11 @@ class WorkFlow:
             if not dict_study["execute"]:
                 
                 # Printing
-                print("")
+                print()
                 print(
                     colored(f"| {study} |", "magenta"),
                 )
-                print("")
+                print()
                 print(colored("(!) Study is skipped.", "yellow"))
                 
                 continue
@@ -1270,11 +1270,11 @@ class WorkFlow:
                 if not self.dict_process[study][self.list_processes[step]]["execute"]:
                     
                     # Printing
-                    print("")
+                    print()
                     print(
                         colored(f"| {study} | {process_name} |", "magenta"),
                     )
-                    print("")
+                    print()
                     print(colored("(!) Process is skipped.", "yellow"))
                     
                     continue
@@ -1291,7 +1291,7 @@ class WorkFlow:
                     for idx in this_process.df_params.index:
 
                         # Printing
-                        print("")
+                        print()
                         print(
                             colored(f"| {study} | {process_name} | {idx} |", "magenta"),
                         )
@@ -1300,7 +1300,7 @@ class WorkFlow:
                         if self.dict_variable_params[study].loc[idx, "EXECUTE"] == 0:
                             
                             # Printing
-                            print("")
+                            print()
                             print(colored("(!) Dataset is skipped.", "yellow"))
 
                             continue
@@ -1322,7 +1322,7 @@ class WorkFlow:
                 else:
 
                     # Printing
-                    print("")
+                    print()
                     print(
                         colored(f"| {study} | {process_name} |", "magenta"),
                     )
