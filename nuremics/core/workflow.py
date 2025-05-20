@@ -42,6 +42,7 @@ class WorkFlow:
         self.studies = studies
         self.processes = processes
         self.list_processes = []
+        self.dict_datasets = {}
         self.dict_studies = {}
         self.dict_process = {}
         self.user_params = []
@@ -508,6 +509,10 @@ class WorkFlow:
             print(
                 colored(f"> {param} ({type[1]})", "blue"),
             )
+        if len(list(self.params_type.items())) == 0:
+            print(
+                colored("None.", "blue"),
+            )
 
         # Print input paths
         print()
@@ -517,6 +522,10 @@ class WorkFlow:
         for path in self.user_paths:
             print(
                 colored(f"> {path}", "blue"),
+            )
+        if len(self.user_paths) == 0:
+            print(
+                colored("None.", "blue"),
             )
 
         # Printing
@@ -528,6 +537,10 @@ class WorkFlow:
         for path in self.output_paths:
             print(
                 colored(f"> {path}", "blue"),
+            )
+        if len(self.output_paths) == 0:
+            print(
+                colored("None.", "blue"),
             )
 
     def init_studies(self):
@@ -551,9 +564,15 @@ class WorkFlow:
         
         # Clean input paths
         for study in list(self.dict_studies.keys()):
-            for file in list(self.dict_studies[study]["user_paths"]):
-                if file not in self.user_paths:
-                    del self.dict_studies[study]["user_paths"][file]
+            for path in list(self.dict_studies[study]["user_paths"]):
+                if path not in self.user_paths:
+                    del self.dict_studies[study]["user_paths"][path]
+
+        # Clean output paths
+        for study in list(self.dict_studies.keys()):
+            for path in list(self.dict_studies[study]["clean_outputs"]):
+                if path not in self.output_paths:
+                    del self.dict_studies[study]["clean_outputs"][path]
         
         # Initialize input parameters/paths
         for study in self.studies:
@@ -726,6 +745,7 @@ class WorkFlow:
     def init_data_tree(self):
         """Initialize data tree"""
 
+        # Loop over studies
         for study in self.studies:
 
             # Initialize study directory
@@ -735,12 +755,9 @@ class WorkFlow:
                 parents=True,
             )
 
-            # Write study json if configuration has changed
-            if self.studies_modif[study]:
-
-                # Write new study json file
-                with open(study_dir / ".study.json", "w") as f:
-                    json.dump(self.dict_studies[study], f, indent=4)
+            # Write study json file
+            with open(study_dir / ".study.json", "w") as f:
+                json.dump(self.dict_studies[study], f, indent=4)
             
             # Initialize inputs csv
             inputs_file:Path = study_dir / "inputs.csv"
@@ -777,6 +794,9 @@ class WorkFlow:
                     df_inputs.to_csv(
                         path_or_buf=inputs_file,
                     )
+                
+                # Define list of datasets
+                self.dict_datasets[study] = df_inputs.index.tolist()
 
             else:
                 # Delete file
@@ -793,42 +813,51 @@ class WorkFlow:
                 )
 
                 # Delete fixed paths (if necessary)
-                inputs_files = [f for f in inputs_dir.iterdir() if f.is_file()]
-                for file in inputs_files:
-                    if os.path.split(file)[-1] not in self.fixed_paths[study]:
-                        file.unlink()
+                input_paths = [f for f in inputs_dir.iterdir()]
+                for path in input_paths:
+                    resolved_path = path.resolve().name
+                    if (resolved_path not in self.fixed_paths[study]) and (resolved_path != "0_datasets"):
+                        if Path(path).is_file(): path.unlink()
+                        else: shutil.rmtree(path)
                 
                 # Update inputs subfolders for variable paths
+                datasets_dir:Path = inputs_dir / "0_datasets"
                 if len(self.variable_paths[study]) > 0:
+
+                    # Create datasets directory (if necessary)
+                    datasets_dir.mkdir(
+                        exist_ok=True,
+                        parents=True,
+                    )
 
                     # Create subfolders (if necessary)    
                     for index in df_inputs.index:
                         
-                        inputs_subfolder:Path = inputs_dir / index
+                        inputs_subfolder:Path = datasets_dir / index
                         inputs_subfolder.mkdir(
                             exist_ok=True,
                             parents=True,
                         )
 
                         # Delete variable paths (if necessary)
-                        inputs_files = [f for f in inputs_subfolder.iterdir() if f.is_file()]
-                        for file in inputs_files:
-                            if os.path.split(file)[-1] not in self.variable_paths[study]:
-                                file.unlink()
+                        input_paths = [f for f in inputs_subfolder.iterdir()]
+                        for path in input_paths:
+                            resolved_path = path.resolve().name
+                            if resolved_path not in self.variable_paths[study]:
+                                if Path(path).is_file(): path.unlink()
+                                else: shutil.rmtree(path)
                     
                     # Delete subfolders (if necessary)
-                    inputs_subfolders = [f for f in inputs_dir.iterdir() if f.is_dir()]
+                    inputs_subfolders = [f for f in datasets_dir.iterdir() if f.is_dir()]
                     for folder in inputs_subfolders:
                         id = os.path.split(folder)[-1]
-                        if id not in df_inputs.index.tolist():
+                        if id not in self.dict_datasets[study]:
                             shutil.rmtree(folder)
                 
                 else:
 
-                    # Delete all inputs subfolders (if necessary)
-                    inputs_subfolders = [f for f in inputs_dir.iterdir() if f.is_dir()]
-                    for folder in inputs_subfolders:
-                        shutil.rmtree(folder)
+                    # Delete datasets folder (if necessary)
+                    if datasets_dir.exists(): shutil.rmtree(datasets_dir)
 
             else:
                 # Delete inputs directory (if necessary)
@@ -943,7 +972,7 @@ class WorkFlow:
                 for file in self.variable_paths[study]:
                     dict_input_paths[file] = {}
                     for idx in df_inputs.index:
-                        dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / idx / file)
+                        dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / "0_datasets" / idx / file)
 
                 self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
 
@@ -997,7 +1026,7 @@ class WorkFlow:
 
                 for index in self.dict_variable_params[study].index:
 
-                    inputs_dir:Path = Path("0_inputs") / index
+                    inputs_dir:Path = Path("0_inputs") / "0_datasets" / index
 
                     self.variable_params_messages[study][index] = []
                     self.variable_paths_messages[study][index] = []
@@ -1080,11 +1109,14 @@ class WorkFlow:
                     list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / file)}", "red"))
             
             # Printing
-            print(*list_text)
+            if len(list_text) == 1:
+                print(colored(f"None.", "blue"))
+            else:
+                print(*list_text)
 
             if not self.fixed_params_config[study] or not self.fixed_paths_config[study]:
                 print()
-                print(colored(f"(X) Please configure file(s) :", "red"))
+                print(colored(f"(X) Please set inputs :", "red"))
                 for error in list_errors:
                     print(error)
                 sys.exit()
@@ -1136,7 +1168,7 @@ class WorkFlow:
                         elif "(X)" in message:
                             file = self.variable_paths[study][i]
                             list_text.append(colored(message, "red"))
-                            list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / index / file)}", "red"))
+                            list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs/0_datasets" / index / file)}", "red"))
 
                     # Printing
                     print(*list_text)
@@ -1144,7 +1176,7 @@ class WorkFlow:
                 list_errors = sorted(list_errors, key=lambda x: '0_inputs' in x)
                 if len(list_errors) > 0:
                     print()
-                    print(colored(f"(X) Please configure file(s) :", "red"))
+                    print(colored(f"(X) Please set inputs :", "red"))
                     for error in list_errors:
                         print(error)
                     sys.exit()
@@ -1172,6 +1204,16 @@ class WorkFlow:
                     dict_paths = json.load(f)
             except:
                 dict_paths = {}
+                for path in self.output_paths:
+                    dict_paths[path] = None
+            
+            # Purge old datasets
+            for key, value in dict_paths.items():
+                if isinstance(value, dict):
+                    # List of datasets to delete
+                    to_delete = [dataset for dataset in value if dataset not in self.dict_datasets[study]]
+                    for dataset in to_delete:
+                        del dict_paths[key][dataset]
             
             self.dict_paths[study] = dict_paths
 
@@ -1193,11 +1235,22 @@ class WorkFlow:
             # Delete specified outputs
             for key, value in study_dict["clean_outputs"].items():
                 if value:
-                    if type(self.dict_paths[study][key]) == str:
+                    if isinstance(self.dict_paths[study][key], str):
                         _remove_output(self.dict_paths[study][key])
-                    else:
+                    if isinstance(self.dict_paths[study][key], dict):
                         for _, value in self.dict_paths[study][key].items():
                             _remove_output(value)
+
+    def purge_output_datasets(self,
+        study: str,
+    ):
+        """Purge output datasets for a specific study"""
+
+        datasets_paths = [f for f in Path.cwd().iterdir()]
+        for path in datasets_paths:
+            resolved_path = path.resolve().name
+            if resolved_path not in self.dict_datasets[study]:
+                shutil.rmtree(path)
 
     def __call__(self):
         """Launch workflow of processes."""
@@ -1318,6 +1371,9 @@ class WorkFlow:
 
                         # Go back to working folder
                         os.chdir(folder_path)
+
+                        # Purge old output datasets
+                        self.purge_output_datasets(study)
                     
                 else:
 

@@ -2,6 +2,7 @@ import attrs
 import ast
 import inspect
 import textwrap
+from pathlib import Path
 
 import numpy as np
 
@@ -55,7 +56,7 @@ def get_self_method_calls(cls, method_name="__call__"):
     return called_methods
 
 
-# From chatGPT
+# From ChatGPT
 def only_function_calls(method, allowed_methods):
     """
     Checks that the method contains only function calls,
@@ -101,7 +102,7 @@ def only_function_calls(method, allowed_methods):
     return True
 
 
-# From chatGPT
+# From ChatGPT
 def extract_inputs_and_types(obj) -> dict:
     params = {}
     for field in attrs.fields(obj.__class__):
@@ -110,7 +111,7 @@ def extract_inputs_and_types(obj) -> dict:
     return params
 
 
-# From chatGPT
+# From ChatGPT
 def extract_self_output_keys(method):
     """
     Extracts all dictionary keys used in self.output_paths[...] from a method.
@@ -143,3 +144,19 @@ def extract_self_output_keys(method):
 
     OutputKeyVisitor().visit(tree)
     return keys
+
+
+# From ChatGPT
+def find_git_root(path: Path = None) -> Path:
+    """
+    Walks up the directory tree from 'path' (or from cwd by default)
+    until it finds a '.git' directory, and returns the root of the Git project.
+    """
+    if path is None:
+        path = Path.cwd()
+
+    for parent in [path] + list(path.parents):
+        if (parent / ".git").is_dir():
+            return Path(parent)
+
+    raise FileNotFoundError("'.git' directory not found in any parent folder")
