@@ -29,3 +29,11 @@ Although **NUREMICS®** does not aim for full compliance with **IEC 62304**, it 
 The software architecture of **NUREMICS®** is illustrated in the diagram below. As previously mentioned, it follows the layered structure recommended by the **IEC 62304** standard, distinguishing between _software systems_, _software items_, and _software units_. This representation provides a clear, high-level view of how the different software components of the project are organized, and how they interact within a structured yet flexible development framework. It also highlights the relationship between the core framework (`nuremics`) and its domain-specific applications (`nuremics-apps`), emphasizing the modular and extensible nature of the overall architecture.
 
 <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/architecture.svg" alt="NUREMICS Architecture" width="100%">
+
+In the context of **NUREMICS®**:
+
+- A _software unit_ corresponds to a single, testable function. It is the smallest building block of logic.
+
+- A _software item_ typically takes the form of a Python class, that encapsulates related functions (units) to serve a specific computational purpose. 
+
+- A _software system_ refers to a complete application intended to be executed by an end user, replacing the traditional script or notebook.
