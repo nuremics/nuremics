@@ -34,6 +34,14 @@ In the context of **NUREMICS®**:
 
 - A _software unit_ corresponds to a single, testable function. It is the smallest building block of logic.
 
-- A _software item_ typically takes the form of a Python class, that encapsulates related functions (units) to serve a specific computational purpose. 
+- A _software item_ typically takes the form of a Python class that encapsulates related functions (units) to serve a specific purpose.
 
-- A _software system_ refers to a complete application intended to be executed by an end user, replacing the traditional script or notebook.
+- A _software system_ refers to a complete application designed to be executed by an end user, replacing traditional scripts or notebooks.
+
+In practice, the core framework `nuremics` is composed of three foundational _software items_:
+
+- The `Process` class defines a generic process component. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
+
+- The `Workflow` class orchestrates the execution of multiple processes in a defined order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
+
+- The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end user application developed within `nuremics-apps`.
