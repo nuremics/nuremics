@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/banner.jpg" alt="NUREMICS Banner" width="100%">
+
 # NUREMICS®
 
 **NUREMICS®** is an open-source Python™ framework for developing customizable scientific workflows.
