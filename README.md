@@ -12,4 +12,4 @@ The **NUREMICS®** project is organized into two complementary repositories:
 
 Developers are encouraged to treat `nuremics` as the core engine, and to use `nuremics-apps` as a starting point for developing and maintaining their own scientific software built on top of the **NUREMICS®** framework.
 
-![NUREMICS Architecture](https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/architecture.svg)
+<img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/architecture.svg" alt="NUREMICS Architecture" width="100%">
