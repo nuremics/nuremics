@@ -62,4 +62,4 @@ In `nuremics-apps`, two main types of software components are developed to build
 
 ## Get Started
 
-To begin your coding journey with the **NUREMICS®** framework, head over to the `nuremics-apps` repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
+To begin your coding journey with the **NUREMICS®** framework, you can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
