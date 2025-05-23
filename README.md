@@ -45,3 +45,9 @@ In practice, the core framework `nuremics` is composed of three foundational _so
 - The `Workflow` class orchestrates the execution of multiple processes in a defined sequential order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
 
 - The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end user application developed within `nuremics-apps`.
+
+In nuremics-apps, two main types of software components are developed to build domain-specific applications:
+
+- **Processes** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each process is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable process items that can be executed on their own or integrated into larger workflows.
+
+- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — import and assemble the required process items, executing them in a defined order within a `Workflow`. This modular architecture promotes flexibility and reusability, allowing the same process items to be used across multiple applications.
