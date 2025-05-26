@@ -232,6 +232,8 @@ erDiagram
   }
 ```
 
+The process input paths can also be mapped to output paths produced by a previous process within the workflow.
+
 ```mermaid
 erDiagram
   **MyProcess** ||--|| **user_params** : mapping
