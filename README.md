@@ -70,15 +70,89 @@ Let’s briefly introduce the core design patterns behind **process items** and 
 
 ### Process item
 
-A **process item** can be seen as an algorithmic box: it processes some input data and produces corresponding output data.
+A **process item** can be seen as an algorithmic box which processes some input data and produces corresponding output data.
 
 The input data typically fall into two main categories:
 
 - **Input parameters**: Scalar values such as `float`, `int`, `bool`, or `str`.
 
-- **Input paths**: Files or directories provided as `Path` objects (from Python's `pathlib` module), pointing to structured data on disk.
+- **Input paths**: Files or folders provided as `Path` objects (from Python's `pathlib` module), pointing to structured data on disk.
+
+```mermaid
+erDiagram
+  **Parameters** ||--|| **Inputs** : provides
+  **Paths** ||--|| **Inputs** : provides
+
+  **Parameters** {
+    float parameter1
+    int parameter2
+    bool parameter3
+    str parameter4
+  }
+  **Paths** {
+    file path1 "txt"
+    file path2 "csv"
+    folder path3 "_"
+  }
+```
+
+As previously mentioned, the algorithmic box of the **process item** is a class composed of functions (units) called sequentially with its `__call__` method.
+
+```mermaid
+erDiagram
+  **Parameters** ||--|| **Inputs** : provides
+  **Paths** ||--|| **Inputs** : provides
+  **Inputs** ||--|| **MyProcess** : feeds
+
+  **Parameters** {
+    float parameter1
+    int parameter2
+    bool parameter3
+    str parameter4
+  }
+  **Paths** {
+    file path1 "txt"
+    file path2 "csv"
+    folder path3 "_"
+  }
+  **MyProcess** {
+    function op1()
+    function op2()
+    function op3()
+  }
+```
 
 Output data are typically expressed as `Path` objects as well, corresponding to files or folders written to disk during the execution of the process.
+
+
+```mermaid
+erDiagram
+  **Parameters** ||--|| **Inputs** : provides
+  **Paths** ||--|| **Inputs** : provides
+  **Inputs** ||--|| **MyProcess** : feeds
+  **MyProcess** ||--|| **Outputs** : generates
+
+  **Parameters** {
+    float parameter1
+    int parameter2
+    bool parameter3
+    str parameter4
+  }
+  **Paths** {
+    file path1 "txt"
+    file path2 "csv"
+    folder path3 "_"
+  }
+  **MyProcess** {
+    function op1()
+    function op2()
+    function op3()
+  }
+  **Outputs** {
+    file output1 "vtk"
+    folder output2 "_"
+  }
+```
 
 ## Get Started
 
