@@ -91,8 +91,7 @@ erDiagram
   }
   **Paths** {
     file path1 "txt"
-    file path2 "csv"
-    folder path3 "_"
+    folder path2 "_"
   }
 ```
 
@@ -112,8 +111,7 @@ erDiagram
   }
   **Paths** {
     file path1 "txt"
-    file path2 "csv"
-    folder path3 "_"
+    folder path2 "_"
   }
   **MyProcess** {
     function operation1()
@@ -139,8 +137,7 @@ erDiagram
   }
   **Paths** {
     file path1 "txt"
-    file path2 "csv"
-    folder path3 "_"
+    folder path2 "_"
   }
   **MyProcess** {
     function operation1()
@@ -148,7 +145,7 @@ erDiagram
     function operation3()
   }
   **Outputs** {
-    file out1 "vtk"
+    file out1 "csv"
     folder out2 "_"
   }
 ```
@@ -262,6 +259,8 @@ erDiagram
   }
 ```
 
+Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written during the workflow execution.
+
 ```mermaid
 erDiagram
   **MyProcess** ||--|| **user_params** : mapping
@@ -291,7 +290,7 @@ erDiagram
     _ _ "_"
   }
   **output_paths** {
-    file out1 "output1.vtk"
+    file out1 "output1.csv"
     folder out2 "output2"
   }
 ```
