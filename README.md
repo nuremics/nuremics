@@ -222,6 +222,67 @@ erDiagram
   }
 ```
 
+```mermaid
+erDiagram
+  **MyProcess** ||--|| **user_params** : mapping
+  **MyProcess** ||--|| **hard_params** : mapping
+  **MyProcess** ||--|| **user_paths** : mapping
+  **MyProcess** ||--|| **required_paths** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+  **hard_params** ||--|| **MY_APP** : mapping
+  **user_paths** ||--|| **MY_APP** : mapping
+  **required_paths** ||--|| **MY_APP** : mapping
+
+  **user_params** {
+    float parameter1 "param1"
+    bool parameter3 "param2"
+    str parameter4 "param3"
+  }
+  **hard_params** {
+    int parameter2 "14"
+  }
+  **user_paths** {
+    file path1 "input1.txt"
+    folder path2 "input2"
+  }
+  **required_paths** {
+    _ _ "_"
+  }
+```
+
+```mermaid
+erDiagram
+  **MyProcess** ||--|| **user_params** : mapping
+  **MyProcess** ||--|| **hard_params** : mapping
+  **MyProcess** ||--|| **user_paths** : mapping
+  **MyProcess** ||--|| **required_paths** : mapping
+  **MyProcess** ||--|| **output_paths** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+  **hard_params** ||--|| **MY_APP** : mapping
+  **user_paths** ||--|| **MY_APP** : mapping
+  **required_paths** ||--|| **MY_APP** : mapping
+  **output_paths** ||--|| **MY_APP** : mapping
+
+  **user_params** {
+    float parameter1 "param1"
+    bool parameter3 "param2"
+    str parameter4 "param3"
+  }
+  **hard_params** {
+    int parameter2 "14"
+  }
+  **user_paths** {
+    file path1 "input1.txt"
+    folder path2 "input2"
+  }
+  **required_paths** {
+    _ _ "_"
+  }
+  **output_paths** {
+    file output1 "output1.vtk"
+    folder output2 "output2"
+  }
+```
 
 ## Get Started
 
