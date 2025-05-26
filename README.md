@@ -132,10 +132,10 @@ erDiagram
   **MyProcess** ||--|| **Outputs** : generates
 
   **Parameters** {
-    float parameter1
-    int parameter2
-    bool parameter3
-    str parameter4
+    float param1
+    int param2
+    bool param3
+    str param4
   }
   **Paths** {
     file path1 "txt"
@@ -148,8 +148,8 @@ erDiagram
     function operation3()
   }
   **Outputs** {
-    file output1 "vtk"
-    folder output2 "_"
+    file out1 "vtk"
+    folder out2 "_"
   }
 ```
 ### Application
@@ -176,9 +176,9 @@ erDiagram
   **user_params** ||--|| **MY_APP** : mapping
 
   **user_params** {
-    float parameter1 "param1"
-    bool parameter3 "param2"
-    str parameter4 "param3"
+    float param1 "user_param1"
+    bool param3 "user_param2"
+    str param4 "user_param3"
   }
 ```
 
@@ -190,12 +190,12 @@ erDiagram
   **hard_params** ||--|| **MY_APP** : mapping
 
   **user_params** {
-    float parameter1 "param1"
-    bool parameter3 "param2"
-    str parameter4 "param3"
+    float param1 "user_param1"
+    bool param3 "user_param2"
+    str param4 "user_param3"
   }
   **hard_params** {
-    int parameter2 "14"
+    int param2 "14"
   }
 ```
 
@@ -209,12 +209,12 @@ erDiagram
   **user_paths** ||--|| **MY_APP** : mapping
 
   **user_params** {
-    float parameter1 "param1"
-    bool parameter3 "param2"
-    str parameter4 "param3"
+    float param1 "user_param1"
+    bool param3 "user_param2"
+    str param4 "user_param3"
   }
   **hard_params** {
-    int parameter2 "14"
+    int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -234,12 +234,12 @@ erDiagram
   **required_paths** ||--|| **MY_APP** : mapping
 
   **user_params** {
-    float parameter1 "param1"
-    bool parameter3 "param2"
-    str parameter4 "param3"
+    float param1 "user_param1"
+    bool param3 "user_param2"
+    str param4 "user_param3"
   }
   **hard_params** {
-    int parameter2 "14"
+    int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -264,12 +264,12 @@ erDiagram
   **output_paths** ||--|| **MY_APP** : mapping
 
   **user_params** {
-    float parameter1 "param1"
-    bool parameter3 "param2"
-    str parameter4 "param3"
+    float param1 "user_param1"
+    bool param3 "user_param2"
+    str param4 "user_param3"
   }
   **hard_params** {
-    int parameter2 "14"
+    int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -279,8 +279,8 @@ erDiagram
     _ _ "_"
   }
   **output_paths** {
-    file output1 "output1.vtk"
-    folder output2 "output2"
+    file out1 "user_out1.vtk"
+    folder out2 "user_out2"
   }
 ```
 
