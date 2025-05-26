@@ -164,9 +164,15 @@ flowchart LR
   e2@{ animate: true }
 ```
 
-Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the interface presented to the end user, who provides the necessary input data and retrieves the final results upon execution.
+Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the I/O interface presented to the end user, who provides the necessary input data and retrieves the final results upon execution.
 
-The assembly step is performed through a mapping between the internal input/output data of each **process item** and the global input/output interface of the **application**. This mapping mechanism serves multiple purposes: it defines which data are exposed to the end user and which remain internal to the workflow, and it manages the data dependencies between **process items**, when the output of one process is used as input for another. It notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
+The assembly step is performed through a mapping between the internal I/O data of each **process item** and the global I/O interface of the **application**. This mapping mechanism serves multiple purposes:
+
+- It defines which data are exposed to the end user (and how they are displayed) and which remain internal to the workflow.
+
+- It manages the data dependencies between **process items**, when the output of one process is used as input for another.
+
+This notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
 
 The mapping between a **process item** and the **application** starts by specifying which process input parameters are exposed to the end user, and how they are labeled in the **application** input interface.
 
@@ -181,6 +187,8 @@ erDiagram
     str param4 "user_param3"
   }
 ```
+
+The process input parameters are exposed to the end user, and how they are labeled in the **application** input interface.
 
 ```mermaid
 erDiagram
