@@ -232,7 +232,7 @@ erDiagram
   }
 ```
 
-The process input paths can also be mapped to output paths produced by a previous process within the workflow.
+The process input paths can also be mapped to output paths produced by a previous process within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
 
 ```mermaid
 erDiagram
