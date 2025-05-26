@@ -188,7 +188,7 @@ erDiagram
   }
 ```
 
-The process input parameters are exposed to the end user, and how they are labeled in the **application** input interface.
+The process input parameters that remain internal to the workflow are assigned fixed values directly within the mapping definition, without being exposed to the end user.
 
 ```mermaid
 erDiagram
