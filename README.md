@@ -158,15 +158,70 @@ A final end-user **application** can be built by plugging together previously im
 
 ```mermaid
 flowchart LR
-  MyProcess e1@--1--> MY_APP
-  AnotherProcess e2@--2--> MY_APP
+  **MyProcess** e1@--1--> **MY_APP**
+  **AnotherProcess** e2@--2--> **MY_APP**
   e1@{ animate: true }
   e2@{ animate: true }
 ```
 
 Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the interface presented to the end user, who provides the necessary input data and retrieves the final results upon execution.
 
-The assembly step is performed through a mapping between the internal input/output data of each **process item** and the global input/output interface of the **application**. This mapping mechanism serves multiple purposes: it defines which data are exposed to the end user and which remain internal to the workflow, and it manages the data dependencies between **process items**, when the output of one process is used as input for another. It notably ensures a coherent and seamless flow and management of data across the workflow, while delivering a clean and focused interface tailored to the user's needs.
+The assembly step is performed through a mapping between the internal input/output data of each **process item** and the global input/output interface of the **application**. This mapping mechanism serves multiple purposes: it defines which data are exposed to the end user and which remain internal to the workflow, and it manages the data dependencies between **process items**, when the output of one process is used as input for another. It notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
+
+The mapping between a **process item** and the **application** starts by specifying which process input parameters are exposed to the end user, and how they are labeled in the **application** input interface.
+
+```mermaid
+erDiagram
+  **MyProcess** ||--|| **user_params** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+
+  **user_params** {
+    float parameter1 "param1"
+    bool parameter3 "param2"
+    str parameter4 "param3"
+  }
+```
+
+```mermaid
+erDiagram
+  **MyProcess** ||--|| **user_params** : mapping
+  **MyProcess** ||--|| **hard_params** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+  **hard_params** ||--|| **MY_APP** : mapping
+
+  **user_params** {
+    float parameter1 "param1"
+    bool parameter3 "param2"
+    str parameter4 "param3"
+  }
+  **hard_params** {
+    int parameter2 "14"
+  }
+```
+
+```mermaid
+erDiagram
+  **MyProcess** ||--|| **user_params** : mapping
+  **MyProcess** ||--|| **hard_params** : mapping
+  **MyProcess** ||--|| **user_paths** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+  **hard_params** ||--|| **MY_APP** : mapping
+  **user_paths** ||--|| **MY_APP** : mapping
+
+  **user_params** {
+    float parameter1 "param1"
+    bool parameter3 "param2"
+    str parameter4 "param3"
+  }
+  **hard_params** {
+    int parameter2 "14"
+  }
+  **user_paths** {
+    file path1 "input1.txt"
+    folder path2 "input2"
+  }
+```
+
 
 ## Get Started
 
