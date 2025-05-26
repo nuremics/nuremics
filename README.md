@@ -52,7 +52,7 @@ In the context of **NUREMICS®**:
 
 In practice, the core framework `nuremics` is composed of three foundational _software items_:
 
-- The `Process` class defines a generic process component. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
+- The `Process` class defines a generic process item. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
 
 - The `Workflow` class orchestrates the execution of multiple processes in a defined sequential order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
 
@@ -62,7 +62,7 @@ In `nuremics-apps`, two main types of software components are developed to build
 
 - **Processes** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each process is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable process items that can be executed on their own or integrated into larger workflows.
 
-- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — import and assemble the required process items, executing them in a defined order within a `Workflow`, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same process items to be used across multiple applications.
+- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — are the end-user-facing software applications. They import and assemble the required process items, executing them in a defined order through the `Workflow` class, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same process items to be used across multiple applications tailored to different scientific purposes.
 
 ## Get Started
 
