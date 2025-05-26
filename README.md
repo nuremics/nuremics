@@ -84,10 +84,10 @@ erDiagram
   **Paths** ||--|| **Inputs** : provides
 
   **Parameters** {
-    float parameter1
-    int parameter2
-    bool parameter3
-    str parameter4
+    float param1
+    int param2
+    bool param3
+    str param4
   }
   **Paths** {
     file path1 "txt"
@@ -105,10 +105,10 @@ erDiagram
   **Inputs** ||--|| **MyProcess** : feeds
 
   **Parameters** {
-    float parameter1
-    int parameter2
-    bool parameter3
-    str parameter4
+    float param1
+    int param2
+    bool param3
+    str param4
   }
   **Paths** {
     file path1 "txt"
@@ -279,8 +279,8 @@ erDiagram
     _ _ "_"
   }
   **output_paths** {
-    file out1 "user_out1.vtk"
-    folder out2 "user_out2"
+    file out1 "output1.vtk"
+    folder out2 "output2"
   }
 ```
 
