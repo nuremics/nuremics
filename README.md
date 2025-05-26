@@ -204,7 +204,7 @@ erDiagram
   }
 ```
 
-The process input paths that need to be provided by the end user are specified by defining the expected file or folder names within the application input interface.
+The process input paths that need to be provided by the end user are specified by defining the expected file or folder names within the **application** input interface.
 
 ```mermaid
 erDiagram
