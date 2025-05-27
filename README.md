@@ -117,7 +117,7 @@ erDiagram
   }
 ```
 
-Output data are typically expressed as `Path` objects as well, corresponding to files or folders written to disk during the execution of the process.
+Output data are typically expressed as `Path` objects as well, corresponding to files or folders written to disk during the execution of the **process item**.
 
 ```mermaid
 erDiagram
