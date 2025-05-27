@@ -178,7 +178,7 @@ erDiagram
 A final end-user **application** can be built by plugging together previously implemented **process items**, and specifying their sequential order of execution within the workflow.
 
 ```mermaid
-flowchart LR
+flowchart BT
   **MyProcess** e1@--1--o **MY_APP**
   **AnotherProcess** e2@--2--o **MY_APP**
   e1@{ animate: true }
@@ -199,8 +199,8 @@ The mapping between a **process item** and the **application** starts by specify
 
 ```mermaid
 erDiagram
-  **MyProcess** ||--|| **user_params** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **user_params** ||--|| **MyProcess** : mapping
 
   **user_params** {
     float param1 "user_param1"
@@ -212,10 +212,10 @@ The process input parameters that remain internal to the workflow are assigned f
 
 ```mermaid
 erDiagram
-  **MyProcess** ||--|| **user_params** : mapping
-  **MyProcess** ||--|| **hard_params** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
-  **hard_params** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **MY_APP** ||--|| **hard_params** : mapping
+  **user_params** ||--|| **MyProcess**: mapping
+  **hard_params** ||--|| **MyProcess**: mapping
 
   **user_params** {
     float param1 "user_param1"
@@ -230,12 +230,12 @@ The process input paths that need to be provided by the end user are specified b
 
 ```mermaid
 erDiagram
-  **MyProcess** ||--|| **user_params** : mapping
-  **MyProcess** ||--|| **hard_params** : mapping
-  **MyProcess** ||--|| **user_paths** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
-  **hard_params** ||--|| **MY_APP** : mapping
-  **user_paths** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **MY_APP** ||--|| **hard_params** : mapping
+  **MY_APP** ||--|| **user_paths** : mapping
+  **user_params** ||--|| **MyProcess** : mapping
+  **hard_params** ||--|| **MyProcess** : mapping
+  **user_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
     float param1 "user_param1"
@@ -253,14 +253,14 @@ The process input paths can also be mapped to output paths produced by a previou
 
 ```mermaid
 erDiagram
-  **MyProcess** ||--|| **user_params** : mapping
-  **MyProcess** ||--|| **hard_params** : mapping
-  **MyProcess** ||--|| **user_paths** : mapping
-  **MyProcess** ||--|| **required_paths** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
-  **hard_params** ||--|| **MY_APP** : mapping
-  **user_paths** ||--|| **MY_APP** : mapping
-  **required_paths** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **MY_APP** ||--|| **hard_params** : mapping
+  **MY_APP** ||--|| **user_paths** : mapping
+  **MY_APP** ||--|| **required_paths** : mapping
+  **user_params** ||--|| **MyProcess** : mapping
+  **hard_params** ||--|| **MyProcess** : mapping
+  **user_paths** ||--|| **MyProcess** : mapping
+  **required_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
     float param1 "user_param1"
@@ -281,16 +281,16 @@ Finally, the process output paths are specified by indicating the name of the fi
 
 ```mermaid
 erDiagram
-  **MyProcess** ||--|| **user_params** : mapping
-  **MyProcess** ||--|| **hard_params** : mapping
-  **MyProcess** ||--|| **user_paths** : mapping
-  **MyProcess** ||--|| **required_paths** : mapping
-  **MyProcess** ||--|| **output_paths** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
-  **hard_params** ||--|| **MY_APP** : mapping
-  **user_paths** ||--|| **MY_APP** : mapping
-  **required_paths** ||--|| **MY_APP** : mapping
-  **output_paths** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **MY_APP** ||--|| **hard_params** : mapping
+  **MY_APP** ||--|| **user_paths** : mapping
+  **MY_APP** ||--|| **required_paths** : mapping
+  **MY_APP** ||--|| **output_paths** : mapping
+  **user_params** ||--|| **MyProcess** : mapping
+  **hard_params** ||--|| **MyProcess** : mapping
+  **user_paths** ||--|| **MyProcess** : mapping
+  **required_paths** ||--|| **MyProcess** : mapping
+  **output_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
     float param1 "user_param1"
@@ -315,16 +315,16 @@ Let's now assemble the second **process item** to be executed by the **applicati
 
 ```mermaid
 erDiagram
-  **AnotherProcess** ||--|| **user_params** : mapping
-  **AnotherProcess** ||--|| **hard_params** : mapping
-  **AnotherProcess** ||--|| **user_paths** : mapping
-  **AnotherProcess** ||--|| **required_paths** : mapping
-  **AnotherProcess** ||--|| **output_paths** : mapping
-  **user_params** ||--|| **MY_APP** : mapping
-  **hard_params** ||--|| **MY_APP** : mapping
-  **user_paths** ||--|| **MY_APP** : mapping
-  **required_paths** ||--|| **MY_APP** : mapping
-  **output_paths** ||--|| **MY_APP** : mapping
+  **MY_APP** ||--|| **user_params** : mapping
+  **MY_APP** ||--|| **hard_params** : mapping
+  **MY_APP** ||--|| **user_paths** : mapping
+  **MY_APP** ||--|| **required_paths** : mapping
+  **MY_APP** ||--|| **output_paths** : mapping
+  **user_params** ||--|| **AnotherProcess** : mapping
+  **hard_params** ||--|| **AnotherProcess** : mapping
+  **user_paths** ||--|| **AnotherProcess** : mapping
+  **required_paths** ||--|| **AnotherProcess** : mapping
+  **output_paths** ||--|| **AnotherProcess** : mapping
 
   **user_params** {
     int param1 "user_param3"
@@ -375,6 +375,30 @@ flowchart LR
 
   **INPUTS** --> MY_APP["**MY_APP**"]
   MY_APP --> **OUTPUTS**
+```
+
+## Usability
+
+The **applications** built with **NUREMICS®** come with a lean and pragmatic user interface by design. No flashy GUI, but instead, the focus is on simplicity and efficiency:
+
+- An input database that the user completes by editing configuration files and uploading the required input files and folders.
+
+- A terminal interface that provides informative feedback at each execution, clearly indicating what the **application** is doing and what actions are expected from the user.
+
+- An output database that stores all results in a well-structured and traceable folder hierarchy.
+
+```mermaid
+sequenceDiagram
+    actor User
+    User->>MY_APP: Execution
+    MY_APP->>INPUTS: Initialize database
+    MY_APP->>User: Terminal feedback
+    User->>INPUTS: Complete database
+    User->>MY_APP: Execution
+    MY_APP->>INPUTS: Read database
+    MY_APP->>OUTPUTS: Write database
+    MY_APP->>User: Terminal feedback
+    User->>OUTPUTS: Acess results
 ```
 
 ## Get Started
