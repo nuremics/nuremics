@@ -487,7 +487,7 @@ flowchart LR
 
 ### Settings
 
-To conduct experiments, the operator can then assigns values to both the fixed and the variable input data, defining the settings of each experiment to be carried out.
+To conduct experiments, the operator assigns values for both fixed and variable inputs: fixed inputs remain constant across all experiments _(Common)_, while variable inputs are adjusted from one experiment to another _(Test1, Test2, ...)_.
 
 ```mermaid
 flowchart LR
