@@ -149,6 +149,8 @@ erDiagram
     folder out2 "_"
   }
 ```
+<img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/process_inputs.svg" alt="NUREMICS Banner" width="100%">
+
 ### Application
 
 A final end-user **application** can be built by plugging together previously implemented **process items**, and specifying their sequential order of execution within the workflow.
