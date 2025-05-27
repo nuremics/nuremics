@@ -495,8 +495,7 @@ flowchart LR
     Study1 --> Common
     Study1 --> Test1
     Study1 --> Test2
-    Study1 --> Test3
-    Study1 --> Test4["..."]
+    Study1 --> Test3["..."]
     
     Common --> user_param1["user_param1 = ..."]
     Common --> user_param2["user_param2 = ..."]
@@ -510,13 +509,9 @@ flowchart LR
     Test2 --> test2_param4["user_param4 = ..."]
     Test2 --> test2_input2["input2 _(uploaded)_"]
 
-    Test3 --> test3_param3["user_param3 = ..."]
-    Test3 --> test3_param4["user_param4 = ..."]
-    Test3 --> test3_input2["input2 _(uploaded)_"]
-
-    Test4 --> test4_param3["..."]
-    Test4 --> test4_param4["..."]
-    Test4 --> test4_input2["..."]
+    Test3 --> test4_param3["..."]
+    Test3 --> test4_param4["..."]
+    Test3 --> test4_input2["..."]
 ```
 
 ## Get Started
