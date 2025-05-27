@@ -87,11 +87,9 @@ erDiagram
     float param1
     int param2
     bool param3
-    str param4
   }
   **Paths** {
     file path1 "txt"
-    folder path2 "_"
   }
 ```
 
@@ -107,16 +105,15 @@ erDiagram
     float param1
     int param2
     bool param3
-    str param4
   }
   **Paths** {
     file path1 "txt"
-    folder path2 "_"
   }
   **MyProcess** {
     function operation1()
     function operation2()
     function operation3()
+    function operation4()
   }
 ```
 
@@ -133,20 +130,46 @@ erDiagram
     float param1
     int param2
     bool param3
-    str param4
   }
   **Paths** {
     file path1 "txt"
-    folder path2 "_"
   }
   **MyProcess** {
     function operation1()
     function operation2()
     function operation3()
+    function operation4()
   }
   **Outputs** {
     file out1 "csv"
     folder out2 "_"
+  }
+```
+
+For the sake of example, let's define another **process item** considering the same structure.
+
+```mermaid
+erDiagram
+  **Parameters** ||--|| **Inputs** : provides
+  **Paths** ||--|| **Inputs** : provides
+  **Inputs** ||--|| **AnotherProcess** : feeds
+  **AnotherProcess** ||--|| **Outputs** : generates
+
+  **Parameters** {
+    int param1
+    str param2
+  }
+  **Paths** {
+    file path1 "csv"
+    folder path2 "_"
+  }
+  **AnotherProcess** {
+    function operation1()
+    function operation2()
+    function operation3()
+  }
+  **Outputs** {
+    file out1 "vtk"
   }
 ```
 
@@ -182,7 +205,6 @@ erDiagram
   **user_params** {
     float param1 "user_param1"
     bool param3 "user_param2"
-    str param4 "user_param3"
   }
 ```
 
@@ -198,7 +220,6 @@ erDiagram
   **user_params** {
     float param1 "user_param1"
     bool param3 "user_param2"
-    str param4 "user_param3"
   }
   **hard_params** {
     int param2 "14"
@@ -219,18 +240,16 @@ erDiagram
   **user_params** {
     float param1 "user_param1"
     bool param3 "user_param2"
-    str param4 "user_param3"
   }
   **hard_params** {
     int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
-    folder path2 "input2"
   }
 ```
 
-The process input paths can also be mapped to output paths produced by a previous process within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
+The process input paths can also be mapped to output paths produced by a previous **process item** within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
 
 ```mermaid
 erDiagram
@@ -246,14 +265,12 @@ erDiagram
   **user_params** {
     float param1 "user_param1"
     bool param3 "user_param2"
-    str param4 "user_param3"
   }
   **hard_params** {
     int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
-    folder path2 "input2"
   }
   **required_paths** {
     _ _ "_"
@@ -278,14 +295,12 @@ erDiagram
   **user_params** {
     float param1 "user_param1"
     bool param3 "user_param2"
-    str param4 "user_param3"
   }
   **hard_params** {
     int param2 "14"
   }
   **user_paths** {
     file path1 "input1.txt"
-    folder path2 "input2"
   }
   **required_paths** {
     _ _ "_"
@@ -296,28 +311,36 @@ erDiagram
   }
 ```
 
-Now, let's define the **process item** called `AnotherProcess` in the first diagram displayed in the current section (second **process item** executed in the workflow of the **application**).
+Let's now assemble the second **process item** to be executed by the **application** within the workflow, by establishing a dependency: the output data produced by the first **process item** will serve as input data for this second one.
 
 ```mermaid
 erDiagram
-  **Parameters** ||--|| **Inputs** : provides
-  **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **AnotherProcess** : feeds
-  **AnotherProcess** ||--|| **Outputs** : generates
+  **AnotherProcess** ||--|| **user_params** : mapping
+  **AnotherProcess** ||--|| **hard_params** : mapping
+  **AnotherProcess** ||--|| **user_paths** : mapping
+  **AnotherProcess** ||--|| **required_paths** : mapping
+  **AnotherProcess** ||--|| **output_paths** : mapping
+  **user_params** ||--|| **MY_APP** : mapping
+  **hard_params** ||--|| **MY_APP** : mapping
+  **user_paths** ||--|| **MY_APP** : mapping
+  **required_paths** ||--|| **MY_APP** : mapping
+  **output_paths** ||--|| **MY_APP** : mapping
 
-  **Parameters** {
-    int param1
-    bool param2
+  **user_params** {
+    int param1 "user_param3"
+    str param2 "user_param4"
   }
-  **Paths** {
-    file path1 "csv"
+  **hard_params** {
+    _ _ "_"
   }
-  **AnotherProcess** {
-    function operation1()
-    function operation2()
+  **user_paths** {
+    folder path2 "input2"
   }
-  **Outputs** {
-    file out1 "vtk"
+  **required_paths** {
+    file path1 "output1.csv"
+  }
+  **output_paths** {
+    file out1 "output3.vtk"
   }
 ```
 
