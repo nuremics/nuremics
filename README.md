@@ -401,6 +401,8 @@ sequenceDiagram
     User->>OUTPUTS: Acess results
 ```
 
+This streamlined approach prioritizes clarity, control, and reproducibility, making each **application** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
+
 ## Get Started
 
 To begin your coding journey with the **NUREMICS®** framework, you can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
