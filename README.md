@@ -26,7 +26,7 @@ Developers are encouraged to treat `nuremics` as the core engine, and to use `nu
 
 **NUREMICS®** is built with the ambition of bringing robust software engineering practices into Python-driven scientific research and development.
 
-While Python has become the de facto standard for scientific computing, its use in R&D environments is often limited to ad-hoc scripts or notebooks. This leads to critical limitations: unclear definition of inputs, algorithms, and outputs; hard-coded parameters that hinder reproducibility; and inefficient workflows for exploring parameter spaces. As a result, scientific studies are often conducted in a “one-shot” manner, making them difficult to reproduce or extend. Output data is rarely traceable in a structured way, and codebases suffer from poor modularity, limited reusability, and frequent duplication. These challenges are compounded when teams grow, as scripts and notebooks are difficult to scale and maintain collaboratively, increasing the risk of undetected errors.
+While Python has become the de facto standard for scientific computing, its use in R&D environments is often limited to ad-hoc scripts or notebooks. This leads to critical limitations: unclear definition of inputs, algorithms, and outputs; hard-coded parameters that hinder reproducibility; and inefficient workflows for exploring parameter spaces. As a result, scientific studies are often conducted in a “one-shot” manner, making them difficult to reproduce or extend. Output data is rarely traceable in a structured way, and codebases suffer from poor modularity, limited reusability, and frequent duplication. These challenges are compounded when teams grow, as scripts and notebooks are difficult to scale and maintain collaboratively, slowing down innovation and increasing the risk of undetected errors.
 
 In regulated industries where scientific results directly support product development (e.g., MedTech, Biotech, Aerospace), such fragility can have severe consequences. This is also why many of these industries remain hesitant to adopt Python and its powerful open ecosystem, due to concerns about reliability and long-term maintainability.
 
@@ -381,27 +381,107 @@ flowchart LR
 
 The **applications** built with **NUREMICS®** come with a lean and pragmatic user interface by design. No flashy GUI, but instead, the focus is on simplicity and efficiency:
 
-- An input database that the user completes by editing configuration files and uploading the required input files and folders.
+- An input database that the operator completes by editing configuration files and uploading the required input files and folders.
 
-- A terminal interface that provides informative feedback at each execution, clearly indicating what the **application** is doing and what actions are expected from the user.
+- A terminal interface that provides informative feedback at each execution, clearly indicating what the **application** is doing and what actions are expected from the operator.
 
 - An output database that stores all results in a well-structured and traceable folder hierarchy.
 
 ```mermaid
 sequenceDiagram
-    actor User
-    User->>MY_APP: Execution
+    actor Operator
+    Operator->>MY_APP: Execution
     MY_APP->>INPUTS: Initialize database
-    MY_APP->>User: Terminal feedback
-    User->>INPUTS: Complete database
-    User->>MY_APP: Execution
+    MY_APP->>Operator: Terminal feedback
+    Operator->>INPUTS: Complete database
+    Operator->>MY_APP: Execution
     MY_APP->>INPUTS: Read database
     MY_APP->>OUTPUTS: Write database
-    MY_APP->>User: Terminal feedback
-    User->>OUTPUTS: Acess results
+    MY_APP->>Operator: Terminal feedback
+    Operator->>OUTPUTS: Acess results
 ```
 
 This streamlined approach prioritizes clarity, control, and reproducibility, making each **application** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
+
+When running an **application**, the operator first defines a set of studies aimed at exploring the **INPUTS** space and analyzing the outcomes in the **OUTPUTS** space.
+
+```mermaid
+flowchart LR
+    Study1
+    Study2
+```
+
+For each study, the operator selects which inputs stay constant (fixed) and which ones change (variable) across the various experiments.
+
+```mermaid
+flowchart LR
+
+  subgraph Fixed1["**Fixed**"]
+    direction TB
+
+    subgraph Paths_Fixed1["**Paths**"]
+      direction LR
+      path1_1["input1.txt"]
+    end
+
+    subgraph Parameter_Fixed1["**Parameters**"]
+      direction LR
+      param1_1["user_param1"]
+      param2_1["user_param2"]
+    end
+  end
+
+  subgraph Variable1["**Variable**"]
+    direction TB
+
+    subgraph Paths_Variable1["**Paths**"]
+      direction LR
+      path2_1["input2"]
+    end
+
+    subgraph Parameter_Variable1["**Parameters**"]
+      direction LR
+      param3_1["user_param3"]
+      param4_1["user_param4"]
+    end
+  end
+
+  Study1 --> Fixed1
+  Study1 --> Variable1
+
+  subgraph Fixed2["**Fixed**"]
+    direction TB
+
+    subgraph Paths_Fixed2["**Paths**"]
+      direction LR
+      path2_2["input2"]
+    end
+
+    subgraph Parameter_Fixed2["**Parameters**"]
+      direction LR
+      param3_2["user_param3"]
+      param4_2["user_param4"]
+    end
+  end
+
+  subgraph Variable2["**Variable**"]
+    direction TB
+
+    subgraph Paths_Variable2["**Paths**"]
+      direction LR
+      path1_2["input1.txt"]
+    end
+
+    subgraph Parameter_Variable2["**Parameters**"]
+      direction LR
+      param1_2["user_param1"]
+      param2_2["user_param2"]
+    end
+  end
+
+  Study2 --> Fixed2
+  Study2 --> Variable2
+```
 
 ## Get Started
 
