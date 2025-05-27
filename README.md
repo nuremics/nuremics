@@ -344,6 +344,32 @@ erDiagram
   }
 ```
 
+```mermaid
+flowchart TB
+  subgraph **INPUTS**
+    direction TB
+    subgraph **Paths**
+        direction RL
+        input1.txt
+        input2
+    end
+    subgraph **Parameters**
+        direction RL
+        user_param1
+        user_param2
+        user_param3
+        user_param4
+    end
+  end
+  subgraph **OUTPUTS**
+    direction RL
+      output1.csv
+      output2
+      output3.vtk
+  end
+  **INPUTS** --> **MY_APP** --> **OUTPUTS**
+```
+
 ## Get Started
 
 To begin your coding journey with the **NUREMICS®** framework, you can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
