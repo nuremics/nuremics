@@ -344,6 +344,8 @@ erDiagram
   }
 ```
 
+Once all **process items** have been assembled into the **application**, the final I/O interface presented to the end user emerges.
+
 ```mermaid
 flowchart LR
   subgraph **INPUTS**
