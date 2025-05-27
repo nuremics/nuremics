@@ -277,7 +277,7 @@ erDiagram
   }
 ```
 
-Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written during the workflow execution.
+Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written by the **process item** during the workflow execution.
 
 ```mermaid
 erDiagram
