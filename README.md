@@ -149,7 +149,10 @@ erDiagram
     folder out2 "_"
   }
 ```
-<img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/process_inputs.svg" alt="NUREMICS Banner" width="100%">
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/process_inputs.svg" width="50%"/>
+</p>
 
 ### Application
 
