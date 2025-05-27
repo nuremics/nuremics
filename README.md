@@ -345,29 +345,34 @@ erDiagram
 ```
 
 ```mermaid
-flowchart TB
+flowchart LR
   subgraph **INPUTS**
     direction TB
+
     subgraph **Paths**
-        direction RL
-        input1.txt
-        input2
+      direction LR
+      path1["input1.txt _(file)_"]
+      path2["input2 _(folder)_"]
     end
+
     subgraph **Parameters**
-        direction RL
-        user_param1
-        user_param2
-        user_param3
-        user_param4
+      direction LR
+      param1["user_param1 _(float)_"]
+      param2["user_param2 _(bool)_"]
+      param3["user_param3 _(int)_"]
+      param4["user_param4 _(str)_"]
     end
   end
+
   subgraph **OUTPUTS**
     direction RL
-      output1.csv
-      output2
-      output3.vtk
+    out1["output1.csv _(file)_"]
+    out2["output2 _(folder)_"]
+    out3["output3.vtk _(file)_"]
   end
-  **INPUTS** --> **MY_APP** --> **OUTPUTS**
+
+  **INPUTS** --> MY_APP["**MY_APP**"]
+  MY_APP --> **OUTPUTS**
 ```
 
 ## Get Started
