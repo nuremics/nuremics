@@ -403,6 +403,8 @@ sequenceDiagram
 
 This streamlined approach prioritizes clarity, control, and reproducibility, making each **application** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
 
+### Configuration
+
 When running an **application**, the operator first defines a set of studies aimed at exploring the **INPUTS** space and analyzing the outcomes in the **OUTPUTS** space.
 
 ```mermaid
@@ -411,7 +413,7 @@ flowchart LR
     Study2
 ```
 
-For each study, the operator selects which inputs stay constant (fixed) and which ones change (variable) across the various experiments.
+The operator then configures each study by selecting which inputs stay constant _(Fixed)_ and which ones change _(Variable)_ across the various experiments.
 
 ```mermaid
 flowchart LR
@@ -482,6 +484,36 @@ flowchart LR
   Study2 --> Fixed2
   Study2 --> Variable2
 ```
+
+### Settings
+
+To conduct experiments, the operator can then assigns values to both the fixed and the variable input data, defining the configuration of each experiment to be carried out.
+
+```mermaid
+flowchart LR
+
+    Study1 --> Common
+    Study1 --> Test1
+    Study1 --> Test2
+    Study1 --> Test3
+    
+    Common --> user_param1["user_param1 = 1"]
+    Common --> user_param2["user_param2 = 2"]
+    Common --> common_input1["input1.txt _(uploaded)_"]
+
+    Test1 --> test1_param3["user_param3 = 1"]
+    Test1 --> test1_param4["user_param4 = 1"]
+    Test1 --> test1_input2["input2"]
+
+    Test2 --> test2_param3["user_param3 = 1"]
+    Test2 --> test2_param4["user_param4 = 1"]
+    Test2 --> test2_input2["input2"]
+
+    Test3 --> test3_param3["user_param3 = 1"]
+    Test3 --> test3_param4["user_param4 = 1"]
+    Test3 --> test3_input2["input2"]
+```
+
 
 ## Get Started
 
