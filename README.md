@@ -487,31 +487,51 @@ flowchart LR
 
 ### Settings
 
-To conduct experiments, the operator can then assigns values to both the fixed and the variable input data, defining the configuration of each experiment to be carried out.
+To conduct experiments, the operator can then assigns values to both the fixed and the variable input data, defining the settings of each experiment to be carried out.
 
 ```mermaid
 flowchart LR
-
-    Study1 --> Common
-    Study1 --> Test1
-    Study1 --> Test2
-    Study1 --> Test3["..."]
+    Study1 --> Study1_Common["Common"]
+    Study1 --> Study1_Test1["Test1"]
+    Study1 --> Study1_Test2["Test2"]
+    Study1 --> Study1_Test3["..."]
     
-    Common --> user_param1["user_param1 = ..."]
-    Common --> user_param2["user_param2 = ..."]
-    Common --> common_input1["input1.txt _(uploaded)_"]
+    Study1_Common --> common_param1["user_param1 = ..."]
+    Study1_Common --> common_param2["user_param2 = ..."]
+    Study1_Common --> common_input1["input1.txt _(uploaded)_"]
 
-    Test1 --> test1_param3["user_param3 = ..."]
-    Test1 --> test1_param4["user_param4 = ..."]
-    Test1 --> test1_input2["input2 _(uploaded)_"]
+    Study1_Test1 --> test1_param3["user_param3 = ..."]
+    Study1_Test1 --> test1_param4["user_param4 = ..."]
+    Study1_Test1 --> test1_input2["input2 _(uploaded)_"]
 
-    Test2 --> test2_param3["user_param3 = ..."]
-    Test2 --> test2_param4["user_param4 = ..."]
-    Test2 --> test2_input2["input2 _(uploaded)_"]
+    Study1_Test2 --> test2_param3["user_param3 = ..."]
+    Study1_Test2 --> test2_param4["user_param4 = ..."]
+    Study1_Test2 --> test2_input2["input2 _(uploaded)_"]
 
-    Test3 --> test4_param3["..."]
-    Test3 --> test4_param4["..."]
-    Test3 --> test4_input2["..."]
+    Study1_Test3 --> test4_param3["user_param3 = ..."]
+    Study1_Test3 --> test4_param4["user_param4 = ..."]
+    Study1_Test3 --> test4_input2["input2 _(uploaded)_"]
+
+    Study2 --> Study2_Common["Common"]
+    Study2 --> Study2_Test1["Test1"]
+    Study2 --> Study2_Test2["Test2"]
+    Study2 --> Study2_Test3["..."]
+    
+    Study2_Common --> common_param3["user_param3 = ..."]
+    Study2_Common --> common_param4["user_param4 = ..."]
+    Study2_Common --> common_input2["input2 _(uploaded)_"]
+
+    Study2_Test1 --> test1_param1["user_param1 = ..."]
+    Study2_Test1 --> test1_param2["user_param2 = ..."]
+    Study2_Test1 --> test1_input1["input1.txt _(uploaded)_"]
+
+    Study2_Test2 --> test2_param1["user_param1 = ..."]
+    Study2_Test2 --> test2_param2["user_param2 = ..."]
+    Study2_Test2 --> test2_input1["input1.txt _(uploaded)_"]
+
+    Study2_Test3 --> test4_param1["user_param1 = ..."]
+    Study2_Test3 --> test4_param2["user_param2 = ..."]
+    Study2_Test3 --> test4_input1["input1.txt _(uploaded)_"]
 ```
 
 ## Get Started
