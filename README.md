@@ -150,18 +150,14 @@ erDiagram
   }
 ```
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/process_inputs.svg" width="70%"/>
-</p>
-
 ### Application
 
 A final end-user **application** can be built by plugging together previously implemented **process items**, and specifying their sequential order of execution within the workflow.
 
 ```mermaid
 flowchart LR
-  **MyProcess** e1@--1--> **MY_APP**
-  **AnotherProcess** e2@--2--> **MY_APP**
+  **MyProcess** e1@--1--o **MY_APP**
+  **AnotherProcess** e2@--2--o **MY_APP**
   e1@{ animate: true }
   e2@{ animate: true }
 ```
@@ -297,6 +293,31 @@ erDiagram
   **output_paths** {
     file out1 "output1.csv"
     folder out2 "output2"
+  }
+```
+
+Now, let's define the **process item** called `AnotherProcess` in the first diagram displayed in the current section (second **process item** executed in the workflow of the **application**).
+
+```mermaid
+erDiagram
+  **Parameters** ||--|| **Inputs** : provides
+  **Paths** ||--|| **Inputs** : provides
+  **Inputs** ||--|| **AnotherProcess** : feeds
+  **AnotherProcess** ||--|| **Outputs** : generates
+
+  **Parameters** {
+    int param1
+    bool param2
+  }
+  **Paths** {
+    file path1 "csv"
+  }
+  **AnotherProcess** {
+    function operation1()
+    function operation2()
+  }
+  **Outputs** {
+    file out1 "vtk"
   }
 ```
 
