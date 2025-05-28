@@ -99,7 +99,7 @@ As previously mentioned, the algorithmic box of the **Proc** is a class composed
 erDiagram
   **Parameters** ||--|| **Inputs** : provides
   **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **MyProcess** : feeds
+  **Inputs** ||--|| **MyProc** : feeds
 
   **Parameters** {
     float param1
@@ -109,7 +109,7 @@ erDiagram
   **Paths** {
     file path1 "txt"
   }
-  **MyProcess** {
+  **MyProc** {
     function operation1()
     function operation2()
     function operation3()
@@ -123,8 +123,8 @@ Output data are typically expressed as `Path` objects as well, corresponding to 
 erDiagram
   **Parameters** ||--|| **Inputs** : provides
   **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **MyProcess** : feeds
-  **MyProcess** ||--|| **Outputs** : generates
+  **Inputs** ||--|| **MyProc** : feeds
+  **MyProc** ||--|| **Outputs** : generates
 
   **Parameters** {
     float param1
@@ -134,7 +134,7 @@ erDiagram
   **Paths** {
     file path1 "txt"
   }
-  **MyProcess** {
+  **MyProc** {
     function operation1()
     function operation2()
     function operation3()
@@ -152,8 +152,8 @@ For the sake of example, let's define another **Proc** considering the same stru
 erDiagram
   **Parameters** ||--|| **Inputs** : provides
   **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **AnotherProcess** : feeds
-  **AnotherProcess** ||--|| **Outputs** : generates
+  **Inputs** ||--|| **AnotherProc** : feeds
+  **AnotherProc** ||--|| **Outputs** : generates
 
   **Parameters** {
     int param1
@@ -163,7 +163,7 @@ erDiagram
     file path1 "csv"
     folder path2 "_"
   }
-  **AnotherProcess** {
+  **AnotherProc** {
     function operation1()
     function operation2()
     function operation3()
@@ -179,8 +179,8 @@ A final end-user **App** can be built by plugging together previously implemente
 
 ```mermaid
 flowchart BT
-  **MyProcess** e1@--1--o **MY_APP**
-  **AnotherProcess** e2@--2--o **MY_APP**
+  **MyProc** e1@--1--o **MY_APP**
+  **AnotherProc** e2@--2--o **MY_APP**
   e1@{ animate: true }
   e2@{ animate: true }
 ```
@@ -200,7 +200,7 @@ The mapping between a **Proc** and the **App** starts by specifying which proces
 ```mermaid
 erDiagram
   **MY_APP** ||--|| **user_params** : mapping
-  **user_params** ||--|| **MyProcess** : mapping
+  **user_params** ||--|| **MyProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -214,8 +214,8 @@ The process input parameters that remain internal to the workflow are assigned f
 erDiagram
   **MY_APP** ||--|| **user_params** : mapping
   **MY_APP** ||--|| **hard_params** : mapping
-  **user_params** ||--|| **MyProcess**: mapping
-  **hard_params** ||--|| **MyProcess**: mapping
+  **user_params** ||--|| **MyProc**: mapping
+  **hard_params** ||--|| **MyProc**: mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -233,9 +233,9 @@ erDiagram
   **MY_APP** ||--|| **user_params** : mapping
   **MY_APP** ||--|| **hard_params** : mapping
   **MY_APP** ||--|| **user_paths** : mapping
-  **user_params** ||--|| **MyProcess** : mapping
-  **hard_params** ||--|| **MyProcess** : mapping
-  **user_paths** ||--|| **MyProcess** : mapping
+  **user_params** ||--|| **MyProc** : mapping
+  **hard_params** ||--|| **MyProc** : mapping
+  **user_paths** ||--|| **MyProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -257,10 +257,10 @@ erDiagram
   **MY_APP** ||--|| **hard_params** : mapping
   **MY_APP** ||--|| **user_paths** : mapping
   **MY_APP** ||--|| **required_paths** : mapping
-  **user_params** ||--|| **MyProcess** : mapping
-  **hard_params** ||--|| **MyProcess** : mapping
-  **user_paths** ||--|| **MyProcess** : mapping
-  **required_paths** ||--|| **MyProcess** : mapping
+  **user_params** ||--|| **MyProc** : mapping
+  **hard_params** ||--|| **MyProc** : mapping
+  **user_paths** ||--|| **MyProc** : mapping
+  **required_paths** ||--|| **MyProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -286,11 +286,11 @@ erDiagram
   **MY_APP** ||--|| **user_paths** : mapping
   **MY_APP** ||--|| **required_paths** : mapping
   **MY_APP** ||--|| **output_paths** : mapping
-  **user_params** ||--|| **MyProcess** : mapping
-  **hard_params** ||--|| **MyProcess** : mapping
-  **user_paths** ||--|| **MyProcess** : mapping
-  **required_paths** ||--|| **MyProcess** : mapping
-  **output_paths** ||--|| **MyProcess** : mapping
+  **user_params** ||--|| **MyProc** : mapping
+  **hard_params** ||--|| **MyProc** : mapping
+  **user_paths** ||--|| **MyProc** : mapping
+  **required_paths** ||--|| **MyProc** : mapping
+  **output_paths** ||--|| **MyProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -320,11 +320,11 @@ erDiagram
   **MY_APP** ||--|| **user_paths** : mapping
   **MY_APP** ||--|| **required_paths** : mapping
   **MY_APP** ||--|| **output_paths** : mapping
-  **user_params** ||--|| **AnotherProcess** : mapping
-  **hard_params** ||--|| **AnotherProcess** : mapping
-  **user_paths** ||--|| **AnotherProcess** : mapping
-  **required_paths** ||--|| **AnotherProcess** : mapping
-  **output_paths** ||--|| **AnotherProcess** : mapping
+  **user_params** ||--|| **AnotherProc** : mapping
+  **hard_params** ||--|| **AnotherProc** : mapping
+  **user_paths** ||--|| **AnotherProc** : mapping
+  **required_paths** ||--|| **AnotherProc** : mapping
+  **output_paths** ||--|| **AnotherProc** : mapping
 
   **user_params** {
     int param1 "parameter3"
@@ -541,44 +541,44 @@ This logic ensures that only the necessary parts of the workflow are repeated du
 
 ```mermaid
 flowchart LR
-    Study1 --> Study1_MyProcess["MyProcess"]
-    Study1 --> Study1_AnotherProcess["AnotherProcess"]
+    Study1 --> Study1_MyProc["MyProc"]
+    Study1 --> Study1_AnotherProc["AnotherProc"]
 
-    Study1_MyProcess --> Study1_MyProcess_Common_output1["output1.csv"]
-    Study1_MyProcess --> Study1_MyProcess_Common_output2["output2"]
+    Study1_MyProc --> Study1_MyProc_Common_output1["output1.csv"]
+    Study1_MyProc --> Study1_MyProc_Common_output2["output2"]
 
-    Study1_AnotherProcess --> Study1_AnotherProcess_Test1["Test1"]
-    Study1_AnotherProcess --> Study1_AnotherProcess_Test2["Test2"]
-    Study1_AnotherProcess --> Study1_AnotherProcess_Test3["..."]
+    Study1_AnotherProc --> Study1_AnotherProc_Test1["Test1"]
+    Study1_AnotherProc --> Study1_AnotherProc_Test2["Test2"]
+    Study1_AnotherProc --> Study1_AnotherProc_Test3["..."]
 
-    Study1_AnotherProcess_Test1 --> Study1_AnotherProcess_Test1_output3["output3.vtk"]
-    Study1_AnotherProcess_Test2 --> Study1_AnotherProcess_Test2_output3["output3.vtk"]
-    Study1_AnotherProcess_Test3 --> Study1_AnotherProcess_Test3_output3["output3.vtk"]
-
-
+    Study1_AnotherProc_Test1 --> Study1_AnotherProc_Test1_output3["output3.vtk"]
+    Study1_AnotherProc_Test2 --> Study1_AnotherProc_Test2_output3["output3.vtk"]
+    Study1_AnotherProc_Test3 --> Study1_AnotherProc_Test3_output3["output3.vtk"]
 
 
-    Study2 --> Study2_MyProcess["MyProcess"]
-    Study2 --> Study2_AnotherProcess["AnotherProcess"]
 
-    Study2_MyProcess --> Study2_MyProcess_Test1["Test1"]
-    Study2_MyProcess --> Study2_MyProcess_Test2["Test2"]
-    Study2_MyProcess --> Study2_MyProcess_Test3["..."]
 
-    Study2_MyProcess_Test1 --> Study2_MyProcess_Test1_output1["output1.csv"]
-    Study2_MyProcess_Test1 --> Study2_MyProcess_Test1_output2["output2"]
-    Study2_MyProcess_Test2 --> Study2_MyProcess_Test2_output1["output1.csv"]
-    Study2_MyProcess_Test2 --> Study2_MyProcess_Test2_output2["output2"]
-    Study2_MyProcess_Test3 --> Study2_MyProcess_Test3_output1["output1.csv"]
-    Study2_MyProcess_Test3 --> Study2_MyProcess_Test3_output2["output2"]
+    Study2 --> Study2_MyProc["MyProc"]
+    Study2 --> Study2_AnotherProc["AnotherProc"]
 
-    Study2_AnotherProcess --> Study2_AnotherProcess_Test1["Test1"]
-    Study2_AnotherProcess --> Study2_AnotherProcess_Test2["Test2"]
-    Study2_AnotherProcess --> Study2_AnotherProcess_Test3["..."]
+    Study2_MyProc --> Study2_MyProc_Test1["Test1"]
+    Study2_MyProc --> Study2_MyProc_Test2["Test2"]
+    Study2_MyProc --> Study2_MyProc_Test3["..."]
 
-    Study2_AnotherProcess_Test1 --> Study2_AnotherProcess_Test1_output3["output3.vtk"]
-    Study2_AnotherProcess_Test2 --> Study2_AnotherProcess_Test2_output3["output3.vtk"]
-    Study2_AnotherProcess_Test3 --> Study2_AnotherProcess_Test3_output3["output3.vtk"]
+    Study2_MyProc_Test1 --> Study2_MyProc_Test1_output1["output1.csv"]
+    Study2_MyProc_Test1 --> Study2_MyProc_Test1_output2["output2"]
+    Study2_MyProc_Test2 --> Study2_MyProc_Test2_output1["output1.csv"]
+    Study2_MyProc_Test2 --> Study2_MyProc_Test2_output2["output2"]
+    Study2_MyProc_Test3 --> Study2_MyProc_Test3_output1["output1.csv"]
+    Study2_MyProc_Test3 --> Study2_MyProc_Test3_output2["output2"]
+
+    Study2_AnotherProc --> Study2_AnotherProc_Test1["Test1"]
+    Study2_AnotherProc --> Study2_AnotherProc_Test2["Test2"]
+    Study2_AnotherProc --> Study2_AnotherProc_Test3["..."]
+
+    Study2_AnotherProc_Test1 --> Study2_AnotherProc_Test1_output3["output3.vtk"]
+    Study2_AnotherProc_Test2 --> Study2_AnotherProc_Test2_output3["output3.vtk"]
+    Study2_AnotherProc_Test3 --> Study2_AnotherProc_Test3_output3["output3.vtk"]
 ```
 
 ## Get Started
