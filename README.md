@@ -60,17 +60,17 @@ In practice, the core framework `nuremics` is composed of three foundational _so
 
 In `nuremics-apps`, two main types of software components are developed to build domain-specific applications:
 
-- **Process items** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each **process item** is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable **process items** that can be executed on their own or integrated into larger workflows.
+- **Process items** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each **Process item** is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable **Process items** that can be executed on their own or integrated into larger workflows.
 
-- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — are the end-user-facing software applications. They import and assemble the required **process items**, executing them in a defined order through the `Workflow` class, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same **process items** to be used across multiple **applications** tailored to different scientific purposes.
+- **Apps** (_software systems_) — such as `APP1, APP2, ..., APPX` — are the end-user-facing software applications. They import and assemble the required **Process items**, executing them in a defined order through the `Workflow` class, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same **Process items** to be used across multiple **Apps** tailored to different scientific purposes.
 
 ## Design Patterns
 
-Let’s briefly introduce the core design patterns behind **process items** and **applications** in **NUREMICS®**.
+Let’s briefly introduce the core design patterns behind **Process items** and **Apps** in **NUREMICS®**.
 
 ### Process item
 
-A **process item** can be seen as an algorithmic box which processes some input data and produces corresponding output data.
+A **Process item** can be seen as an algorithmic box which processes some input data and produces corresponding output data.
 
 The input data typically fall into two main categories:
 
@@ -93,7 +93,7 @@ erDiagram
   }
 ```
 
-As previously mentioned, the algorithmic box of the **process item** is a class composed of functions (units) called sequentially with its `__call__` method.
+As previously mentioned, the algorithmic box of the **Process item** is a class composed of functions (units) called sequentially with its `__call__` method.
 
 ```mermaid
 erDiagram
@@ -117,7 +117,7 @@ erDiagram
   }
 ```
 
-Output data are typically expressed as `Path` objects as well, corresponding to files or folders written to disk during the execution of the **process item**.
+Output data are typically expressed as `Path` objects as well, corresponding to files or folders written to disk during the execution of the **Process item**.
 
 ```mermaid
 erDiagram
@@ -146,7 +146,7 @@ erDiagram
   }
 ```
 
-For the sake of example, let's define another **process item** considering the same structure.
+For the sake of example, let's define another **Process item** considering the same structure.
 
 ```mermaid
 erDiagram
@@ -173,9 +173,9 @@ erDiagram
   }
 ```
 
-### Application
+### App
 
-A final end-user **application** can be built by plugging together previously implemented **process items**, and specifying their sequential order of execution within the workflow.
+A final end-user **App** can be built by plugging together previously implemented **Process items**, and specifying their sequential order of execution within the workflow.
 
 ```mermaid
 flowchart BT
@@ -185,17 +185,17 @@ flowchart BT
   e2@{ animate: true }
 ```
 
-Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the I/O interface presented to the end-user, who provides the necessary input data and retrieves the final results upon execution.
+Each **Process item** integrated into the **App** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **Process items** are assembled into a workflow, the **App** itself exposes a higher-level set of inputs and outputs. These define the I/O interface presented to the end-user, who provides the necessary input data and retrieves the final results upon execution.
 
-The assembly step is performed through a mapping between the internal I/O data of each **process item** and the global I/O interface of the **application**. This mapping mechanism serves multiple purposes:
+The assembly step is performed through a mapping between the internal I/O data of each **Process item** and the global I/O interface of the **App**. This mapping mechanism serves multiple purposes:
 
 - It defines which data are exposed to the end-user (and how they are displayed) and which remain internal to the workflow.
 
-- It manages the data dependencies between **process items**, when the output of one process is used as input for another.
+- It manages the data dependencies between **Process items**, when the output of one process is used as input for another.
 
 This notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
 
-The mapping between a **process item** and the **application** starts by specifying which process input parameters are exposed to the end-user, and how they are labeled in the **application** input interface.
+The mapping between a **Process item** and the **App** starts by specifying which process input parameters are exposed to the end-user, and how they are labeled in the **App** input interface.
 
 ```mermaid
 erDiagram
@@ -226,7 +226,7 @@ erDiagram
   }
 ```
 
-The process input paths that need to be provided by the end-user are specified by defining the expected file or folder names within the **application** input interface.
+The process input paths that need to be provided by the end-user are specified by defining the expected file or folder names within the **App** input interface.
 
 ```mermaid
 erDiagram
@@ -249,7 +249,7 @@ erDiagram
   }
 ```
 
-The process input paths can also be mapped to output paths produced by a previous **process item** within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
+The process input paths can also be mapped to output paths produced by a previous **Process item** within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
 
 ```mermaid
 erDiagram
@@ -277,7 +277,7 @@ erDiagram
   }
 ```
 
-Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written by the **process item** during the workflow execution.
+Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written by the **Process item** during the workflow execution.
 
 ```mermaid
 erDiagram
@@ -311,7 +311,7 @@ erDiagram
   }
 ```
 
-Let's now assemble the second **process item** to be executed by the **application** within the workflow, by establishing a dependency: the output data produced by the first **process item** will serve as input data for this second one.
+Let's now assemble the second **Process item** to be executed by the **App** within the workflow, by establishing a dependency: the output data produced by the first **Process item** will serve as input data for this second one.
 
 ```mermaid
 erDiagram
@@ -344,7 +344,7 @@ erDiagram
   }
 ```
 
-Once all **process items** have been assembled into the **application**, the final I/O interface presented to the end-user emerges.
+Once all **Process items** have been assembled into the **App**, the final I/O interface presented to the end-user emerges.
 
 ```mermaid
 flowchart LR
@@ -379,11 +379,11 @@ flowchart LR
 
 ## Usability
 
-The **applications** built with **NUREMICS®** come with a lean and pragmatic user interface by design. No flashy GUI, but instead, the focus is on simplicity and efficiency:
+The **Apps** built with **NUREMICS®** come with a lean and pragmatic user interface by design. No flashy GUI, but instead, the focus is on simplicity and efficiency:
 
 - An input database that the operator completes by editing configuration files and uploading the required input files and folders.
 
-- A terminal interface that provides informative feedback at each execution, clearly indicating what the **application** is doing and what actions are expected from the operator.
+- A terminal interface that provides informative feedback at each execution, clearly indicating what the **App** is doing and what actions are expected from the operator.
 
 - An output database that stores all results in a well-structured and traceable folder hierarchy.
 
@@ -401,11 +401,11 @@ sequenceDiagram
     Operator->>OUTPUTS: Access results
 ```
 
-This streamlined approach prioritizes clarity, control, and reproducibility, making each **application** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
+This streamlined approach prioritizes clarity, control, and reproducibility, making each **App** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
 
 ### Configuration
 
-When running an **application**, the operator first defines a set of studies aimed at exploring the **INPUTS** space and analyzing the outcomes in the **OUTPUTS** space.
+When running an **App**, the operator first defines a set of studies aimed at exploring the **INPUTS** space and analyzing the outcomes in the **OUTPUTS** space.
 
 ```mermaid
 flowchart LR
@@ -533,9 +533,9 @@ flowchart LR
 
 ### Results
 
-At the end of the execution, results are stored in a structured output tree, ready for review or further processing. The outputs are first organized by **process item**, each of them writing its own result data. Within each **process item**, the results are further subdivided by experiment _(Test1, Test2, ...)_, ensuring a clear separation and traceability of outcomes across the entire study.
+At the end of the execution, results are stored in a structured output tree, ready for review or further processing. The outputs are first organized by **Process item**, each of them writing its own result data. Within each **Process item**, the results are further subdivided by experiment _(Test1, Test2, ...)_, ensuring a clear separation and traceability of outcomes across the entire study.
 
-This organization is automatically determined based on how the study is configured by the operator. **NUREMICS®** analyzes which input data are marked as _fixed_ or _variable_, and how they connect to the internal workflow of the **application**. If a **process item** directly depends on _variable_ inputs, or indirectly through upstream dependencies, it will generate distinct outputs for each experiment. Otherwise, it will produce shared outputs only once.
+This organization is automatically determined based on how the study is configured by the operator. **NUREMICS®** analyzes which input data are marked as _fixed_ or _variable_, and how they connect to the internal workflow of the **App**. If a **Process item** directly depends on _variable_ inputs, or indirectly through upstream dependencies, it will generate distinct outputs for each experiment. Otherwise, it will produce shared outputs only once.
 
 This logic ensures that only the necessary parts of the workflow are repeated during experimentation, and that the output structure faithfully reflects the configuration of the study along with the internal dependencies within the workflow.
 
@@ -585,6 +585,6 @@ flowchart LR
 
 Now that you've explored the foundational concepts behind the **NUREMICS®** framework, it's time to go deeper into the matrix.
 
-You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to define domain-specific **process items**, assemble them into complete **applications**, and run them as an end-user.
+You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to define domain-specific **Process items**, assemble them into complete **Apps**, and run them as an end-user.
 
 Welcome to the code 🧬
