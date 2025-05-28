@@ -195,7 +195,7 @@ The assembly step is performed through a mapping between the internal I/O data o
 
 This notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
 
-The mapping between a **Proc** and the **App** starts by specifying which process input parameters are exposed to the end-user, and how they are labeled in the **App** input interface.
+The mapping between a **Proc** and the **App** starts by specifying which **Proc** input parameters are exposed to the end-user, and how they are labeled in the **App** input interface.
 
 ```mermaid
 erDiagram
@@ -208,7 +208,7 @@ erDiagram
   }
 ```
 
-The process input parameters that remain internal to the workflow are assigned fixed values directly within the mapping definition, without being exposed to the end-user.
+The **Proc** input parameters that remain internal to the workflow are assigned fixed values directly within the mapping definition, without being exposed to the end-user.
 
 ```mermaid
 erDiagram
@@ -226,7 +226,7 @@ erDiagram
   }
 ```
 
-The process input paths that need to be provided by the end-user are specified by defining the expected file or folder names within the **App** input interface.
+The **Proc** input paths that need to be provided by the end-user are specified by defining the expected file or folder names within the **App** input interface.
 
 ```mermaid
 erDiagram
@@ -249,7 +249,7 @@ erDiagram
   }
 ```
 
-The process input paths can also be mapped to output paths produced by a previous **Proc** within the workflow (although this does not apply here, as we are currently focusing on the first process in the workflow).
+The **Proc** input paths can also be mapped to output paths produced by a previous **Proc** within the workflow (although this does not apply here, as we are currently focusing on the first **Proc** in the workflow).
 
 ```mermaid
 erDiagram
@@ -277,7 +277,7 @@ erDiagram
   }
 ```
 
-Finally, the process output paths are specified by indicating the name of the file(s) or folder(s) that will be written by the **Proc** during the workflow execution.
+Finally, the **Proc** output paths are specified by indicating the name of the file(s) or folder(s) that will be written by the **Proc** during the workflow execution.
 
 ```mermaid
 erDiagram
