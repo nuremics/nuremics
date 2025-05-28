@@ -52,7 +52,7 @@ In the context of **NUREMICS®**:
 
 In practice, the core framework `nuremics` is composed of three foundational _software items_:
 
-- The `Process` class defines a generic **process item**. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
+- The `Process` class defines a generic process component. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
 
 - The `Workflow` class orchestrates the execution of multiple processes in a defined sequential order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
 
@@ -60,9 +60,9 @@ In practice, the core framework `nuremics` is composed of three foundational _so
 
 In `nuremics-apps`, two main types of software components are developed to build domain-specific applications:
 
-- **Process items** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each process is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable **process items** that can be executed on their own or integrated into larger workflows.
+- **Process items** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each **process item** is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable **process items** that can be executed on their own or integrated into larger workflows.
 
-- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — are the end-user-facing software applications. They import and assemble the required **process items**, executing them in a defined order through the `Workflow` class, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same **process items** to be used across multiple applications tailored to different scientific purposes.
+- **Applications** (_software systems_) — such as `APP1, APP2, ..., APPX` — are the end-user-facing software applications. They import and assemble the required **process items**, executing them in a defined order through the `Workflow` class, by instantiating the `Application` class. This modular architecture promotes flexibility and reusability, allowing the same **process items** to be used across multiple **applications** tailored to different scientific purposes.
 
 ## Design Patterns
 
@@ -203,8 +203,8 @@ erDiagram
   **user_params** ||--|| **MyProcess** : mapping
 
   **user_params** {
-    float param1 "user_param1"
-    bool param3 "user_param2"
+    float param1 "parameter1"
+    bool param3 "parameter2"
   }
 ```
 
@@ -218,8 +218,8 @@ erDiagram
   **hard_params** ||--|| **MyProcess**: mapping
 
   **user_params** {
-    float param1 "user_param1"
-    bool param3 "user_param2"
+    float param1 "parameter1"
+    bool param3 "parameter2"
   }
   **hard_params** {
     int param2 "14"
@@ -238,8 +238,8 @@ erDiagram
   **user_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
-    float param1 "user_param1"
-    bool param3 "user_param2"
+    float param1 "parameter1"
+    bool param3 "parameter2"
   }
   **hard_params** {
     int param2 "14"
@@ -263,8 +263,8 @@ erDiagram
   **required_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
-    float param1 "user_param1"
-    bool param3 "user_param2"
+    float param1 "parameter1"
+    bool param3 "parameter2"
   }
   **hard_params** {
     int param2 "14"
@@ -293,8 +293,8 @@ erDiagram
   **output_paths** ||--|| **MyProcess** : mapping
 
   **user_params** {
-    float param1 "user_param1"
-    bool param3 "user_param2"
+    float param1 "parameter1"
+    bool param3 "parameter2"
   }
   **hard_params** {
     int param2 "14"
@@ -327,8 +327,8 @@ erDiagram
   **output_paths** ||--|| **AnotherProcess** : mapping
 
   **user_params** {
-    int param1 "user_param3"
-    str param2 "user_param4"
+    int param1 "parameter3"
+    str param2 "parameter4"
   }
   **hard_params** {
     _ _ "_"
@@ -359,10 +359,10 @@ flowchart LR
 
     subgraph **Parameters**
       direction LR
-      param1["user_param1 _(float)_"]
-      param2["user_param2 _(bool)_"]
-      param3["user_param3 _(int)_"]
-      param4["user_param4 _(str)_"]
+      param1["parameter1 _(float)_"]
+      param2["parameter2 _(bool)_"]
+      param3["parameter3 _(int)_"]
+      param4["parameter4 _(str)_"]
     end
   end
 
@@ -398,7 +398,7 @@ sequenceDiagram
     MY_APP->>INPUTS: Read database
     MY_APP->>OUTPUTS: Write database
     MY_APP->>Operator: Terminal feedback
-    Operator->>OUTPUTS: Acess results
+    Operator->>OUTPUTS: Access results
 ```
 
 This streamlined approach prioritizes clarity, control, and reproducibility, making each **application** built with **NUREMICS®** well-suited for both direct interaction by end-users and seamless integration into larger software ecosystems. In such environments, **NUREMICS®** can operate as a backend computational engine, interacting programmatically with other tools (such as web applications) that provide their own user interfaces.
@@ -428,8 +428,9 @@ flowchart LR
 
     subgraph Parameter_Fixed1["**Parameters**"]
       direction LR
-      param1_1["user_param1"]
-      param2_1["user_param2"]
+      param1_1["parameter1"]
+      param2_1["parameter2"]
+      param4_1["parameter4"]
     end
   end
 
@@ -443,8 +444,7 @@ flowchart LR
 
     subgraph Parameter_Variable1["**Parameters**"]
       direction LR
-      param3_1["user_param3"]
-      param4_1["user_param4"]
+      param3_1["parameter3"]
     end
   end
 
@@ -456,13 +456,14 @@ flowchart LR
 
     subgraph Paths_Fixed2["**Paths**"]
       direction LR
+      path1_2["input1.txt"]
       path2_2["input2"]
     end
 
     subgraph Parameter_Fixed2["**Parameters**"]
       direction LR
-      param3_2["user_param3"]
-      param4_2["user_param4"]
+      param3_2["parameter3"]
+      param4_2["parameter4"]
     end
   end
 
@@ -471,13 +472,13 @@ flowchart LR
 
     subgraph Paths_Variable2["**Paths**"]
       direction LR
-      path1_2["input1.txt"]
+      no_path["_"]
     end
 
     subgraph Parameter_Variable2["**Parameters**"]
       direction LR
-      param1_2["user_param1"]
-      param2_2["user_param2"]
+      param1_2["parameter1"]
+      param2_2["parameter2"]
     end
   end
 
@@ -496,20 +497,18 @@ flowchart LR
     Study1 --> Study1_Test2["Test2"]
     Study1 --> Study1_Test3["..."]
     
-    Study1_Common --> common_param1["user_param1 = ..."]
-    Study1_Common --> common_param2["user_param2 = ..."]
-    Study1_Common --> common_input1["input1.txt _(uploaded)_"]
+    Study1_Common --> common1_param1["parameter1 = ..."]
+    Study1_Common --> common1_param2["parameter2 = ..."]
+    Study1_Common --> common1_param4["parameter4 = ..."]
+    Study1_Common --> common1_input1["input1.txt _(uploaded)_"]
 
-    Study1_Test1 --> test1_param3["user_param3 = ..."]
-    Study1_Test1 --> test1_param4["user_param4 = ..."]
+    Study1_Test1 --> test1_param3["parameter3 = ..."]
     Study1_Test1 --> test1_input2["input2 _(uploaded)_"]
 
-    Study1_Test2 --> test2_param3["user_param3 = ..."]
-    Study1_Test2 --> test2_param4["user_param4 = ..."]
+    Study1_Test2 --> test2_param3["parameter3 = ..."]
     Study1_Test2 --> test2_input2["input2 _(uploaded)_"]
 
-    Study1_Test3 --> test4_param3["user_param3 = ..."]
-    Study1_Test3 --> test4_param4["user_param4 = ..."]
+    Study1_Test3 --> test4_param3["parameter3 = ..."]
     Study1_Test3 --> test4_input2["input2 _(uploaded)_"]
 
     Study2 --> Study2_Common["Common"]
@@ -517,21 +516,19 @@ flowchart LR
     Study2 --> Study2_Test2["Test2"]
     Study2 --> Study2_Test3["..."]
     
-    Study2_Common --> common_param3["user_param3 = ..."]
-    Study2_Common --> common_param4["user_param4 = ..."]
-    Study2_Common --> common_input2["input2 _(uploaded)_"]
+    Study2_Common --> common2_param3["parameter3 = ..."]
+    Study2_Common --> common2_param4["parameter4 = ..."]
+    Study2_Common --> common2_input1["input1.txt _(uploaded)_"]
+    Study2_Common --> common2_input2["input2 _(uploaded)_"]
 
-    Study2_Test1 --> test1_param1["user_param1 = ..."]
-    Study2_Test1 --> test1_param2["user_param2 = ..."]
-    Study2_Test1 --> test1_input1["input1.txt _(uploaded)_"]
+    Study2_Test1 --> test1_param1["parameter1 = ..."]
+    Study2_Test1 --> test1_param2["parameter2 = ..."]
 
-    Study2_Test2 --> test2_param1["user_param1 = ..."]
-    Study2_Test2 --> test2_param2["user_param2 = ..."]
-    Study2_Test2 --> test2_input1["input1.txt _(uploaded)_"]
+    Study2_Test2 --> test2_param1["parameter1 = ..."]
+    Study2_Test2 --> test2_param2["parameter2 = ..."]
 
-    Study2_Test3 --> test4_param1["user_param1 = ..."]
-    Study2_Test3 --> test4_param2["user_param2 = ..."]
-    Study2_Test3 --> test4_input1["input1.txt _(uploaded)_"]
+    Study2_Test3 --> test4_param1["parameter1 = ..."]
+    Study2_Test3 --> test4_param2["parameter2 = ..."]
 ```
 
 ## Get Started
