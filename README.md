@@ -99,7 +99,7 @@ As previously mentioned, the algorithmic box of the **Proc** is a class composed
 erDiagram
   **Parameters** ||--|| **Inputs** : provides
   **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **MyProc** : feeds
+  **Inputs** ||--|| **OneProc** : feeds
 
   **Parameters** {
     float param1
@@ -109,7 +109,7 @@ erDiagram
   **Paths** {
     file path1 "txt"
   }
-  **MyProc** {
+  **OneProc** {
     function operation1()
     function operation2()
     function operation3()
@@ -123,8 +123,8 @@ Output data are typically expressed as `Path` objects as well, corresponding to 
 erDiagram
   **Parameters** ||--|| **Inputs** : provides
   **Paths** ||--|| **Inputs** : provides
-  **Inputs** ||--|| **MyProc** : feeds
-  **MyProc** ||--|| **Outputs** : generates
+  **Inputs** ||--|| **OneProc** : feeds
+  **OneProc** ||--|| **Outputs** : generates
 
   **Parameters** {
     float param1
@@ -134,7 +134,7 @@ erDiagram
   **Paths** {
     file path1 "txt"
   }
-  **MyProc** {
+  **OneProc** {
     function operation1()
     function operation2()
     function operation3()
@@ -179,8 +179,8 @@ A final end-user **App** can be built by plugging together previously implemente
 
 ```mermaid
 flowchart BT
-  **MyProc** e1@--1--o **MY_APP**
-  **AnotherProc** e2@--2--o **MY_APP**
+  **OneProc** e1@--1--o **ONE_APP**
+  **AnotherProc** e2@--2--o **ONE_APP**
   e1@{ animate: true }
   e2@{ animate: true }
 ```
@@ -199,8 +199,8 @@ The mapping between a **Proc** and the **App** starts by specifying which **Proc
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **user_params** ||--|| **MyProc** : mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **user_params** ||--|| **OneProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -212,10 +212,10 @@ The **Proc** input parameters that remain internal to the workflow are assigned 
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **MY_APP** ||--|| **hard_params** : mapping
-  **user_params** ||--|| **MyProc**: mapping
-  **hard_params** ||--|| **MyProc**: mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **ONE_APP** ||--|| **hard_params** : mapping
+  **user_params** ||--|| **OneProc**: mapping
+  **hard_params** ||--|| **OneProc**: mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -230,12 +230,12 @@ The **Proc** input paths that need to be provided by the end-user are specified 
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **MY_APP** ||--|| **hard_params** : mapping
-  **MY_APP** ||--|| **user_paths** : mapping
-  **user_params** ||--|| **MyProc** : mapping
-  **hard_params** ||--|| **MyProc** : mapping
-  **user_paths** ||--|| **MyProc** : mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **ONE_APP** ||--|| **hard_params** : mapping
+  **ONE_APP** ||--|| **user_paths** : mapping
+  **user_params** ||--|| **OneProc** : mapping
+  **hard_params** ||--|| **OneProc** : mapping
+  **user_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -253,14 +253,14 @@ The **Proc** input paths can also be mapped to output paths produced by a previo
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **MY_APP** ||--|| **hard_params** : mapping
-  **MY_APP** ||--|| **user_paths** : mapping
-  **MY_APP** ||--|| **required_paths** : mapping
-  **user_params** ||--|| **MyProc** : mapping
-  **hard_params** ||--|| **MyProc** : mapping
-  **user_paths** ||--|| **MyProc** : mapping
-  **required_paths** ||--|| **MyProc** : mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **ONE_APP** ||--|| **hard_params** : mapping
+  **ONE_APP** ||--|| **user_paths** : mapping
+  **ONE_APP** ||--|| **required_paths** : mapping
+  **user_params** ||--|| **OneProc** : mapping
+  **hard_params** ||--|| **OneProc** : mapping
+  **user_paths** ||--|| **OneProc** : mapping
+  **required_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -281,16 +281,16 @@ Finally, the **Proc** output paths are specified by indicating the name of the f
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **MY_APP** ||--|| **hard_params** : mapping
-  **MY_APP** ||--|| **user_paths** : mapping
-  **MY_APP** ||--|| **required_paths** : mapping
-  **MY_APP** ||--|| **output_paths** : mapping
-  **user_params** ||--|| **MyProc** : mapping
-  **hard_params** ||--|| **MyProc** : mapping
-  **user_paths** ||--|| **MyProc** : mapping
-  **required_paths** ||--|| **MyProc** : mapping
-  **output_paths** ||--|| **MyProc** : mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **ONE_APP** ||--|| **hard_params** : mapping
+  **ONE_APP** ||--|| **user_paths** : mapping
+  **ONE_APP** ||--|| **required_paths** : mapping
+  **ONE_APP** ||--|| **output_paths** : mapping
+  **user_params** ||--|| **OneProc** : mapping
+  **hard_params** ||--|| **OneProc** : mapping
+  **user_paths** ||--|| **OneProc** : mapping
+  **required_paths** ||--|| **OneProc** : mapping
+  **output_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
     float param1 "parameter1"
@@ -315,11 +315,11 @@ Let's now assemble the second **Proc** to be executed by the **App** within the 
 
 ```mermaid
 erDiagram
-  **MY_APP** ||--|| **user_params** : mapping
-  **MY_APP** ||--|| **hard_params** : mapping
-  **MY_APP** ||--|| **user_paths** : mapping
-  **MY_APP** ||--|| **required_paths** : mapping
-  **MY_APP** ||--|| **output_paths** : mapping
+  **ONE_APP** ||--|| **user_params** : mapping
+  **ONE_APP** ||--|| **hard_params** : mapping
+  **ONE_APP** ||--|| **user_paths** : mapping
+  **ONE_APP** ||--|| **required_paths** : mapping
+  **ONE_APP** ||--|| **output_paths** : mapping
   **user_params** ||--|| **AnotherProc** : mapping
   **hard_params** ||--|| **AnotherProc** : mapping
   **user_paths** ||--|| **AnotherProc** : mapping
@@ -373,8 +373,8 @@ flowchart LR
     out3["output3.vtk _(file)_"]
   end
 
-  **INPUTS** --> MY_APP["**MY_APP**"]
-  MY_APP --> **OUTPUTS**
+  **INPUTS** --> ONE_APP["**ONE_APP**"]
+  ONE_APP --> **OUTPUTS**
 ```
 
 ## Usability
@@ -390,14 +390,14 @@ The **Apps** built with **NUREMICS®** come with a lean and pragmatic user inter
 ```mermaid
 sequenceDiagram
     actor Operator
-    Operator->>MY_APP: Execution
-    MY_APP->>INPUTS: Initialize database
-    MY_APP->>Operator: Terminal feedback
+    Operator->>ONE_APP: Execution
+    ONE_APP->>INPUTS: Initialize database
+    ONE_APP->>Operator: Terminal feedback
     Operator->>INPUTS: Complete database
-    Operator->>MY_APP: Execution
-    MY_APP->>INPUTS: Read database
-    MY_APP->>OUTPUTS: Write database
-    MY_APP->>Operator: Terminal feedback
+    Operator->>ONE_APP: Execution
+    ONE_APP->>INPUTS: Read database
+    ONE_APP->>OUTPUTS: Write database
+    ONE_APP->>Operator: Terminal feedback
     Operator->>OUTPUTS: Access results
 ```
 
@@ -541,11 +541,11 @@ This logic ensures that only the necessary parts of the workflow are repeated du
 
 ```mermaid
 flowchart LR
-    Study1 --> Study1_MyProc["MyProc"]
+    Study1 --> Study1_OneProc["OneProc"]
     Study1 --> Study1_AnotherProc["AnotherProc"]
 
-    Study1_MyProc --> Study1_MyProc_Common_output1["output1.csv"]
-    Study1_MyProc --> Study1_MyProc_Common_output2["output2"]
+    Study1_OneProc --> Study1_OneProc_Common_output1["output1.csv"]
+    Study1_OneProc --> Study1_OneProc_Common_output2["output2"]
 
     Study1_AnotherProc --> Study1_AnotherProc_Test1["Test1"]
     Study1_AnotherProc --> Study1_AnotherProc_Test2["Test2"]
@@ -558,19 +558,19 @@ flowchart LR
 
 
 
-    Study2 --> Study2_MyProc["MyProc"]
+    Study2 --> Study2_OneProc["OneProc"]
     Study2 --> Study2_AnotherProc["AnotherProc"]
 
-    Study2_MyProc --> Study2_MyProc_Test1["Test1"]
-    Study2_MyProc --> Study2_MyProc_Test2["Test2"]
-    Study2_MyProc --> Study2_MyProc_Test3["..."]
+    Study2_OneProc --> Study2_OneProc_Test1["Test1"]
+    Study2_OneProc --> Study2_OneProc_Test2["Test2"]
+    Study2_OneProc --> Study2_OneProc_Test3["..."]
 
-    Study2_MyProc_Test1 --> Study2_MyProc_Test1_output1["output1.csv"]
-    Study2_MyProc_Test1 --> Study2_MyProc_Test1_output2["output2"]
-    Study2_MyProc_Test2 --> Study2_MyProc_Test2_output1["output1.csv"]
-    Study2_MyProc_Test2 --> Study2_MyProc_Test2_output2["output2"]
-    Study2_MyProc_Test3 --> Study2_MyProc_Test3_output1["output1.csv"]
-    Study2_MyProc_Test3 --> Study2_MyProc_Test3_output2["output2"]
+    Study2_OneProc_Test1 --> Study2_OneProc_Test1_output1["output1.csv"]
+    Study2_OneProc_Test1 --> Study2_OneProc_Test1_output2["output2"]
+    Study2_OneProc_Test2 --> Study2_OneProc_Test2_output1["output1.csv"]
+    Study2_OneProc_Test2 --> Study2_OneProc_Test2_output2["output2"]
+    Study2_OneProc_Test3 --> Study2_OneProc_Test3_output1["output1.csv"]
+    Study2_OneProc_Test3 --> Study2_OneProc_Test3_output2["output2"]
 
     Study2_AnotherProc --> Study2_AnotherProc_Test1["Test1"]
     Study2_AnotherProc --> Study2_AnotherProc_Test2["Test2"]
