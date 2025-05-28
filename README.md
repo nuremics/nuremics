@@ -531,6 +531,56 @@ flowchart LR
     Study2_Test3 --> test4_param2["parameter2 = ..."]
 ```
 
+### Results
+
+At the end of the execution, results are stored in a structured output tree, ready for review or further processing. The outputs are first organized by **process item**, each of them writing its own result data. Within each **process item**, the results are further subdivided by experiment _(Test1, Test2, ...)_, ensuring a clear separation and traceability of outcomes across the entire study.
+
+This organization is automatically determined based on how the study is configured by the operator. **NUREMICS®** analyzes which input data are marked as _fixed_ or _variable_, and how they connect to the internal workflow of the **application**. If a **process item** directly depends on _variable_ inputs, or indirectly through upstream dependencies, it will generate distinct outputs for each experiment. Otherwise, it will produce shared outputs only once.
+
+This logic ensures that only the necessary parts of the workflow are repeated during experimentation, and that the output structure faithfully reflects the configuration of the study along with the internal dependencies within the workflow.
+
+```mermaid
+flowchart LR
+    Study1 --> Study1_MyProcess["MyProcess"]
+    Study1 --> Study1_AnotherProcess["AnotherProcess"]
+
+    Study1_MyProcess --> Study1_MyProcess_Common_output1["output1.csv"]
+    Study1_MyProcess --> Study1_MyProcess_Common_output2["output2"]
+
+    Study1_AnotherProcess --> Study1_AnotherProcess_Test1["Test1"]
+    Study1_AnotherProcess --> Study1_AnotherProcess_Test2["Test2"]
+    Study1_AnotherProcess --> Study1_AnotherProcess_Test3["..."]
+
+    Study1_AnotherProcess_Test1 --> Study1_AnotherProcess_Test1_output3["output3.vtk"]
+    Study1_AnotherProcess_Test2 --> Study1_AnotherProcess_Test2_output3["output3.vtk"]
+    Study1_AnotherProcess_Test3 --> Study1_AnotherProcess_Test3_output3["output3.vtk"]
+
+
+
+
+    Study2 --> Study2_MyProcess["MyProcess"]
+    Study2 --> Study2_AnotherProcess["AnotherProcess"]
+
+    Study2_MyProcess --> Study2_MyProcess_Test1["Test1"]
+    Study2_MyProcess --> Study2_MyProcess_Test2["Test2"]
+    Study2_MyProcess --> Study2_MyProcess_Test3["..."]
+
+    Study2_MyProcess_Test1 --> Study2_MyProcess_Test1_output1["output1.csv"]
+    Study2_MyProcess_Test1 --> Study2_MyProcess_Test1_output2["output2"]
+    Study2_MyProcess_Test2 --> Study2_MyProcess_Test2_output1["output1.csv"]
+    Study2_MyProcess_Test2 --> Study2_MyProcess_Test2_output2["output2"]
+    Study2_MyProcess_Test3 --> Study2_MyProcess_Test3_output1["output1.csv"]
+    Study2_MyProcess_Test3 --> Study2_MyProcess_Test3_output2["output2"]
+
+    Study2_AnotherProcess --> Study2_AnotherProcess_Test1["Test1"]
+    Study2_AnotherProcess --> Study2_AnotherProcess_Test2["Test2"]
+    Study2_AnotherProcess --> Study2_AnotherProcess_Test3["..."]
+
+    Study2_AnotherProcess_Test1 --> Study2_AnotherProcess_Test1_output3["output3.vtk"]
+    Study2_AnotherProcess_Test2 --> Study2_AnotherProcess_Test2_output3["output3.vtk"]
+    Study2_AnotherProcess_Test3 --> Study2_AnotherProcess_Test3_output3["output3.vtk"]
+```
+
 ## Get Started
 
 To begin your coding journey with the **NUREMICS®** framework, you can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
