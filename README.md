@@ -46,7 +46,7 @@ In the context of **NUREMICS®**:
 
 - A _software item_ typically takes the form of a Python class that encapsulates related functions (units) to serve a specific purpose.
 
-- A _software system_ refers to a complete application designed to be executed by an end user, replacing traditional scripts or notebooks.
+- A _software system_ refers to a complete application designed to be executed by an end-user, replacing traditional scripts or notebooks.
 
 <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/architecture.svg" alt="NUREMICS Architecture" width="100%">
 
@@ -56,7 +56,7 @@ In practice, the core framework `nuremics` is composed of three foundational _so
 
 - The `Workflow` class orchestrates the execution of multiple processes in a defined sequential order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
 
-- The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end user application developed within `nuremics-apps`.
+- The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end-user application developed within `nuremics-apps`.
 
 In `nuremics-apps`, two main types of software components are developed to build domain-specific applications:
 
@@ -185,17 +185,17 @@ flowchart BT
   e2@{ animate: true }
 ```
 
-Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the I/O interface presented to the end user, who provides the necessary input data and retrieves the final results upon execution.
+Each **process item** integrated into the **application** defines its own set of inputs and outputs, specific to its internal algorithmic logic. When these **process items** are assembled into a workflow, the **application** itself exposes a higher-level set of inputs and outputs. These define the I/O interface presented to the end-user, who provides the necessary input data and retrieves the final results upon execution.
 
 The assembly step is performed through a mapping between the internal I/O data of each **process item** and the global I/O interface of the **application**. This mapping mechanism serves multiple purposes:
 
-- It defines which data are exposed to the end user (and how they are displayed) and which remain internal to the workflow.
+- It defines which data are exposed to the end-user (and how they are displayed) and which remain internal to the workflow.
 
 - It manages the data dependencies between **process items**, when the output of one process is used as input for another.
 
 This notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
 
-The mapping between a **process item** and the **application** starts by specifying which process input parameters are exposed to the end user, and how they are labeled in the **application** input interface.
+The mapping between a **process item** and the **application** starts by specifying which process input parameters are exposed to the end-user, and how they are labeled in the **application** input interface.
 
 ```mermaid
 erDiagram
@@ -208,7 +208,7 @@ erDiagram
   }
 ```
 
-The process input parameters that remain internal to the workflow are assigned fixed values directly within the mapping definition, without being exposed to the end user.
+The process input parameters that remain internal to the workflow are assigned fixed values directly within the mapping definition, without being exposed to the end-user.
 
 ```mermaid
 erDiagram
@@ -226,7 +226,7 @@ erDiagram
   }
 ```
 
-The process input paths that need to be provided by the end user are specified by defining the expected file or folder names within the **application** input interface.
+The process input paths that need to be provided by the end-user are specified by defining the expected file or folder names within the **application** input interface.
 
 ```mermaid
 erDiagram
@@ -344,7 +344,7 @@ erDiagram
   }
 ```
 
-Once all **process items** have been assembled into the **application**, the final I/O interface presented to the end user emerges.
+Once all **process items** have been assembled into the **application**, the final I/O interface presented to the end-user emerges.
 
 ```mermaid
 flowchart LR
@@ -583,4 +583,8 @@ flowchart LR
 
 ## Get Started
 
-To begin your coding journey with the **NUREMICS®** framework, you can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository. There, you'll learn how to build domain-specific processes and applications, and how to use them as an end user.
+Now that you've explored the core principles behind the **NUREMICS®** framework, it's time to go deeper into the matrix.
+
+You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to define domain-specific **process items**, assemble them into complete **applications**, and run them as an end-user.
+
+Welcome to the code 🧬
