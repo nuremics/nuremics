@@ -191,7 +191,7 @@ The assembly step is performed through a mapping between the internal I/O data o
 
 - It defines which data are exposed to the end-user (and how they are displayed) and which remain internal to the workflow.
 
-- It manages the data dependencies between **Procs**, when the output of one process is used as input for another.
+- It manages the data dependencies between **Procs**, when the output of one **Proc** is used as input for another.
 
 This notably ensures a coherent and seamless management of data across the workflow, while delivering a clean and focused I/O interface tailored to the user's needs.
 
