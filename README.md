@@ -537,7 +537,7 @@ At the end of the execution, results are stored in a structured output tree, rea
 
 This organization is automatically determined based on how the study is configured by the operator. **NUREMICS®** analyzes which input data are marked as _fixed_ or _variable_, and how they connect to the internal workflow of the **App**. If a **Proc** directly depends on _variable_ inputs, or indirectly through upstream dependencies, it will generate distinct outputs for each experiment. Otherwise, it will produce shared outputs only once.
 
-This logic ensures that only the necessary parts of the workflow are repeated during experimentation, and that the output structure faithfully reflects the configuration of the study along with the internal dependencies within the workflow.
+This logic ensures that only the necessary parts of the workflow are repeated through experimentations, and that the output structure faithfully reflects the configuration of the study along with the internal dependencies within the workflow.
 
 ```mermaid
 flowchart LR
