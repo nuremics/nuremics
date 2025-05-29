@@ -585,6 +585,6 @@ flowchart LR
 
 Now that you've explored the foundational concepts behind the **NUREMICS®** framework, it's time to go deeper into the matrix.
 
-You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to define domain-specific **Procs**, assemble them into complete **Apps**, and run them as an end-user.
+You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to implement domain-specific **Procs**, assemble them into complete **Apps**, and run them as an end-user.
 
 Welcome to the code 🧬
