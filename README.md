@@ -93,7 +93,6 @@ erDiagram
   **Parameters** {
     float param1
     int param2
-    bool param3
   }
   **Paths** {
     file path1 "txt"
@@ -111,16 +110,13 @@ erDiagram
   **Parameters** {
     float param1
     int param2
-    bool param3
   }
   **Paths** {
     file path1 "txt"
   }
   **OneProc** {
-    function operation1()
-    function operation2()
-    function operation3()
-    function operation4()
+    function operation1
+    function operation2
   }
 ```
 
@@ -136,20 +132,17 @@ erDiagram
   **Parameters** {
     float param1
     int param2
-    bool param3
   }
   **Paths** {
     file path1 "txt"
   }
   **OneProc** {
-    function operation1()
-    function operation2()
-    function operation3()
-    function operation4()
+    function operation1
+    function operation2
   }
   **Outputs** {
     file out1 "csv"
-    folder out2 "_"
+    file out2 "png"
   }
 ```
 
@@ -163,20 +156,21 @@ erDiagram
   **AnotherProc** ||--|| **Outputs** : generates
 
   **Parameters** {
-    int param1
-    str param2
+    float param1
+    float param2
   }
   **Paths** {
-    file path1 "csv"
+    file path1 "json"
     folder path2 "_"
+    file path3 "csv"
   }
   **AnotherProc** {
-    function operation1()
-    function operation2()
-    function operation3()
+    function operation1
+    function operation2
+    function operation3
   }
   **Outputs** {
-    file out1 "vtk"
+    folder out1 "_"
   }
 ```
 
