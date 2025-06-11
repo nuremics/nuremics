@@ -1,6 +1,6 @@
 <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/banner.jpg" alt="NUREMICS Banner" width="100%">
 <p align="left">
-  <img src="https://img.shields.io/badge/Python-3.12+-346c99?style=flat&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3.12+-ffcd3b?style=flat&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/attrs-24.1.0-000000?style=flat" />
   <img src="https://img.shields.io/badge/Pandas-2.2.2-0b0153?style=flat&logo=pandas&logoColor=white" />
   <img src="https://img.shields.io/badge/NumPy-2.0.1-4dabcf?style=flat&logo=numpy&logoColor=white" />
@@ -45,7 +45,7 @@ Although **NUREMICS®** does not aim for full compliance with **IEC 62304**, it 
 
 ## Architecture Overview
 
-The software architecture of **NUREMICS®** is illustrated in the diagram below. As previously mentioned, it follows the layered structure recommended by the **IEC 62304** standard, distinguishing between _software systems_, _software items_, and _software units_. This representation provides a clear, high-level view of how the different software components of the project are organized, and how they interact within a structured yet flexible development framework. It also highlights the relationship between the core framework (`nuremics`) and its domain-specific applications (`nuremics-apps`), emphasizing the modular and extensible nature of the overall architecture.
+The software architecture of **NUREMICS®** is illustrated in the diagram below. As previously mentioned, it follows the layered structure recommended by the **IEC 62304** standard, distinguishing between _software systems_, _software items_, and _software units_. This representation provides a clear, high-level view of how the different software components of the project are organized, and how they interact within a structured yet flexible development framework. It also highlights the relationship between the core framework (`nuremics`) and its domain-specific applications (`nuremics-labs`), emphasizing the modular and extensible nature of the overall architecture.
 
 In the context of **NUREMICS®**:
 
@@ -59,13 +59,13 @@ In the context of **NUREMICS®**:
 
 In practice, the core framework `nuremics` is composed of three foundational _software items_:
 
-- The `Process` class defines a generic process component. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-apps`.
+- The `Process` class defines a generic process component. It provides a flexible base structure that can be extended to implement domain-specific processes within `nuremics-labs`.
 
 - The `Workflow` class orchestrates the execution of multiple processes in a defined sequential order. It encapsulates the coordination logic and manages the progression of tasks throughout the workflow.
 
-- The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end-user application developed within `nuremics-apps`.
+- The `Application` class is the top-level component. It instantiates and executes a workflow, acting as the main entry point for any end-user application developed within `nuremics-labs`.
 
-In `nuremics-apps`, two main types of software components are developed to build domain-specific applications:
+In `nuremics-labs`, two main types of software components are developed to build domain-specific applications:
 
 - **Procs** (_software items_) — such as `Proc1, Proc2, ..., ProcX` — are implemented by subclassing the core `Process` class. Each **Proc** is defined as a class that encapsulates several functions (_software units_), typically executed sequentially within its `__call__` method. This design enables the creation of independent, reusable **Procs** that can be executed on their own or integrated into larger workflows.
 
@@ -588,10 +588,10 @@ flowchart LR
     Study2_AnotherProc_Test3 --> Study2_AnotherProc_Test3_output3["output3.vtk"]
 ```
 
-## Get Started
+## Get Started 🚀
 
 Now that you've explored the foundational concepts behind the **NUREMICS®** framework, it's time to go deeper into the matrix.
 
-You can now head over to the [`nuremics-apps`](https://github.com/nuremics/nuremics-apps) repository, where the real adventure begins: you'll learn how to implement domain-specific **Procs**, assemble them into complete **Apps**, and run them as an end-user.
+You can now head over to the [`nuremics-labs`](https://github.com/nuremics/nuremics-labs) repository, where the real adventure begins: you'll learn how to implement domain-specific **Procs**, assemble them into complete **Apps**, and run them as an end-user.
 
 Welcome to the code 🧬
