@@ -1,16 +1,22 @@
 <img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/banner.jpg" alt="NUREMICS Banner" width="100%">
-
-# NUREMICS®
-
-**NUREMICS®** is an open-source Python™ framework for developing customizable scientific workflows.
-
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/attrs-24.1.0-blueviolet?style=flat" />
   <img src="https://img.shields.io/badge/Pandas-2.2.2-150458?style=flat&logo=pandas&logoColor=white" />
   <img src="https://img.shields.io/badge/NumPy-2.0.1-013243?style=flat&logo=numpy&logoColor=white" />
   <img src="https://img.shields.io/badge/termcolor-3.0.1-8A2BE2?style=flat" />
+  <img src="https://img.shields.io/badge/pytest-8.4.0-0A9EDC?style=flat&logo=pytest&logoColor=white" />
 </p>
+
+# NUREMICS®
+
+**NUREMICS® is an open-source Python™ framework for developing software-grade scientific workflows.**
+
+🧠 Code like a scientist — build like an engineer.<br>
+🧩 Modular workflows — no more tangled scripts.<br>
+🧪 Parametric exploration — configuration over code.<br>
+💾 Full traceability — everything written to disk.<br>
+🛠️ Industrial mindset — R&D speed, software rigor.
 
 ## Foreword
 
@@ -18,9 +24,10 @@ The **NUREMICS®** project is organized into two complementary repositories:
 
 - **`nuremics`**  _(current repository)_: This repository is the core Python library, installable via `pip install`. It provides the foundational components to create modular and extensible software workflows.
 
-- **`nuremics-apps`**: This repository contains examples of end-user applications built using the **NUREMICS®** framework. It is intended to be **forked** by developers to initiate their own `nuremics-apps` project and build custom applications tailored to their specific use cases.
+- **`nuremics-labs`**:
+This repository contains examples of end-user applications built using the **NUREMICS®** framework. It is intended to be **forked** by developers to initiate their own `nuremics-labs` project and build custom applications tailored to their specific use cases.
 
-Developers are encouraged to treat `nuremics` as the core engine, and to use `nuremics-apps` as a starting point for developing and maintaining their own scientific software built on top of the **NUREMICS®** framework.
+Developers are encouraged to treat `nuremics` as the core engine, and to use `nuremics-labs` as a starting point for developing and maintaining their own scientific software built on top of the **NUREMICS®** framework.
 
 ## Project Philosophy
 
