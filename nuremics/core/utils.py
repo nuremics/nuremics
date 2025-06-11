@@ -111,6 +111,17 @@ def extract_inputs_and_types(obj) -> dict:
     return params
 
 
+def extract_analysis(obj) -> dict:
+    analysis = []
+    settings = {}
+    for field in attrs.fields(obj.__class__):
+        if field.metadata.get("analysis", False):
+            analysis.append(field.name)
+            if field.metadata.get("settings", False):
+                settings[field.name] = field.metadata.get("settings")
+    return analysis, settings
+
+
 # From ChatGPT
 def extract_self_output_keys(method):
     """
@@ -143,20 +154,5 @@ def extract_self_output_keys(method):
             self.generic_visit(node)
 
     OutputKeyVisitor().visit(tree)
+    
     return keys
-
-
-# From ChatGPT
-def find_git_root(path: Path = None) -> Path:
-    """
-    Walks up the directory tree from 'path' (or from cwd by default)
-    until it finds a '.git' directory, and returns the root of the Git project.
-    """
-    if path is None:
-        path = Path.cwd()
-
-    for parent in [path] + list(path.parents):
-        if (parent / ".git").is_dir():
-            return Path(parent)
-
-    raise FileNotFoundError("'.git' directory not found in any parent folder")

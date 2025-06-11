@@ -4,6 +4,7 @@ import os
 import sys
 import attrs
 import json
+from typing import Callable
 from pathlib import Path
 from termcolor import colored
 
@@ -41,8 +42,10 @@ class Process():
     df_params: pd.DataFrame = attrs.field(default=None)
     dict_inputs: dict = attrs.field(default=None)
     dict_hard_params: dict = attrs.field(factory=dict)
-    output_paths: dict = attrs.field(default={})
-    required_paths: dict = attrs.field(default={})
+    output_paths: dict = attrs.field(factory=dict)
+    overall_analysis: dict = attrs.field(factory=dict)
+    dict_analysis: dict = attrs.field(factory=dict)
+    required_paths: dict = attrs.field(factory=dict)
     verbose: bool = attrs.field(default=True)
     index: str = attrs.field(default=None)
     diagram: dict = attrs.field(default={})
@@ -146,6 +149,10 @@ class Process():
         for key, value in self.required_paths.items():
             output_path = self.get_output_path(value)
             self.dict_inputs[key] = output_path
+        
+        # Add output analysis
+        for out, value in self.overall_analysis.items():
+            self.dict_inputs[out] = value
 
         # Write json file containing all parameters
         with open("inputs.json", "w") as f:
@@ -166,6 +173,7 @@ class Process():
         else:
             path = self.dict_paths[output_path]
         
+        
         if not Path(path).exists():
             
             # Printing
@@ -177,7 +185,7 @@ class Process():
 
         return path
 
-    def update(self,
+    def update_output(self,
         output_path: str,
         dump: str,
     ):
@@ -190,10 +198,32 @@ class Process():
         else:
             self.dict_paths[output_path] = os.path.join(os.getcwd(), dump)
 
+    @staticmethod
+    def analysis_function(
+        func: Callable,
+    ) -> Callable:
+    
+        func._is_analysis = True
+        return func
+
+    def process_output(self,
+        out: str,
+        func: Callable[..., None],
+        **kwargs,
+    ):
+        if not getattr(func, "_is_analysis", False):
+            print(colored(f'(X) Function "{func.__name__}" is not a valid analysis function.', "red"))
+            sys.exit()
+
+        output = self.dict_paths[out]
+        analysis = self.dict_analysis[out]
+        if isinstance(output, dict):
+            func(output, analysis, **kwargs)
+
     def finalize(self):
 
         for _, value in self.output_paths.items():
-            self.update(
+            self.update_output(
                 output_path=value,
                 dump=value,
             )

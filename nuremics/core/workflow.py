@@ -17,6 +17,7 @@ from .utils import (
     get_self_method_calls,
     only_function_calls,
     extract_inputs_and_types,
+    extract_analysis,
     extract_self_output_keys,
 )
 from importlib.resources import files
@@ -45,18 +46,24 @@ class WorkFlow:
         self.dict_datasets = {}
         self.dict_studies = {}
         self.dict_process = {}
+        self.dict_analysis = {}
         self.user_params = []
         self.user_paths = []
         self.output_paths = []
+        self.overall_analysis = []
+        self.analysis_settings = {}
         self.params_type = {}
         self.operations_by_process = {}
         self.inputs_by_process = {}
         self.params_by_process = {}
         self.paths_by_process = {}
         self.outputs_by_process = {}
+        self.analysis_by_process = {}
+        self.settings_by_process = {}
         self.params_plug = {}
         self.paths_plug = {}
         self.outputs_plug = {}
+        self.analysis_plug = {}
         self.studies_modif = {}
         self.studies_messages = {}
         self.studies_config = {}
@@ -117,7 +124,7 @@ class WorkFlow:
             lines = f.readlines()
         print()
         for line in lines:
-            print(line.rstrip())
+            print(colored(line.rstrip(), "yellow"))
 
     def print_application(self):
         """Print application"""
@@ -209,12 +216,14 @@ class WorkFlow:
             this_process:Process = process()
 
             self.inputs_by_process[name] = extract_inputs_and_types(this_process)
+            self.analysis_by_process[name], self.settings_by_process[name] = extract_analysis(this_process)
 
             self.params_by_process[name] = {}
             self.paths_by_process[name] = []
             self.params_plug[name] = {}
             self.paths_plug[name] = {}
-            
+            self.analysis_plug[name] = {}
+
             for key, value_type in self.inputs_by_process[name].items():
                 
                 # Get the module and type name
@@ -226,24 +235,32 @@ class WorkFlow:
                 else:
                     type = f"{module_name}.{type_name}"
 
-                if type == "pathlib.Path":
-                    self.paths_by_process[name].append(key)
-                    if ("user_paths" in proc) and (key in proc["user_paths"]):
-                        self.paths_plug[name][key] = [proc["user_paths"][key], "user_paths"]
-                    elif ("required_paths" in proc) and (key in proc["required_paths"]):
-                        self.paths_plug[name][key] = [proc["required_paths"][key], "required_paths"]
+                if key not in self.analysis_by_process[name]:
+
+                    if type == "pathlib.Path":
+                        self.paths_by_process[name].append(key)
+                        if ("user_paths" in proc) and (key in proc["user_paths"]):
+                            self.paths_plug[name][key] = [proc["user_paths"][key], "user_paths"]
+                        elif ("required_paths" in proc) and (key in proc["required_paths"]):
+                            self.paths_plug[name][key] = [proc["required_paths"][key], "required_paths"]
+                        else:
+                            self.paths_plug[name][key] = None
+                    
                     else:
-                        self.paths_plug[name][key] = None
+                        self.params_by_process[name][key] = [value_type, type]
+                        if ("user_params" in proc) and (key in proc["user_params"]):
+                            self.params_plug[name][key] = [proc["user_params"][key], "user_params"]
+                        elif ("hard_params" in proc) and (key in proc["hard_params"]):
+                            self.params_plug[name][key] = [proc["hard_params"][key], "hard_params"]
+                        else:
+                            self.params_plug[name][key] = None
                 
                 else:
-                    self.params_by_process[name][key] = [value_type, type]
-                    if ("user_params" in proc) and (key in proc["user_params"]):
-                        self.params_plug[name][key] = [proc["user_params"][key], "user_params"]
-                    elif ("hard_params" in proc) and (key in proc["hard_params"]):
-                        self.params_plug[name][key] = [proc["hard_params"][key], "hard_params"]
+                    if ("overall_analysis" in proc) and (key in proc["overall_analysis"]):
+                        self.analysis_plug[name][key] = proc["overall_analysis"][key]
                     else:
-                        self.params_plug[name][key] = None
-
+                        self.analysis_plug[name][key] = None
+    
     def get_outputs(self):
         """Get outputs"""
 
@@ -258,7 +275,9 @@ class WorkFlow:
 
             for op in self.operations_by_process[name]:
                 output_paths = extract_self_output_keys(getattr(this_process, op))
-                self.outputs_by_process[name].extend(output_paths)
+                for output_path in output_paths:
+                    if output_path not in self.outputs_by_process[name]:
+                        self.outputs_by_process[name].append(output_path)
             
             for output in self.outputs_by_process[name]:
                 if ("output_paths" in proc) and (output in proc["output_paths"]):
@@ -323,10 +342,36 @@ class WorkFlow:
                         print()
                         print(colored(f"(X) {key} is not an output path of {name}.", "red"))
                         sys.exit()
+            
+            # Define list of outputs for analysis
+            if "overall_analysis" in process:
+                for key, value in process["overall_analysis"].items():
+                    if key in self.analysis_by_process[name]:
+                        self.overall_analysis.append(value)
+                    else:
+                        print()
+                        print(colored(f"(X) {key} is not an output analysis of {name}.", "red"))
+                        sys.exit()
+                   
+                    if value not in self.output_paths:
+                        print()
+                        print(colored(f'(X) {value} defined in {name} "overall_analysis" must be defined in previous process "output_paths".', "red"))
+                        sys.exit()
 
         # Delete duplicates
         self.user_params = list(dict.fromkeys(self.user_params))
         self.user_paths = list(dict.fromkeys(self.user_paths))
+        self.overall_analysis = list(dict.fromkeys(self.overall_analysis))
+
+        # Define analysis settings
+        for output in self.overall_analysis:
+            self.analysis_settings[output] = {}
+        
+        for proc, settings in self.settings_by_process.items():
+            if settings:
+                for out, setting in settings.items(): 
+                    output = self.analysis_plug[proc][out]
+                    self.analysis_settings[output].update(setting)
 
     def print_processes(self):
         """Print processes"""
@@ -430,6 +475,50 @@ class WorkFlow:
                 if error:
                     print()
                     print(colored('(X) Please define all input paths either in "user_paths" or "required_paths".', "red"))
+                    sys.exit()
+
+            # ---------------- #
+            # Input analysis #
+            # ---------------- #
+            print(
+                colored(f"> Input Analysis :", "blue"),
+            )
+            if len(self.analysis_by_process[name]) == 0:
+                print(
+                    colored("None.", "blue"),
+                )
+            else:
+                lines_proc = []
+                lines_user = []
+                error = False
+                for out in self.analysis_by_process[name]:
+
+                    # Process
+                    lines_proc.append(out)
+
+                    # User
+                    if self.analysis_plug[name][out] is not None:
+                        text_variable_user = self.analysis_plug[name][out]
+                        text_definition_user = "(overall_analysis)"
+                        lines_user.append((text_variable_user, text_definition_user))
+                    else:
+                        lines_user.append(("Not defined", "(X)"))
+                        error = True
+                
+                proc_width = max(len(t) for t in lines_proc)+1
+                variable_user_width = max(len(t) for t, _ in lines_user)+1
+                definition_user_width = max(len(p) for _, p in lines_user)+1
+
+                for (proc), (user_var, user_def) in zip(lines_proc, lines_user):
+                    proc_str = proc.ljust(proc_width)+"-----|"
+                    user_str = "|----- "+user_var.ljust(variable_user_width)+user_def.ljust(definition_user_width)
+                    if "(X)" in user_str: color = "red"
+                    else: color = "green"
+                    print(colored(proc_str, "blue")+colored(user_str, color))
+
+                if error:
+                    print()
+                    print(colored('(X) Please define all output analysis in "overall_analysis".', "red"))
                     sys.exit()
 
             # ------------ #
@@ -673,6 +762,10 @@ class WorkFlow:
                     colored(f"(!) Configuration has been modified.", "yellow"),
                 )
                 self.clean_output_tree(study)
+                
+                # Delete analysis file
+                path = Path(study) / "analysis.json"
+                if path.exists(): path.unlink()
 
             for message in self.studies_messages[study]:
                 if "(V)" in message: print(colored(message, "green"))
@@ -1217,6 +1310,56 @@ class WorkFlow:
             
             self.dict_paths[study] = dict_paths
 
+    def update_analysis(self):
+
+        # Loop over studies
+        for study in self.studies:
+            
+            # Define study directory
+            study_dir:Path = self.working_dir / study
+
+            # Define analysis file
+            analysis_file = study_dir / "analysis.json"
+
+            # Initialize analysis file
+            if os.path.exists(analysis_file):
+                with open(analysis_file) as f:
+                    self.dict_analysis[study] = json.load(f) 
+            else:
+                self.dict_analysis[study] = {}
+
+            # Browse all outputs
+            for out, value in self.dict_paths[study].items():
+                
+                if out in self.analysis_settings:
+                    dict_out = self.analysis_settings[out]
+                else:
+                    dict_out = {}
+
+                if out not in self.dict_analysis[study]:
+                    self.dict_analysis[study][out] = {}
+                    if isinstance(value, dict):
+                        for case in value:
+                            self.dict_analysis[study][out][case] = dict_out
+                
+                else:
+                    if isinstance(value, dict):
+                        for case in value:
+                            if case not in self.dict_analysis[study][out]:
+                                self.dict_analysis[study][out][case] = dict_out
+                        
+                        cases_to_delete = []
+                        for case in self.dict_analysis[study][out]:
+                            if case not in value:
+                                cases_to_delete.append(case)
+                        
+                        for case in cases_to_delete:
+                            if case in self.dict_analysis[study][out]:
+                                del self.dict_analysis[study][out][case]
+            
+            with open(analysis_file, "w") as f:
+                json.dump(self.dict_analysis[study], f, indent=4)
+
     def clean_outputs(self):
         """Clean outputs."""
 
@@ -1251,6 +1394,20 @@ class WorkFlow:
             resolved_path = path.resolve().name
             if resolved_path not in self.dict_datasets[study]:
                 shutil.rmtree(path)
+    
+    def update_workflow_diagram(self,
+        process: Process,
+    ):
+        """Update workflow diagram for specific process"""
+        
+        self.diagram[process.name] = {
+            "params": list(process.params.values()),
+            "allparams": process.allparams,
+            "paths": list(process.paths.values()),
+            "allpaths": process.allpaths,
+            "required_paths": list(process.required_paths.values()),
+            "output_paths": list(process.output_paths.values()),
+        }
 
     def __call__(self):
         """Launch workflow of processes."""
@@ -1282,6 +1439,9 @@ class WorkFlow:
             os.chdir(study_dir)
 
             for step, proc in enumerate(self.processes):
+
+                # Update analysis
+                self.update_analysis()
                 
                 if "hard_params" in proc: dict_hard_params = proc["hard_params"]
                 else: dict_hard_params = {}
@@ -1293,6 +1453,8 @@ class WorkFlow:
                 else: required_paths = {}
                 if "output_paths" in proc: output_paths = proc["output_paths"]
                 else: output_paths = {}
+                if "overall_analysis" in proc: overall_analysis = proc["overall_analysis"]
+                else: overall_analysis = {}
 
                 # Define class object for the current process
                 process = proc["process"]
@@ -1311,13 +1473,23 @@ class WorkFlow:
                     variable_paths=self.variable_paths[study],
                     required_paths=required_paths,
                     output_paths=output_paths,
+                    overall_analysis=overall_analysis,
+                    dict_analysis=self.dict_analysis[study],
                     verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
                     diagram=self.diagram,
                 )
-                this_process.initialize()
 
                 # Define process name
-                process_name = this_process.__class__.__name__
+                this_process.name = this_process.__class__.__name__
+
+                # Define working folder associated to the current process
+                folder_name = f"{step+1}_{this_process.name}"
+                folder_path:Path = study_dir / folder_name
+                folder_path.mkdir(exist_ok=True, parents=True)
+                os.chdir(folder_path)
+
+                # Initialize process
+                this_process.initialize()
 
                 # Check if process must be executed
                 if not self.dict_process[study][self.list_processes[step]]["execute"]:
@@ -1325,18 +1497,15 @@ class WorkFlow:
                     # Printing
                     print()
                     print(
-                        colored(f"| {study} | {process_name} |", "magenta"),
+                        colored(f"| {study} | {this_process.name} |", "magenta"),
                     )
                     print()
                     print(colored("(!) Process is skipped.", "yellow"))
+
+                    # Update workflow diagram
+                    self.update_workflow_diagram(this_process)
                     
                     continue
-                
-                # Define working folder associated to the current process
-                folder_name = f"{step+1}_{process_name}"
-                folder_path:Path = study_dir / folder_name
-                folder_path.mkdir(exist_ok=True, parents=True)
-                os.chdir(folder_path)
 
                 if this_process.is_case:
 
@@ -1346,7 +1515,7 @@ class WorkFlow:
                         # Printing
                         print()
                         print(
-                            colored(f"| {study} | {process_name} | {idx} |", "magenta"),
+                            colored(f"| {study} | {this_process.name} | {idx} |", "magenta"),
                         )
 
                         # Check if dataset must be executed
@@ -1355,6 +1524,15 @@ class WorkFlow:
                             # Printing
                             print()
                             print(colored("(!) Dataset is skipped.", "yellow"))
+
+                            # Go back to working folder
+                            os.chdir(folder_path)
+
+                            # Purge old output datasets
+                            self.purge_output_datasets(study)
+
+                            # Update workflow diagram
+                            self.update_workflow_diagram(this_process)
 
                             continue
 
@@ -1380,22 +1558,15 @@ class WorkFlow:
                     # Printing
                     print()
                     print(
-                        colored(f"| {study} | {process_name} |", "magenta"),
+                        colored(f"| {study} | {this_process.name} |", "magenta"),
                     )
                 
                     # Launch process
                     this_process()
                     this_process.finalize()
 
-                # Update process diagram
-                self.diagram[process_name] = {
-                    "params": this_process.params,
-                    "allparams": this_process.allparams,
-                    "paths": this_process.paths,
-                    "allpaths": this_process.allpaths,
-                    "required_paths": list(this_process.required_paths.values()),
-                    "output_paths": list(this_process.output_paths.values()),
-                }
+                # Update workflow diagram
+                self.update_workflow_diagram(this_process)
 
                 # Update paths dictonary
                 self.dict_paths[study] = this_process.dict_paths
