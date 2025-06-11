@@ -43,6 +43,7 @@ class WorkFlow:
         self.studies = studies
         self.processes = processes
         self.list_processes = []
+        self.dict_inputs = {}
         self.dict_datasets = {}
         self.dict_studies = {}
         self.dict_process = {}
@@ -895,6 +896,79 @@ class WorkFlow:
                 # Delete file
                 if inputs_file.exists(): inputs_file.unlink()
 
+            # Initialize inputs json file
+            inputs_file:Path = study_dir / "inputs.json"
+            if (len(self.fixed_params[study]) > 0) or \
+               (len(self.fixed_paths[study]) > 0) or \
+               (len(self.variable_paths[study]) > 0) :
+
+                # Create file
+                if not inputs_file.exists():
+
+                    # Initialize dictionary
+                    dict_inputs = {}
+                    if len(self.fixed_params[study]) > 0:
+                        for param in self.fixed_params[study]:
+                            dict_inputs[param] = None
+                    if len(self.fixed_paths[study]) > 0:
+                        for path in self.fixed_paths[study]:
+                            dict_inputs[path] = None
+                    if len(self.variable_paths[study]) > 0:
+                        for path in self.variable_paths[study]:
+                            dict_inputs[path] = {}
+                            for index in df_inputs.index:
+                                dict_inputs[path][index] = None
+                    
+                    # Write json
+                    with open(inputs_file, "w") as f:
+                        json.dump(dict_inputs, f, indent=4)
+                
+                # Update file
+                else:
+
+                    # Read inputs json
+                    with open(inputs_file) as f:
+                        dict_inputs = json.load(f)
+                    
+                    # Update fixed parameters
+                    dict_fixed_params = {k: dict_inputs.get(k, None) for k in self.fixed_params[study]}
+
+                    # Update fixed paths
+                    dict_fixed_paths = {}
+                    for path in self.fixed_paths[study]:
+                        value = dict_inputs.get(path, None)
+                        if isinstance(value, dict):
+                            dict_fixed_paths[path] = None
+                        else:
+                            dict_fixed_paths[path] = value
+
+                    # Update variable paths
+                    dict_variable_paths = {}
+                    for path in self.variable_paths[study]:
+                        existing_values = dict_inputs.get(path, {})
+                        if not isinstance(existing_values, dict):
+                            existing_values = {}
+                        dict_variable_paths[path] = {
+                            idx: existing_values.get(idx, None)
+                            for idx in df_inputs.index
+                        }
+
+                    # Update inputs dictionnary
+                    dict_inputs = {**dict_fixed_params, **dict_fixed_paths, **dict_variable_paths}
+
+                    # Write inputs json
+                    with open(inputs_file, "w") as f:
+                        json.dump(dict_inputs, f, indent=4)
+                
+                self.dict_inputs[study] = dict_inputs
+            
+            else:
+                
+                # Delete file
+                if inputs_file.exists(): inputs_file.unlink()
+
+                self.dict_inputs[study] = {}
+
             # Initialize inputs directory
             inputs_dir:Path = study_dir / "0_inputs"
             if len(self.user_paths) > 0:
@@ -956,41 +1030,6 @@ class WorkFlow:
                 # Delete inputs directory (if necessary)
                 if inputs_dir.exists(): shutil.rmtree(inputs_dir)
 
-            # Initialize inputs json file
-            inputs_file:Path = study_dir / "inputs.json"
-            if len(self.fixed_params[study]) > 0:
-
-                # Create file
-                if not inputs_file.exists():
-
-                    # Initialize dictionary
-                    dict_inputs = {}
-                    for param in self.fixed_params[study]:
-                        dict_inputs[param] = None
-                    
-                    # Write json
-                    with open(inputs_file, "w") as f:
-                        json.dump(dict_inputs, f, indent=4)
-                
-                # Update file
-                else:
-
-                    # Read json with fixed parameters
-                    with open(inputs_file) as f:
-                        dict_inputs = json.load(f)
-                    
-                    # Update fixed parameters
-                    dict_inputs = {k: dict_inputs.get(k, None) for k in self.fixed_params[study]}
-
-                    # Write json
-                    with open(inputs_file, "w") as f:
-                        json.dump(dict_inputs, f, indent=4)
-            
-            else:
-                
-                # Delete file
-                if inputs_file.exists(): inputs_file.unlink()
-
     def clean_output_tree(self,
         study: str,
     ):
@@ -1026,20 +1065,10 @@ class WorkFlow:
 
             # Fixed parameters 
             if len(self.fixed_params[study]) > 0:
-
-                # Read json
-                with open("inputs.json") as f:
-                    self.dict_fixed_params[study] = json.load(f)
-            
+                data = self.dict_inputs[study]
+                self.dict_fixed_params[study] = {k: data[k] for k in self.fixed_params[study] if k in data}
             else:
                 self.dict_fixed_params[study] = {}
-
-            # Fixed paths
-            dict_input_paths = {}
-            for file in self.fixed_paths[study]:
-                dict_input_paths[file] = str(Path(os.getcwd()) / "0_inputs" / file)
-
-            self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
 
             # Variable parameters
             if (len(self.variable_params[study]) > 0) or \
@@ -1053,6 +1082,16 @@ class WorkFlow:
             
             else:
                 self.dict_variable_params[study] = pd.DataFrame()
+
+            # Fixed paths
+            dict_input_paths = {}
+            for file in self.fixed_paths[study]:
+                if self.dict_inputs[study][file] is not None:
+                    dict_input_paths[file] = self.dict_inputs[study][file]
+                else:
+                    dict_input_paths[file] = str(Path(os.getcwd()) / "0_inputs" / file)
+
+            self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
             
             # Variable paths
             if len(self.variable_paths[study]) > 0:
@@ -1065,7 +1104,10 @@ class WorkFlow:
                 for file in self.variable_paths[study]:
                     dict_input_paths[file] = {}
                     for idx in df_inputs.index:
-                        dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / "0_datasets" / idx / file)
+                        if self.dict_inputs[study][file][idx] is not None:
+                            dict_input_paths[file][idx] = self.dict_inputs[study][file][idx]
+                        else:
+                            dict_input_paths[file][idx] = str(Path(os.getcwd()) / "0_inputs" / "0_datasets" / idx / file)
 
                 self.dict_user_paths[study] = {**self.dict_user_paths[study], **dict_input_paths}
 
@@ -1106,7 +1148,7 @@ class WorkFlow:
             
             # Fixed paths
             for file in self.fixed_paths[study]:
-                file_path:Path = Path("0_inputs") / file
+                file_path:Path = Path(self.dict_user_paths[study][file])
                 if not file_path.exists():
                     self.fixed_paths_messages[study].append(f"(X) {file}")
                     self.fixed_paths_config[study] = False
@@ -1118,8 +1160,6 @@ class WorkFlow:
                (len(self.variable_paths[study]) > 0):
 
                 for index in self.dict_variable_params[study].index:
-
-                    inputs_dir:Path = Path("0_inputs") / "0_datasets" / index
 
                     self.variable_params_messages[study][index] = []
                     self.variable_paths_messages[study][index] = []
@@ -1142,7 +1182,7 @@ class WorkFlow:
 
                     # Variable paths
                     for file in self.variable_paths[study]:
-                        file_path:Path = inputs_dir / file
+                        file_path:Path = Path(self.dict_user_paths[study][file][index])
                         if not file_path.exists():
                             self.variable_paths_messages[study][index].append(f"(X) {file}")
                             self.variable_paths_config[study][index] = False
@@ -1198,8 +1238,9 @@ class WorkFlow:
                     list_text.append(colored(message, "green"))
                 elif "(X)" in message:
                     file = self.fixed_paths[study][i]
+                    path = self.dict_user_paths[study][file]
                     list_text.append(colored(message, "red"))
-                    list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs" / file)}", "red"))
+                    list_errors.append(colored(f"> {path}", "red"))
             
             # Printing
             if len(list_text) == 1:
@@ -1260,13 +1301,14 @@ class WorkFlow:
                             list_text.append(colored(message, "green"))
                         elif "(X)" in message:
                             file = self.variable_paths[study][i]
+                            path = self.dict_user_paths[study][file][index]
                             list_text.append(colored(message, "red"))
-                            list_errors.append(colored(f"> {str(Path.cwd() / "0_inputs/0_datasets" / index / file)}", "red"))
+                            list_errors.append(colored(f"> {path}", "red"))
 
                     # Printing
                     print(*list_text)
         
-                list_errors = sorted(list_errors, key=lambda x: '0_inputs' in x)
+                list_errors.sort(key=lambda x: 0 if "inputs.csv" in x else 1)
                 if len(list_errors) > 0:
                     print()
                     print(colored(f"(X) Please set inputs :", "red"))

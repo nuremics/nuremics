@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nuremics" 
 version = "0.0.0b0"
-description = "An open-source Python framework to develop customizable scientific workflows."
+description = "An open-source Python framework for developing software-grade scientific workflows."
 authors = [
   { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" }
 ]
