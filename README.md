@@ -204,8 +204,7 @@ erDiagram
   **user_params** ||--|| **OneProc** : mapping
 
   **user_params** {
-    float param1 "parameter1"
-    bool param3 "parameter2"
+    int param2 "parameter1"
   }
 ```
 
@@ -215,15 +214,14 @@ The **Proc** input parameters that remain internal to the workflow are assigned 
 erDiagram
   **ONE_APP** ||--|| **user_params** : mapping
   **ONE_APP** ||--|| **hard_params** : mapping
-  **user_params** ||--|| **OneProc**: mapping
-  **hard_params** ||--|| **OneProc**: mapping
+  **user_params** ||--|| **OneProc** : mapping
+  **hard_params** ||--|| **OneProc** : mapping
 
   **user_params** {
-    float param1 "parameter1"
-    bool param3 "parameter2"
+    int param2 "parameter1"
   }
   **hard_params** {
-    int param2 "14"
+    float param1 "0.5"
   }
 ```
 
@@ -239,11 +237,10 @@ erDiagram
   **user_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
-    float param1 "parameter1"
-    bool param3 "parameter2"
+    int param2 "parameter1"
   }
   **hard_params** {
-    int param2 "14"
+    float param1 "0.5"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -264,11 +261,10 @@ erDiagram
   **required_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
-    float param1 "parameter1"
-    bool param3 "parameter2"
+    int param2 "parameter1"
   }
   **hard_params** {
-    int param2 "14"
+    float param1 "0.5"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -294,11 +290,10 @@ erDiagram
   **output_paths** ||--|| **OneProc** : mapping
 
   **user_params** {
-    float param1 "parameter1"
-    bool param3 "parameter2"
+    int param2 "parameter1"
   }
   **hard_params** {
-    int param2 "14"
+    float param1 "0.5"
   }
   **user_paths** {
     file path1 "input1.txt"
@@ -308,7 +303,7 @@ erDiagram
   }
   **output_paths** {
     file out1 "output1.csv"
-    folder out2 "output2"
+    file out2 "output2.png"
   }
 ```
 
@@ -328,20 +323,21 @@ erDiagram
   **output_paths** ||--|| **AnotherProc** : mapping
 
   **user_params** {
-    int param1 "parameter3"
-    str param2 "parameter4"
+    float param1 "parameter2"
+    float param2 "parameter3"
   }
   **hard_params** {
     _ _ "_"
   }
   **user_paths** {
-    folder path2 "input2"
+    file path1 "input2.json"
+    folder path2 "input3"
   }
   **required_paths** {
-    file path1 "output1.csv"
+    file path3 "output1.csv"
   }
   **output_paths** {
-    file out1 "output3.vtk"
+    folder out1 "output3"
   }
 ```
 
@@ -355,23 +351,23 @@ flowchart LR
     subgraph **Paths**
       direction LR
       path1["input1.txt _(file)_"]
-      path2["input2 _(folder)_"]
+      path2["input2.json _(file)_"]
+      path3["input3 _(folder)_"]
     end
 
     subgraph **Parameters**
       direction LR
-      param1["parameter1 _(float)_"]
-      param2["parameter2 _(bool)_"]
-      param3["parameter3 _(int)_"]
-      param4["parameter4 _(str)_"]
+      param1["parameter1 _(int)_"]
+      param2["parameter2 _(float)_"]
+      param3["parameter3 _(float)_"]
     end
   end
 
   subgraph **OUTPUTS**
     direction RL
     out1["output1.csv _(file)_"]
-    out2["output2 _(folder)_"]
-    out3["output3.vtk _(file)_"]
+    out2["output2.png _(file)_"]
+    out3["output3 _(folder)_"]
   end
 
   **INPUTS** --> ONE_APP["**ONE_APP**"]
