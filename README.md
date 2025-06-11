@@ -421,13 +421,14 @@ flowchart LR
     subgraph Paths_Fixed1["**Paths**"]
       direction LR
       path1_1["input1.txt"]
+      path2_1["input2.json"]
+      path3_1["input3"]
     end
 
     subgraph Parameter_Fixed1["**Parameters**"]
       direction LR
-      param1_1["parameter1"]
       param2_1["parameter2"]
-      param4_1["parameter4"]
+      param3_1["parameter3"]
     end
   end
 
@@ -436,12 +437,12 @@ flowchart LR
 
     subgraph Paths_Variable1["**Paths**"]
       direction LR
-      path2_1["input2"]
+      no_path["_"]
     end
 
     subgraph Parameter_Variable1["**Parameters**"]
       direction LR
-      param3_1["parameter3"]
+      param1_1["parameter1"]
     end
   end
 
@@ -454,13 +455,13 @@ flowchart LR
     subgraph Paths_Fixed2["**Paths**"]
       direction LR
       path1_2["input1.txt"]
-      path2_2["input2"]
+      path3_2["input3"]
     end
 
     subgraph Parameter_Fixed2["**Parameters**"]
       direction LR
-      param3_2["parameter3"]
-      param4_2["parameter4"]
+      param1_2["parameter1"]
+      param2_2["parameter2"]
     end
   end
 
@@ -469,13 +470,12 @@ flowchart LR
 
     subgraph Paths_Variable2["**Paths**"]
       direction LR
-      no_path["_"]
+      path2_2["input2.json"]
     end
 
     subgraph Parameter_Variable2["**Parameters**"]
       direction LR
-      param1_2["parameter1"]
-      param2_2["parameter2"]
+      param3_2["parameter3"]
     end
   end
 
@@ -494,38 +494,34 @@ flowchart LR
     Study1 --> Study1_Test2["Test2"]
     Study1 --> Study1_Test3["..."]
     
-    Study1_Common --> common1_param1["parameter1 = ..."]
     Study1_Common --> common1_param2["parameter2 = ..."]
-    Study1_Common --> common1_param4["parameter4 = ..."]
+    Study1_Common --> common1_param3["parameter3 = ..."]
     Study1_Common --> common1_input1["input1.txt _(uploaded)_"]
+    Study1_Common --> common1_input2["input2.json _(uploaded)_"]
+    Study1_Common --> common1_input3["input3 _(uploaded)_"]
 
-    Study1_Test1 --> test1_param3["parameter3 = ..."]
-    Study1_Test1 --> test1_input2["input2 _(uploaded)_"]
-
-    Study1_Test2 --> test2_param3["parameter3 = ..."]
-    Study1_Test2 --> test2_input2["input2 _(uploaded)_"]
-
-    Study1_Test3 --> test4_param3["parameter3 = ..."]
-    Study1_Test3 --> test4_input2["input2 _(uploaded)_"]
+    Study1_Test1 --> test1_param1["parameter1 = ..."]
+    Study1_Test2 --> test2_param1["parameter1 = ..."]
+    Study1_Test3 --> test3_param1["parameter1 = ..."]
 
     Study2 --> Study2_Common["Common"]
     Study2 --> Study2_Test1["Test1"]
     Study2 --> Study2_Test2["Test2"]
     Study2 --> Study2_Test3["..."]
     
-    Study2_Common --> common2_param3["parameter3 = ..."]
-    Study2_Common --> common2_param4["parameter4 = ..."]
+    Study2_Common --> common2_param1["parameter1 = ..."]
+    Study2_Common --> common2_param2["parameter2 = ..."]
     Study2_Common --> common2_input1["input1.txt _(uploaded)_"]
-    Study2_Common --> common2_input2["input2 _(uploaded)_"]
+    Study2_Common --> common2_input3["input3 _(uploaded)_"]
 
-    Study2_Test1 --> test1_param1["parameter1 = ..."]
-    Study2_Test1 --> test1_param2["parameter2 = ..."]
+    Study2_Test1 --> test1_param3["parameter3 = ..."]
+    Study2_Test1 --> test1_path2["input2.json _(uploaded)_"]
 
-    Study2_Test2 --> test2_param1["parameter1 = ..."]
-    Study2_Test2 --> test2_param2["parameter2 = ..."]
+    Study2_Test2 --> test2_param3["parameter3 = ..."]
+    Study2_Test2 --> test2_path2["input2.json _(uploaded)_"]
 
-    Study2_Test3 --> test4_param1["parameter1 = ..."]
-    Study2_Test3 --> test4_param2["parameter2 = ..."]
+    Study2_Test3 --> test3_param3["parameter3 = ..."]
+    Study2_Test3 --> test3_path2["input2.json _(uploaded)_"]
 ```
 
 ### Results
@@ -541,41 +537,38 @@ flowchart LR
     Study1 --> Study1_OneProc["OneProc"]
     Study1 --> Study1_AnotherProc["AnotherProc"]
 
-    Study1_OneProc --> Study1_OneProc_Common_output1["output1.csv"]
-    Study1_OneProc --> Study1_OneProc_Common_output2["output2"]
+    Study1_OneProc --> Study1_OneProc_Test1["Test1"]
+    Study1_OneProc --> Study1_OneProc_Test2["Test2"]
+    Study1_OneProc --> Study1_OneProc_Test3["..."]
+
+    Study1_OneProc_Test1 --> Study1_OneProc_Test1_output1["output1.csv"]
+    Study1_OneProc_Test1 --> Study1_OneProc_Test1_output2["output2.png"]
+    Study1_OneProc_Test2 --> Study1_OneProc_Test2_output1["output1.csv"]
+    Study1_OneProc_Test2 --> Study1_OneProc_Test2_output2["output2.png"]
+    Study1_OneProc_Test3 --> Study1_OneProc_Test3_output1["output1.csv"]
+    Study1_OneProc_Test3 --> Study1_OneProc_Test3_output2["output2.png"]
 
     Study1_AnotherProc --> Study1_AnotherProc_Test1["Test1"]
     Study1_AnotherProc --> Study1_AnotherProc_Test2["Test2"]
     Study1_AnotherProc --> Study1_AnotherProc_Test3["..."]
 
-    Study1_AnotherProc_Test1 --> Study1_AnotherProc_Test1_output3["output3.vtk"]
-    Study1_AnotherProc_Test2 --> Study1_AnotherProc_Test2_output3["output3.vtk"]
-    Study1_AnotherProc_Test3 --> Study1_AnotherProc_Test3_output3["output3.vtk"]
-
-
-
-
+    Study1_AnotherProc_Test1 --> Study1_AnotherProc_Test1_output3["output3"]
+    Study1_AnotherProc_Test2 --> Study1_AnotherProc_Test2_output3["output3"]
+    Study1_AnotherProc_Test3 --> Study1_AnotherProc_Test3_output3["output3"]
+    
     Study2 --> Study2_OneProc["OneProc"]
     Study2 --> Study2_AnotherProc["AnotherProc"]
 
-    Study2_OneProc --> Study2_OneProc_Test1["Test1"]
-    Study2_OneProc --> Study2_OneProc_Test2["Test2"]
-    Study2_OneProc --> Study2_OneProc_Test3["..."]
-
-    Study2_OneProc_Test1 --> Study2_OneProc_Test1_output1["output1.csv"]
-    Study2_OneProc_Test1 --> Study2_OneProc_Test1_output2["output2"]
-    Study2_OneProc_Test2 --> Study2_OneProc_Test2_output1["output1.csv"]
-    Study2_OneProc_Test2 --> Study2_OneProc_Test2_output2["output2"]
-    Study2_OneProc_Test3 --> Study2_OneProc_Test3_output1["output1.csv"]
-    Study2_OneProc_Test3 --> Study2_OneProc_Test3_output2["output2"]
+    Study2_OneProc --> Study2_OneProc_Common_output1["output1.csv"]
+    Study2_OneProc --> Study2_OneProc_Common_output2["output2.png"]
 
     Study2_AnotherProc --> Study2_AnotherProc_Test1["Test1"]
     Study2_AnotherProc --> Study2_AnotherProc_Test2["Test2"]
     Study2_AnotherProc --> Study2_AnotherProc_Test3["..."]
 
-    Study2_AnotherProc_Test1 --> Study2_AnotherProc_Test1_output3["output3.vtk"]
-    Study2_AnotherProc_Test2 --> Study2_AnotherProc_Test2_output3["output3.vtk"]
-    Study2_AnotherProc_Test3 --> Study2_AnotherProc_Test3_output3["output3.vtk"]
+    Study2_AnotherProc_Test1 --> Study2_AnotherProc_Test1_output3["output3"]
+    Study2_AnotherProc_Test2 --> Study2_AnotherProc_Test2_output3["output3"]
+    Study2_AnotherProc_Test3 --> Study2_AnotherProc_Test3_output3["output3"]
 ```
 
 ## Get Started 🚀
@@ -584,4 +577,4 @@ Now that you've explored the foundational concepts behind the **NUREMICS®** fra
 
 You can now head over to the [`nuremics-labs`](https://github.com/nuremics/nuremics-labs) repository, where the real adventure begins: you'll learn how to implement domain-specific **Procs**, assemble them into complete **Apps**, and run them as an end-user.
 
-Welcome to the code 🧬
+**Welcome to the code** 🧬
