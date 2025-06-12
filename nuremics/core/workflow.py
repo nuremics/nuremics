@@ -205,7 +205,7 @@ class WorkFlow:
             print(colored(f"        self.operation2()", "red"))
             print(colored(f"        self.operation3()", "red"))
             print(colored(f"        ...", "red"))
-            sys.exit()
+            sys.exit(1)
 
     def get_inputs(self):
         """Get inputs"""
@@ -301,7 +301,7 @@ class WorkFlow:
                     else:
                         print()
                         print(colored(f'(X) {key} defined in "user_params" is not an input parameter of {name}.', "red"))
-                        sys.exit()
+                        sys.exit(1)
             
             # Check on hard parameters
             if "hard_params" in process:
@@ -309,7 +309,7 @@ class WorkFlow:
                     if key not in self.params_by_process[name]:
                         print()
                         print(colored(f'(X) {key} defined in "hard_params" is not an input parameter of {name}.', "red"))
-                        sys.exit()
+                        sys.exit(1)
 
             # Define list of user paths
             if "user_paths" in process:
@@ -319,7 +319,7 @@ class WorkFlow:
                     else:
                         print()
                         print(colored(f"(X) {key} is not an input path of {name}.", "red"))
-                        sys.exit()
+                        sys.exit(1)
 
             # Check on required paths
             if "required_paths" in process:
@@ -327,7 +327,7 @@ class WorkFlow:
                     if value not in self.output_paths:
                         print()
                         print(colored(f'(X) {value} defined in {name} "required_paths" must be defined in previous process "output_paths".', "red"))
-                        sys.exit()
+                        sys.exit(1)
             
             # Define list of output paths
             if "output_paths" in process:
@@ -336,13 +336,13 @@ class WorkFlow:
                         if value in self.output_paths:
                             print()
                             print(colored(f'(X) {value} is defined twice in "output_paths".', "red"))
-                            sys.exit()
+                            sys.exit(1)
                         else:
                             self.output_paths.append(value)
                     else:
                         print()
                         print(colored(f"(X) {key} is not an output path of {name}.", "red"))
-                        sys.exit()
+                        sys.exit(1)
             
             # Define list of outputs for analysis
             if "overall_analysis" in process:
@@ -352,12 +352,12 @@ class WorkFlow:
                     else:
                         print()
                         print(colored(f"(X) {key} is not an output analysis of {name}.", "red"))
-                        sys.exit()
+                        sys.exit(1)
                    
                     if value not in self.output_paths:
                         print()
                         print(colored(f'(X) {value} defined in {name} "overall_analysis" must be defined in previous process "output_paths".', "red"))
-                        sys.exit()
+                        sys.exit(1)
 
         # Delete duplicates
         self.user_params = list(dict.fromkeys(self.user_params))
@@ -432,7 +432,7 @@ class WorkFlow:
                 if error:
                     print()
                     print(colored('(X) Please define all input parameters either in "user_params" or "hard_params".', "red"))
-                    sys.exit()
+                    sys.exit(1)
             
             # ----------- #
             # Input paths #
@@ -476,7 +476,7 @@ class WorkFlow:
                 if error:
                     print()
                     print(colored('(X) Please define all input paths either in "user_paths" or "required_paths".', "red"))
-                    sys.exit()
+                    sys.exit(1)
 
             # ---------------- #
             # Input analysis #
@@ -520,7 +520,7 @@ class WorkFlow:
                 if error:
                     print()
                     print(colored('(X) Please define all output analysis in "overall_analysis".', "red"))
-                    sys.exit()
+                    sys.exit(1)
 
             # ------------ #
             # Output paths #
@@ -564,7 +564,7 @@ class WorkFlow:
                 if error:
                     print()
                     print(colored('(X) Please define all output paths in "output_paths".', "red"))
-                    sys.exit()
+                    sys.exit(1)
 
     def set_user_params_types(self):
         """Set types of user parameters"""
@@ -578,7 +578,7 @@ class WorkFlow:
                         print()
                         print(colored(f"(X) {user_param} is defined both as ({self.params_type[user_param][1]}) and ({type[1]}) :", "red"))
                         print(colored(f'> Please consider defining a new user parameter in "user_params".', "red"))
-                        sys.exit()
+                        sys.exit(1)
                     self.params_type[user_param] = type
 
     def print_io(self):
@@ -776,7 +776,7 @@ class WorkFlow:
                 print()
                 print(colored(f"(X) Please configure file :", "red"))
                 print(colored(f"> {str(Path.cwd() / "studies.json")}", "red"))
-                sys.exit()
+                sys.exit(1)
 
     def init_process_settings(self):
         """Initialize process settings"""
@@ -1253,13 +1253,13 @@ class WorkFlow:
                 print(colored(f"(X) Please set inputs :", "red"))
                 for error in list_errors:
                     print(error)
-                sys.exit()
+                sys.exit(1)
 
             if type_error:
                 print()
                 print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
                 print(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
-                sys.exit()
+                sys.exit(1)
             
             # --------------- #
             # Variable inputs #
@@ -1276,7 +1276,7 @@ class WorkFlow:
                     print()
                     print(colored(f"(X) Please define at least one dataset in file :", "red"))
                     print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
-                    sys.exit()
+                    sys.exit(1)
 
                 for index in self.dict_variable_params[study].index:
 
@@ -1314,13 +1314,13 @@ class WorkFlow:
                     print(colored(f"(X) Please set inputs :", "red"))
                     for error in list_errors:
                         print(error)
-                    sys.exit()
+                    sys.exit(1)
                 
                 if type_error:
                     print()
                     print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
                     print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
-                    sys.exit()
+                    sys.exit(1)
 
             # Go back to working directory
             os.chdir(self.working_dir) 

@@ -11,10 +11,10 @@ class Application:
     
     def __init__(
         self,
-        app_name:str = None,
+        app_name: str = None,
         working_dir: Path = None,
         workflow: list = None,
-        studies: list = None,
+        studies: list = ["Default"],
         verbose: bool = True,
     ):
         # ---------------------- #

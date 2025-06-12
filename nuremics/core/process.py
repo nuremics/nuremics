@@ -181,7 +181,7 @@ class Process():
             print(colored(f"(X) Required {output_path} is missing :", "red"))
             print(colored(f"> Please execute the necessary previous process that will build it.", "red"))
             
-            sys.exit()
+            sys.exit(1)
 
         return path
 
@@ -213,7 +213,7 @@ class Process():
     ):
         if not getattr(func, "_is_analysis", False):
             print(colored(f'(X) Function "{func.__name__}" is not a valid analysis function.', "red"))
-            sys.exit()
+            sys.exit(1)
 
         output = self.dict_paths[out]
         analysis = self.dict_analysis[out]
