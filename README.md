@@ -6,6 +6,9 @@
   <img src="https://img.shields.io/badge/NumPy-2.0.1-4dabcf?style=flat&logo=numpy&logoColor=white" />
   <img src="https://img.shields.io/badge/termcolor-3.0.1-0dbc5a?style=flat" />
   <img src="https://img.shields.io/badge/pytest-8.4.0-009fe3?style=flat&logo=pytest&logoColor=white" />
+  <a href="https://julien-siguenza.github.io/nuremics-data/htmlcov/index.html">
+    <img src="https://img.shields.io/badge/Coverage-84%25-magenta?style=flat" alt="Coverage Badge" />
+  </a>
 </p>
 
 # NUREMICS®
