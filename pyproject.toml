@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools==80.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,7 +17,6 @@ dependencies = [
   "pandas==2.2.2",
   "termcolor==3.0.1",
   "pytest==8.4.0",
-  "pytest-cov==6.2.1",
 ]
 
 [project.urls]
