@@ -1,6 +1,5 @@
 include:
-  - component: $CI_SERVER_FQDN/swepy/cicd-templates/pytest/toxify@1.1.0
+  - component: $CI_SERVER_FQDN/swepy/cicd-templates/pytest/pytest@1.1.0
     inputs:
-      "39": "false"
-      "310": "false"
-      "311": "false"
+      image: ghcr.io/astral-sh/uv:0.6.14-python3.12-alpine
+      python: "3.12"
