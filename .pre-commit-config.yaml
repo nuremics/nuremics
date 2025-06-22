@@ -1,0 +1,23 @@
+# pre-commit install
+# pre-commit autoupdate
+# pre-commit run --all-files
+repos:
+#  - repo: https://github.com/pre-commit/mirrors-mypy
+#    rev: v1.16.1
+#    hooks:
+#      - id: mypy
+#  - repo: https://github.com/astral-sh/ruff-pre-commit
+#    rev: v0.12.0
+#    hooks:
+#      - id: ruff
+#        args:
+#          - --fix
+#      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: pytest tests
+        language: system
+        pass_filenames: false
+        always_run: true
