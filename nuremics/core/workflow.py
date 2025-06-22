@@ -1,15 +1,14 @@
 from __future__ import annotations
 
+import contextlib
+import json
 import os
+import shutil
 import sys
 
-import json
-import shutil
-try:
+with contextlib.suppress(ImportError):
     import tkinter
     import tkinter.filedialog
-except ImportError:
-    pass
 
 import numpy as np
 import pandas as pd
