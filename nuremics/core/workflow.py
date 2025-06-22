@@ -2,11 +2,15 @@ from __future__ import annotations
 
 import os
 import sys
-from tkinter import filedialog
-from tkinter import *
 
 import json
 import shutil
+try:
+    import tkinter
+    import tkinter.filedialog
+except ImportError:
+    pass
+
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -90,10 +94,10 @@ class WorkFlow:
         # ------------------------ #
         # Define working directory #
         # ------------------------ #
-        if working_dir is None:
-            root = Tk()
+        if working_dir is None and "tkinter" in globals():
+            root = tkinter.Tk()
             root.withdraw()
-            self.working_dir = Path(filedialog.askdirectory()) / self.app_name
+            self.working_dir = Path(tkinter.filedialog.askdirectory()) / self.app_name
         else:
             self.working_dir = working_dir / self.app_name
 
