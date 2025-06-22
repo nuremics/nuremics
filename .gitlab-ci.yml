@@ -1,0 +1,6 @@
+include:
+  - component: $CI_SERVER_FQDN/swepy/cicd-templates/pytest/toxify@1.1.0
+    inputs:
+      "39": "false"
+      "310": "false"
+      "311": "false"
