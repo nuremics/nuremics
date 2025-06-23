@@ -27,3 +27,8 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "nuremics.resources" = ["logo.txt"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+]
