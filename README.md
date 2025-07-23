@@ -12,6 +12,8 @@
   </a>
 </p>
 
+# NUREMICS®
+
 **NUREMICS is an open-source Python framework for developing software-grade scientific workflows.**
 
 🧠 Code like a scientist — build like an engineer.<br>
