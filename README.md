@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/julien-siguenza/nuremics-data/main/assets/banner.jpg" alt="NUREMICS Banner" width="100%">
+<img src="https://raw.githubusercontent.com/nuremics/nuremics.github.io/main/images/banner.jpg" width="100%">
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3.12+-ffcd3b?style=flat&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/attrs-24.1.0-000000?style=flat" />
@@ -6,8 +6,10 @@
   <img src="https://img.shields.io/badge/NumPy-2.0.1-4dabcf?style=flat&logo=numpy&logoColor=white" />
   <img src="https://img.shields.io/badge/termcolor-3.0.1-0dbc5a?style=flat" />
   <img src="https://img.shields.io/badge/pytest-8.4.0-009fe3?style=flat&logo=pytest&logoColor=white" />
-  <a href="https://julien-siguenza.github.io/nuremics-data/htmlcov/index.html">
-    <img src="https://img.shields.io/badge/Coverage-84%25-magenta?style=flat" alt="Coverage Badge" />
+  <a href="https://nuremics.github.io/coverage">
+    <img src="https://img.shields.io/badge/Coverage-84%25-magenta?style=flat"
+         target="_blank"
+         rel="noopener noreferrer" />
   </a>
 </p>
 
