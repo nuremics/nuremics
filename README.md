@@ -1,14 +1,13 @@
 <img src="https://raw.githubusercontent.com/nuremics/nuremics.github.io/main/images/banner.jpg" width="100%">
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3.12+-ffcd3b?style=flat&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/attrs-24.1.0-000000?style=flat" />
-  <img src="https://img.shields.io/badge/Pandas-2.2.2-0b0153?style=flat&logo=pandas&logoColor=white" />
-  <img src="https://img.shields.io/badge/NumPy-2.0.1-4dabcf?style=flat&logo=numpy&logoColor=white" />
-  <img src="https://img.shields.io/badge/termcolor-3.0.1-0dbc5a?style=flat" />
-  <img src="https://img.shields.io/badge/pytest-8.4.0-009fe3?style=flat&logo=pytest&logoColor=white" />
-  <a href="https://nuremics.github.io/coverage"
-     target="_blank"
-     rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/attrs-24.1.0+-000000?style=flat" />
+  <img src="https://img.shields.io/badge/Pandas-2.2.2+-0b0153?style=flat&logo=pandas&logoColor=white" />
+  <img src="https://img.shields.io/badge/NumPy-2.0.1+-4dabcf?style=flat&logo=numpy&logoColor=white" />
+  <img src="https://img.shields.io/badge/termcolor-3.0.1+-0dbc5a?style=flat" />
+  <img src="https://img.shields.io/badge/pytest-8.4.0+-009fe3?style=flat&logo=pytest&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitPython-3.1.44+-f05030?style=flat&logo=git&logoColor=white" />
+  <a href="https://nuremics.github.io/coverage">
     <img src="https://img.shields.io/badge/Coverage-84%25-magenta?style=flat"/>
   </a>
 </p>
