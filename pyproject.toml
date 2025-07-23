@@ -7,16 +7,26 @@ name = "nuremics"
 version = "0.0.0"
 description = "An open-source Python framework for developing software-grade scientific workflows."
 authors = [
-  { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" }
+  { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+  "GitPython>=3.1.44",
   "attrs>=24.1.0",
   "numpy>=2.0.1",
   "pandas>=2.2.2",
   "termcolor>=3.0.1",
   "pytest>=8.4.0",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+license = "BSD-3-Clause"
+license-files = [
+  "LICENSE",
+  "LICENSE_TRADEMARK",
 ]
 
 [project.urls]

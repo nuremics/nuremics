@@ -30,9 +30,8 @@ class WorkFlow:
     def __init__(
         self,
         app_name: str,
-        working_dir: Path,
+        nuremics_dir: str,
         processes: list,
-        studies: list = ["Default"],
         verbose: bool = True,
     ):
         """Initialization."""
@@ -41,7 +40,6 @@ class WorkFlow:
         # Initialize variables #
         # -------------------- #
         self.app_name = app_name
-        self.studies = studies
         self.processes = processes
         self.list_processes = []
         self.dict_inputs = {}
@@ -88,28 +86,43 @@ class WorkFlow:
         self.diagram = {}
         self.verbose = verbose
 
-        # ------------------------ #
-        # Define working directory #
-        # ------------------------ #
-        if working_dir is None:
-            root = Tk()
-            root.withdraw()
-            self.working_dir = Path(filedialog.askdirectory()) / self.app_name
-        else:
-            self.working_dir = working_dir / self.app_name
-
-        # ------------------------ #
-        # Create working directory #
-        # ------------------------ #
-        self.working_dir.mkdir(
+        # ------------------------------------ #
+        # Define and create nuremics directory #
+        # ------------------------------------ #
+        self.nuremics_dir = Path(nuremics_dir) / ".nuremics"
+        self.nuremics_dir.mkdir(
             exist_ok=True,
             parents=True,
         )
 
-        # ----------------------- #
-        # Go to working directory #
-        # ----------------------- #
-        os.chdir(self.working_dir)
+        # -------------------- #
+        # Create settings file #
+        # -------------------- #
+        settings_file = self.nuremics_dir / "settings.json"
+        if not settings_file.exists():
+            with open(settings_file, "w") as f:
+                json.dump({}, f, indent=4)
+        
+        # -------------------------- #
+        # Define settings dictionary #
+        # -------------------------- #
+        with open(settings_file) as f:
+            self.dict_settings = json.load(f)
+        
+        # ------------------------------- #
+        # Initialize application settings #
+        # ------------------------------- #
+        if self.app_name not in self.dict_settings:
+            self.dict_settings[self.app_name] = {
+                "working_dir": None,
+                "studies": [],
+            }
+
+        # ------------------- #
+        # Write settings file #
+        # ------------------- #
+        with open(settings_file, "w") as f:
+            json.dump(self.dict_settings, f, indent=4)
 
         # ------------------------ #
         # Define list of processes #
@@ -207,6 +220,40 @@ class WorkFlow:
             print(colored(f"        self.operation3()", "red"))
             print(colored(f"        ...", "red"))
             sys.exit(1)
+
+    def set_working_directory(self):
+        """Set working directory"""
+        
+        # --------------------- #
+        # Set working directory #
+        # --------------------- #
+        if self.dict_settings[self.app_name]["working_dir"] is None:
+            root = Tk()
+            root.withdraw()
+            self.dict_settings[self.app_name]["working_dir"] = filedialog.askdirectory(
+                title=f"Select working directory for {self.app_name}"
+            )
+        self.working_dir = Path(self.dict_settings[self.app_name]["working_dir"]) / self.app_name
+        
+        # ------------------- #
+        # Write settings file #
+        # ------------------- #
+        settings_file = self.nuremics_dir / "settings.json"
+        with open(settings_file, "w") as f:
+            json.dump(self.dict_settings, f, indent=4)
+
+        # ------------------------ #
+        # Create working directory #
+        # ------------------------ #
+        self.working_dir.mkdir(
+            exist_ok=True,
+            parents=True,
+        )
+
+        # ----------------------- #
+        # Go to working directory #
+        # ----------------------- #
+        os.chdir(self.working_dir)
 
     def get_inputs(self):
         """Get inputs"""
@@ -634,6 +681,23 @@ class WorkFlow:
                 colored("None.", "blue"),
             )
 
+    def define_studies(self):
+        """Define studies"""
+
+        print()
+        print(
+            colored("> STUDIES <", "blue", attrs=["reverse"]),
+        )
+
+        settings_file = self.nuremics_dir / "settings.json"
+        if len(self.dict_settings[self.app_name]["studies"]) == 0:
+            print()
+            print(colored(f"(X) Please define at least one study in file :", "red"))
+            print(colored(f"> {str(settings_file)}", "red"))
+            sys.exit(1)
+        else:
+            self.studies = self.dict_settings[self.app_name]["studies"]
+
     def init_studies(self):
         """Initialize studies"""
 
@@ -748,10 +812,6 @@ class WorkFlow:
     def print_studies(self):
         """Print studies"""
 
-        print()
-        print(
-            colored("> STUDIES <", "blue", attrs=["reverse"]),
-        )
         for study in self.studies:
 
             # Printing

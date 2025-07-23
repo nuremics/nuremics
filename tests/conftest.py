@@ -12,6 +12,7 @@ def shared_tmp_path(tmp_path_factory):
 
 @pytest.fixture
 def test_config():
+    
     workflow = [
         {
             "process": Process1,
@@ -85,8 +86,8 @@ def test_config():
             },
         },
     ]
-    studies = ["Study1", "Study2"]
-    return workflow, studies
+
+    return workflow
 
 
 @attrs.define

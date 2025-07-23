@@ -3,22 +3,61 @@ import json
 import pandas as pd
 import pandas.testing as pdt
 from pathlib import Path
+from unittest.mock import patch
+
+from nuremics import Application
 
 APP_NAME = "TEST_APP"
 
-from nuremics import Application
+
+def test_state_settings(shared_tmp_path, test_config):
+
+    workflow = test_config
+
+    with patch("tkinter.filedialog.askdirectory", return_value=str(shared_tmp_path)):
+        with pytest.raises(SystemExit) as exc_info:
+            Application(
+                app_name=APP_NAME,
+                nuremics_dir=shared_tmp_path,
+                workflow=workflow,
+            )
+            assert exc_info.value.code == 1
+    
+    nuremics_dir:Path = shared_tmp_path / ".nuremics"
+    assert nuremics_dir.is_dir()
+
+    settings_file = nuremics_dir / "settings.json"
+    assert settings_file.is_file()
+
+    with open(settings_file) as f:
+        dict_settings = json.load(f)
+
+    dict_settings_ref = {
+        "TEST_APP": {
+            "working_dir": str(shared_tmp_path),
+            "studies": []
+        }
+    }
+    assert dict_settings == dict_settings_ref
+
+    dict_settings[APP_NAME]["studies"] = [
+        "Study1",
+        "Study2"
+    ]
+
+    with open(settings_file, "w") as f:
+        json.dump(dict_settings, f, indent=4)
 
 
 def test_state_studies_config(shared_tmp_path, test_config):
 
-    workflow, studies = test_config
+    workflow = test_config
 
     with pytest.raises(SystemExit) as exc_info:
         Application(
             app_name=APP_NAME,
-            working_dir=shared_tmp_path,
+            nuremics_dir=shared_tmp_path,
             workflow=workflow,
-            studies=studies,
         )
     assert exc_info.value.code == 1
 
@@ -109,14 +148,13 @@ def test_state_studies_config(shared_tmp_path, test_config):
 
 def test_state_set_inputs(shared_tmp_path, test_config):
 
-    workflow, studies = test_config
+    workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
         Application(
             app_name=APP_NAME,
-            working_dir=shared_tmp_path,
+            nuremics_dir=shared_tmp_path,
             workflow=workflow,
-            studies=studies,
         )
     assert exc_info.value.code == 1
 
@@ -257,14 +295,13 @@ def test_state_set_inputs(shared_tmp_path, test_config):
 
 def test_state_define_datasets(shared_tmp_path, test_config):
 
-    workflow, studies = test_config
+    workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
         Application(
             app_name=APP_NAME,
-            working_dir=shared_tmp_path,
+            nuremics_dir=shared_tmp_path,
             workflow=workflow,
-            studies=studies,
         )
     assert exc_info.value.code == 1
     
@@ -326,13 +363,12 @@ def test_state_define_datasets(shared_tmp_path, test_config):
 
 def test_state_run(shared_tmp_path, test_config):
 
-    workflow, studies = test_config
+    workflow = test_config
     
     app = Application(
         app_name=APP_NAME,
-        working_dir=shared_tmp_path,
+        nuremics_dir=shared_tmp_path,
         workflow=workflow,
-        studies=studies,
     )
     app()
 

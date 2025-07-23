@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-import json
-import shutil
-from pathlib import Path
-
 from .workflow import WorkFlow
 
 class Application:
@@ -11,10 +7,9 @@ class Application:
     
     def __init__(
         self,
-        app_name: str = None,
-        working_dir: Path = None,
+        app_name: str,
+        nuremics_dir: str,
         workflow: list = None,
-        studies: list = ["Default"],
         verbose: bool = True,
     ):
         # ---------------------- #
@@ -22,14 +17,14 @@ class Application:
         # ---------------------- #
         self.workflow = WorkFlow(
             app_name=app_name,
-            working_dir=working_dir,
+            nuremics_dir=nuremics_dir,
             processes=workflow,
-            studies=studies,
             verbose=verbose,
         )
-
         self.workflow.print_logo()
         self.workflow.print_application()
+
+        self.workflow.set_working_directory()
 
         self.workflow.get_inputs()
         self.workflow.get_outputs()
@@ -42,6 +37,7 @@ class Application:
 
         self.workflow.print_io()
 
+        self.workflow.define_studies()
         self.workflow.init_studies()
         self.workflow.test_studies_modification()
         self.workflow.test_studies_settings()
