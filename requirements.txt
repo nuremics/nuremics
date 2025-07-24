@@ -1,8 +1,8 @@
 setuptools==80.8.0
-GitPython==3.1.44
 attrs==24.1.0
-numpy==2.0.1
 pandas==2.2.2
+numpy==2.0.1
 termcolor==3.0.1
+GitPython==3.1.44
 pytest==8.4.0
 pytest-cov==6.2.1

@@ -1,7 +1,7 @@
 [project]
 name = "nuremics" 
-version = "0.0.0"
-description = "An open-source Python framework for developing software-grade scientific workflows."
+version = "1.0.0"
+description = "NUREMICS is an open-source Python framework for developing software-grade scientific workflows."
 authors = [
   { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" },
 ]
@@ -26,7 +26,7 @@ license-files = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/nuremics/nuremics.git"
+"Homepage" = "https://github.com/nuremics/nuremics"
 
 [tool.setuptools]
 include-package-data = true
@@ -34,11 +34,14 @@ include-package-data = true
 [tool.setuptools.package-data]
 "nuremics.resources" = ["logo.txt"]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
 ]
 
 [build-system]
-requires = ["setuptools>=68.0.0,<80.9.0", "wheel"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
