@@ -22,8 +22,6 @@
 💾 Full traceability — everything written to disk.<br>
 🛠️ Industrial mindset — R&D speed, software rigor.
 
-[![Regarder la vidéo](https://img.youtube.com/vi/GbbZldfJHy0/0.jpg)](https://youtu.be/GbbZldfJHy0)
-
 ## Foreword
 
 The **NUREMICS** project is organized into two complementary repositories:
