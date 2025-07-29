@@ -3,8 +3,6 @@ from __future__ import annotations
 import os
 import pathlib
 import sys
-# from tkinter import filedialog
-# from tkinter import *
 
 import json
 import shutil
