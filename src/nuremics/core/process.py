@@ -46,7 +46,7 @@ class Process():
     overall_analysis: dict = attrs.field(factory=dict)
     dict_analysis: dict = attrs.field(factory=dict)
     required_paths: dict = attrs.field(factory=dict)
-    verbose: bool = attrs.field(default=True)
+    silent: bool = attrs.field(default=False)
     index: str = attrs.field(default=None)
     diagram: dict = attrs.field(default={})
     set_inputs: bool = attrs.field(default=False)

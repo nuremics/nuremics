@@ -9,8 +9,8 @@ class Application:
         self,
         app_name: str,
         nuremics_dir: str,
-        workflow: list = None,
-        verbose: bool = True,
+        workflow: list = [],
+        silent: bool = False,
     ):
         # ---------------------- #
         # Define workflow object #
@@ -18,8 +18,8 @@ class Application:
         self.workflow = WorkFlow(
             app_name=app_name,
             nuremics_dir=nuremics_dir,
-            processes=workflow,
-            verbose=verbose,
+            workflow=workflow,
+            silent=silent,
         )
         self.workflow.print_logo()
         self.workflow.print_application()

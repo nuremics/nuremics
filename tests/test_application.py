@@ -14,14 +14,13 @@ def test_state_settings(shared_tmp_path, test_config):
 
     workflow = test_config
 
-    with patch("tkinter.filedialog.askdirectory", return_value=str(shared_tmp_path)):
-        with pytest.raises(SystemExit) as exc_info:
-            Application(
-                app_name=APP_NAME,
-                nuremics_dir=shared_tmp_path,
-                workflow=workflow,
-            )
-            assert exc_info.value.code == 1
+    with pytest.raises(SystemExit) as exc_info:
+        Application(
+            app_name=APP_NAME,
+            nuremics_dir=shared_tmp_path,
+            workflow=workflow,
+        )
+        assert exc_info.value.code == 1
     
     nuremics_dir:Path = shared_tmp_path / ".nuremics"
     assert nuremics_dir.is_dir()
@@ -33,14 +32,53 @@ def test_state_settings(shared_tmp_path, test_config):
         dict_settings = json.load(f)
 
     dict_settings_ref = {
-        "TEST_APP": {
-            "working_dir": str(shared_tmp_path),
-            "studies": []
+        "default_working_dir": None,
+        "apps":
+        {
+            "TEST_APP": {
+                "working_dir": None,
+                "studies": []
+            }
         }
     }
     assert dict_settings == dict_settings_ref
 
-    dict_settings[APP_NAME]["studies"] = [
+    dict_settings["apps"]["TEST_APP"]["working_dir"] = str(shared_tmp_path)
+    with open(settings_file, "w") as f:
+        json.dump(dict_settings, f, indent=4)
+
+    with pytest.raises(SystemExit) as exc_info:
+        Application(
+            app_name=APP_NAME,
+            nuremics_dir=shared_tmp_path,
+            workflow=workflow,
+        )
+        assert exc_info.value.code == 1
+    
+    with open(settings_file) as f:
+        dict_settings = json.load(f)
+
+    assert dict_settings["default_working_dir"] == str(shared_tmp_path)
+
+    dict_settings["apps"]["TEST_APP"]["working_dir"] = None
+    with open(settings_file, "w") as f:
+        json.dump(dict_settings, f, indent=4)
+    
+    with pytest.raises(SystemExit) as exc_info:
+        with patch('builtins.input', side_effect="Y"):
+            Application(
+                app_name=APP_NAME,
+                nuremics_dir=shared_tmp_path,
+                workflow=workflow,
+            )
+        assert exc_info.value.code == 1
+    
+    with open(settings_file) as f:
+        dict_settings = json.load(f)
+    
+    assert dict_settings["apps"]["TEST_APP"]["working_dir"] == str(shared_tmp_path)
+
+    dict_settings["apps"][APP_NAME]["studies"] = [
         "Study1",
         "Study2"
     ]
@@ -198,23 +236,23 @@ def test_state_set_inputs(shared_tmp_path, test_config):
         dict_process_ref = {
             "Process1": {
                 "execute": True,
-                "verbose": True
+                "silent": False
             },
             "Process2": {
                 "execute": True,
-                "verbose": True
+                "silent": False
             },
             "Process3": {
                 "execute": True,
-                "verbose": True
+                "silent": False
             },
             "Process4": {
                 "execute": True,
-                "verbose": True
+                "silent": False
             },
             "Process5": {
                 "execute": True,
-                "verbose": True
+                "silent": False
             }
         }
         assert dict_process == dict_process_ref

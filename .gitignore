@@ -1,6 +1,6 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 .coverage
 .pytest_tmp/
+*.egg-info/
 
 memo.txt

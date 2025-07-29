@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import pathlib
 import sys
-from tkinter import filedialog
-from tkinter import *
+# from tkinter import filedialog
+# from tkinter import *
 
 import json
 import shutil
@@ -31,8 +31,8 @@ class WorkFlow:
         self,
         app_name: str,
         nuremics_dir: str,
-        processes: list,
-        verbose: bool = True,
+        workflow: list,
+        silent: bool = False,
     ):
         """Initialization."""
 
@@ -40,7 +40,7 @@ class WorkFlow:
         # Initialize variables #
         # -------------------- #
         self.app_name = app_name
-        self.processes = processes
+        self.list_workflow = workflow
         self.list_processes = []
         self.dict_inputs = {}
         self.dict_datasets = {}
@@ -84,7 +84,7 @@ class WorkFlow:
         self.dict_user_paths = {}
         self.dict_paths = {}
         self.diagram = {}
-        self.verbose = verbose
+        self.silent = silent
 
         # ------------------------------------ #
         # Define and create nuremics directory #
@@ -100,8 +100,12 @@ class WorkFlow:
         # -------------------- #
         settings_file = self.nuremics_dir / "settings.json"
         if not settings_file.exists():
+            dict_settings = {
+                "default_working_dir": None,
+                "apps": {},
+            }
             with open(settings_file, "w") as f:
-                json.dump({}, f, indent=4)
+                json.dump(dict_settings, f, indent=4)
         
         # -------------------------- #
         # Define settings dictionary #
@@ -112,11 +116,20 @@ class WorkFlow:
         # ------------------------------- #
         # Initialize application settings #
         # ------------------------------- #
-        if self.app_name not in self.dict_settings:
-            self.dict_settings[self.app_name] = {
+        if self.app_name not in self.dict_settings["apps"]:
+            self.dict_settings["apps"][self.app_name] = {
                 "working_dir": None,
                 "studies": [],
             }
+
+        # ----------------------------- #
+        # Set default working directory #
+        # ----------------------------- #
+        if self.dict_settings["default_working_dir"] is None:
+            for _, value in self.dict_settings["apps"].items():
+                if value["working_dir"] is not None:
+                    self.dict_settings["default_working_dir"] = value["working_dir"]
+                    break
 
         # ------------------- #
         # Write settings file #
@@ -127,7 +140,7 @@ class WorkFlow:
         # ------------------------ #
         # Define list of processes #
         # ------------------------ #
-        for proc in self.processes:
+        for proc in self.list_workflow:
             self.list_processes.append(proc["process"].__name__)
 
     def print_logo(self):
@@ -162,7 +175,7 @@ class WorkFlow:
 
         # Print diagram of processes and operations
         error = False
-        for i, proc in enumerate(self.processes):
+        for i, proc in enumerate(self.list_workflow):
 
             proc_name = proc["process"].__name__
             process = proc["process"]
@@ -187,7 +200,7 @@ class WorkFlow:
                 )
                 for op_name in self.operations_by_process[proc_name]:
 
-                    if i < len(self.processes)-1:
+                    if i < len(self.list_workflow)-1:
                         text = " "*nb_spaces_app+"|"+" "*nb_spaces_proc+f"|_____{op_name}"
                     else:
                         text = " "*(nb_spaces_app+1)+" "*nb_spaces_proc+f"|_____{op_name}"
@@ -203,7 +216,7 @@ class WorkFlow:
                 )
                 error = True
 
-            if i < len(self.processes)-1:
+            if i < len(self.list_workflow)-1:
                 print(
                     colored(" "*nb_spaces_app+"|", "blue"),
                 )
@@ -227,18 +240,32 @@ class WorkFlow:
         # --------------------- #
         # Set working directory #
         # --------------------- #
-        if self.dict_settings[self.app_name]["working_dir"] is None:
-            root = Tk()
-            root.withdraw()
-            self.dict_settings[self.app_name]["working_dir"] = filedialog.askdirectory(
-                title=f"Select working directory for {self.app_name}"
-            )
-        self.working_dir = Path(self.dict_settings[self.app_name]["working_dir"]) / self.app_name
+        settings_file = self.nuremics_dir / "settings.json"
+        if self.dict_settings["apps"][self.app_name]["working_dir"] is None:
+            if self.dict_settings["default_working_dir"] is None:
+                print()
+                print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
+                print(colored(f"> {str(settings_file)}", "red"))
+                sys.exit(1)
+            else:
+                print()
+                print(colored(f'(!) Found "default_working_dir": {self.dict_settings["default_working_dir"]}', "yellow"))
+                while True:
+                    answer = input(colored(f'Accept it as "working_dir" for {self.app_name} [Y/n]: ', "yellow")).strip().lower()
+                    if answer in ["y", "yes", ""]:
+                        self.dict_settings["apps"][self.app_name]["working_dir"] = self.dict_settings["default_working_dir"]
+                        break
+                    elif answer in ["n", "no"]:
+                        print()
+                        print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
+                        print(colored(f"> {str(settings_file)}", "red"))
+                        sys.exit(1)
+        
+        self.working_dir = Path(self.dict_settings["apps"][self.app_name]["working_dir"]) / self.app_name
         
         # ------------------- #
         # Write settings file #
         # ------------------- #
-        settings_file = self.nuremics_dir / "settings.json"
         with open(settings_file, "w") as f:
             json.dump(self.dict_settings, f, indent=4)
 
@@ -258,7 +285,7 @@ class WorkFlow:
     def get_inputs(self):
         """Get inputs"""
 
-        for proc in self.processes:
+        for proc in self.list_workflow:
 
             process = proc["process"]
             name = proc["process"].__name__
@@ -313,7 +340,7 @@ class WorkFlow:
     def get_outputs(self):
         """Get outputs"""
 
-        for proc in self.processes:
+        for proc in self.list_workflow:
 
             process = proc["process"]
             name = proc["process"].__name__
@@ -337,7 +364,7 @@ class WorkFlow:
     def init_config(self):
         """Initialize configuration"""
 
-        for _, process in enumerate(self.processes):
+        for _, process in enumerate(self.list_workflow):
 
             name = process["process"].__name__
 
@@ -425,7 +452,7 @@ class WorkFlow:
     def print_processes(self):
         """Print processes"""
 
-        for proc in self.processes:
+        for proc in self.list_workflow:
 
             name = proc["process"].__name__
 
@@ -690,13 +717,13 @@ class WorkFlow:
         )
 
         settings_file = self.nuremics_dir / "settings.json"
-        if len(self.dict_settings[self.app_name]["studies"]) == 0:
+        if len(self.dict_settings["apps"][self.app_name]["studies"]) == 0:
             print()
             print(colored(f"(X) Please define at least one study in file :", "red"))
             print(colored(f"> {str(settings_file)}", "red"))
             sys.exit(1)
         else:
-            self.studies = self.dict_settings[self.app_name]["studies"]
+            self.studies = self.dict_settings["apps"][self.app_name]["studies"]
 
     def init_studies(self):
         """Initialize studies"""
@@ -863,7 +890,7 @@ class WorkFlow:
                 if process not in self.dict_process[study]:
                     self.dict_process[study][process] = {
                         "execute": True,
-                        "verbose": self.verbose,
+                        "silent": self.silent,
                     }
 
             # Reordering
@@ -1541,7 +1568,7 @@ class WorkFlow:
             study_dir:Path = self.working_dir / study
             os.chdir(study_dir)
 
-            for step, proc in enumerate(self.processes):
+            for step, proc in enumerate(self.list_workflow):
 
                 # Update analysis
                 self.update_analysis()
@@ -1578,7 +1605,7 @@ class WorkFlow:
                     output_paths=output_paths,
                     overall_analysis=overall_analysis,
                     dict_analysis=self.dict_analysis[study],
-                    verbose=self.dict_process[study][self.list_processes[step]]["verbose"],
+                    silent=self.dict_process[study][self.list_processes[step]]["silent"],
                     diagram=self.diagram,
                 )
 
