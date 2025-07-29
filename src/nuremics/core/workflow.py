@@ -1653,7 +1653,7 @@ class WorkFlow:
 
                             # Printing
                             print()
-                            print(colored("(!) Dataset is skipped.", "yellow"))
+                            print(colored("(!) Experiment is skipped.", "yellow"))
 
                             # Go back to working folder
                             os.chdir(folder_path)
