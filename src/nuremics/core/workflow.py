@@ -251,7 +251,7 @@ class WorkFlow:
                 print()
                 print(colored(f'(!) Found "default_working_dir": {self.dict_settings["default_working_dir"]}', "yellow"))
                 while True:
-                    answer = input(colored(f'Accept it as "working_dir" for {self.app_name} [Y/n]: ', "yellow")).strip().lower()
+                    answer = input(colored(f'Accept it as "working_dir" for {self.app_name}: [Y/n] ', "yellow")).strip().lower()
                     if answer in ["y", "yes", ""]:
                         self.dict_settings["apps"][self.app_name]["working_dir"] = self.dict_settings["default_working_dir"]
                         break
