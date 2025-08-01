@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dependencies = [
   "attrs>=24.1.0",
   "pandas>=2.2.2",
-  "numpy>=2.0.1",
+  "numpy>=1.26.4",
   "termcolor>=3.0.1",
   "GitPython>=3.1.44",
   "pytest>=8.4.0",
