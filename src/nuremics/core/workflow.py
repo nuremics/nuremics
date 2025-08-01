@@ -717,7 +717,7 @@ class WorkFlow:
         settings_file = self.nuremics_dir / "settings.json"
         if len(self.dict_settings["apps"][self.app_name]["studies"]) == 0:
             print()
-            print(colored(f"(X) Please define at least one study in file :", "red"))
+            print(colored(f"(X) Please declare at least one study in file :", "red"))
             print(colored(f"> {str(settings_file)}", "red"))
             sys.exit(1)
         else:
@@ -1360,7 +1360,7 @@ class WorkFlow:
                 # Check if datasets have been defined
                 if len(self.dict_variable_params[study].index) == 0:
                     print()
-                    print(colored(f"(X) Please define at least one dataset in file :", "red"))
+                    print(colored(f"(X) Please declare at least one experiment in file :", "red"))
                     print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
                     sys.exit(1)
 

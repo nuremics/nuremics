@@ -24,8 +24,6 @@ class Application:
         self.workflow.print_logo()
         self.workflow.print_application()
 
-        self.workflow.set_working_directory()
-
         self.workflow.get_inputs()
         self.workflow.get_outputs()
 
@@ -36,6 +34,8 @@ class Application:
         self.workflow.set_user_params_types()
 
         self.workflow.print_io()
+
+        self.workflow.set_working_directory()
 
         self.workflow.define_studies()
         self.workflow.init_studies()
