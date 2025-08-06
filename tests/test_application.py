@@ -414,7 +414,7 @@ def test_state_run(shared_tmp_path, test_config):
     list_processes = []
     for i, proc in enumerate(workflow):
         
-        dir_name = f"{i+1}_{proc["process"].__name__}"
+        dir_name = f"{i+1}_{proc['process'].__name__}"
         list_processes.append(dir_name)
         
         dict_outputs[dir_name] = []

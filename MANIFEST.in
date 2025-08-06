@@ -1,1 +1,1 @@
-recursive-include nuremics/resources *.txt
+recursive-include nuremics/resources *.txt *.png

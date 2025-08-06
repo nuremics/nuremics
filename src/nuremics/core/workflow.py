@@ -861,7 +861,7 @@ class WorkFlow:
             if not self.studies_config[study]:
                 print()
                 print(colored(f"(X) Please configure file :", "red"))
-                print(colored(f"> {str(Path.cwd() / "studies.json")}", "red"))
+                print(colored(f"> {str(Path.cwd() / 'studies.json')}", "red"))
                 sys.exit(1)
 
     def init_process_settings(self):
@@ -1312,7 +1312,7 @@ class WorkFlow:
                 elif "(X)" in message:
                     list_text.append(colored(message, "red"))
                     if config:
-                        list_errors.append(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
+                        list_errors.append(colored(f"> {str(Path.cwd() / 'inputs.json')}", "red"))
                     config = False
                 elif "(!)" in message:
                     list_text.append(colored(message, "yellow"))
@@ -1344,7 +1344,7 @@ class WorkFlow:
             if type_error:
                 print()
                 print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
-                print(colored(f"> {str(Path.cwd() / "inputs.json")}", "red"))
+                print(colored(f"> {str(Path.cwd() / 'inputs.json')}", "red"))
                 sys.exit(1)
 
             # --------------- #
@@ -1361,7 +1361,7 @@ class WorkFlow:
                 if len(self.dict_variable_params[study].index) == 0:
                     print()
                     print(colored(f"(X) Please declare at least one experiment in file :", "red"))
-                    print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
+                    print(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
                     sys.exit(1)
 
                 for index in self.dict_variable_params[study].index:
@@ -1375,7 +1375,7 @@ class WorkFlow:
                         elif "(X)" in message:
                             list_text.append(colored(message, "red"))
                             if config:
-                                list_errors.append(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
+                                list_errors.append(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
                             config = False
                         elif "(!)" in message:
                             list_text.append(colored(message, "yellow"))
@@ -1405,7 +1405,7 @@ class WorkFlow:
                 if type_error:
                     print()
                     print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
-                    print(colored(f"> {str(Path.cwd() / "inputs.csv")}", "red"))
+                    print(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
                     sys.exit(1)
 
             # Go back to working directory
