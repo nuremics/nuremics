@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from platformdirs import user_config_path
 from .workflow import WorkFlow
 
 class Application:
@@ -8,16 +9,24 @@ class Application:
     def __init__(
         self,
         app_name: str,
-        nuremics_dir: str,
+        # nuremics_dir: str,
         workflow: list = [],
         silent: bool = False,
     ):
+        # ------------------------------ #
+        # Define configuration directory #
+        # ------------------------------ #
+        config_path = user_config_path(
+            appname="nuRemics",
+            appauthor=False,
+        )
+
         # ---------------------- #
         # Define workflow object #
         # ---------------------- #
         self.workflow = WorkFlow(
             app_name=app_name,
-            nuremics_dir=nuremics_dir,
+            config_path=config_path,
             workflow=workflow,
             silent=silent,
         )

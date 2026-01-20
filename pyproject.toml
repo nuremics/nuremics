@@ -1,7 +1,7 @@
 [project]
 name = "nuremics" 
 version = "1.0.0"
-description = "NUREMICS is an open-source Python framework for developing software-grade scientific workflows."
+description = "nuRemics is an open-source Python framework for developing software-grade scientific workflows."
 authors = [
   { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" },
 ]
@@ -13,8 +13,9 @@ dependencies = [
   "numpy>=1.26.0",
   "termcolor>=1.1.0",
   "GitPython>=3.1.0",
-  "pytest>=8.1.1",
   "ruff>=0.12.7",
+  "platformdirs>=3.5",
+  "pytest>=8.1.1",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",

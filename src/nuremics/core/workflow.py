@@ -28,7 +28,7 @@ class WorkFlow:
     def __init__(
         self,
         app_name: str,
-        nuremics_dir: str,
+        config_path: Path,
         workflow: list,
         silent: bool = False,
     ):
@@ -38,6 +38,7 @@ class WorkFlow:
         # Initialize variables #
         # -------------------- #
         self.app_name = app_name
+        self.config_path = config_path
         self.list_workflow = workflow
         self.list_processes = []
         self.dict_inputs = {}
@@ -87,8 +88,7 @@ class WorkFlow:
         # ------------------------------------ #
         # Define and create nuremics directory #
         # ------------------------------------ #
-        self.nuremics_dir = Path(nuremics_dir) / ".nuremics"
-        self.nuremics_dir.mkdir(
+        self.config_path.mkdir(
             exist_ok=True,
             parents=True,
         )
@@ -96,7 +96,7 @@ class WorkFlow:
         # -------------------- #
         # Create settings file #
         # -------------------- #
-        settings_file = self.nuremics_dir / "settings.json"
+        settings_file = self.config_path / "settings.json"
         if not settings_file.exists():
             dict_settings = {
                 "default_working_dir": None,
@@ -238,26 +238,30 @@ class WorkFlow:
         # --------------------- #
         # Set working directory #
         # --------------------- #
-        settings_file = self.nuremics_dir / "settings.json"
+        settings_file = self.config_path / "settings.json"
         if self.dict_settings["apps"][self.app_name]["working_dir"] is None:
-            if self.dict_settings["default_working_dir"] is None:
-                print()
-                print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
-                print(colored(f"> {str(settings_file)}", "red"))
-                sys.exit(1)
-            else:
-                print()
-                print(colored(f'(!) Found "default_working_dir": {self.dict_settings["default_working_dir"]}', "yellow"))
-                while True:
-                    answer = input(colored(f'Accept it as "working_dir" for {self.app_name}: [Y/n] ', "yellow")).strip().lower()
-                    if answer in ["y", "yes", ""]:
-                        self.dict_settings["apps"][self.app_name]["working_dir"] = self.dict_settings["default_working_dir"]
-                        break
-                    elif answer in ["n", "no"]:
-                        print()
-                        print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
-                        print(colored(f"> {str(settings_file)}", "red"))
-                        sys.exit(1)
+            print()
+            print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
+            print(colored(f"> {str(settings_file)}", "red"))
+            sys.exit(1)
+            # if self.dict_settings["default_working_dir"] is None:
+            #     print()
+            #     print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
+            #     print(colored(f"> {str(settings_file)}", "red"))
+            #     sys.exit(1)
+            # else:
+            #     print()
+            #     print(colored(f'(!) Found "default_working_dir": {self.dict_settings["default_working_dir"]}', "yellow"))
+            #     while True:
+            #         answer = input(colored(f'Accept it as "working_dir" for {self.app_name}: [Y/n] ', "yellow")).strip().lower()
+            #         if answer in ["y", "yes", ""]:
+            #             self.dict_settings["apps"][self.app_name]["working_dir"] = self.dict_settings["default_working_dir"]
+            #             break
+            #         elif answer in ["n", "no"]:
+            #             print()
+            #             print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
+            #             print(colored(f"> {str(settings_file)}", "red"))
+            #             sys.exit(1)
         
         self.working_dir = Path(self.dict_settings["apps"][self.app_name]["working_dir"]) / self.app_name
         
@@ -714,7 +718,7 @@ class WorkFlow:
             colored("> STUDIES <", "blue", attrs=["reverse"]),
         )
 
-        settings_file = self.nuremics_dir / "settings.json"
+        settings_file = self.config_path / "settings.json"
         if len(self.dict_settings["apps"][self.app_name]["studies"]) == 0:
             print()
             print(colored(f"(X) Please declare at least one study in file :", "red"))
