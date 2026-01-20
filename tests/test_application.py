@@ -34,7 +34,6 @@ def test_state_settings(shared_tmp_path, test_config):
         {
             "TEST_APP": {
                 "working_dir": None,
-                "studies": []
             }
         }
     }
@@ -75,14 +74,6 @@ def test_state_settings(shared_tmp_path, test_config):
     
     # assert dict_settings["apps"]["TEST_APP"]["working_dir"] == str(shared_tmp_path)
 
-    dict_settings["apps"][APP_NAME]["studies"] = [
-        "Study1",
-        "Study2"
-    ]
-
-    with open(settings_file, "w") as f:
-        json.dump(dict_settings, f, indent=4)
-
 
 def test_state_studies_config(shared_tmp_path, test_config):
 
@@ -106,76 +97,106 @@ def test_state_studies_config(shared_tmp_path, test_config):
         dict_studies:dict = json.load(f)
 
     dict_studies_ref = {
-        "Study1": {
-            "execute": True,
-            "user_params": {
-                "parameter1": None,
-                "parameter2": None,
-                "parameter3": None,
-                "parameter4": None,
-                "parameter5": None,
-                "parameter6": None
+        "studies": [],
+        "config": {},
+    }
+    assert dict_studies == dict_studies_ref
+
+    dict_studies["studies"] = [
+        "Study1",
+        "Study2",
+    ]
+    with open(studies_file, "w") as f:
+        json.dump(dict_studies, f, indent=4)
+
+    with pytest.raises(SystemExit) as exc_info:
+        Application(
+            app_name=APP_NAME,
+            config_path=shared_tmp_path,
+            workflow=workflow,
+        )
+    assert exc_info.value.code == 1
+
+    with open(studies_file) as f:
+        dict_studies:dict = json.load(f)
+
+    dict_studies_ref = {
+        "studies": [
+            "Study1",
+            "Study2",
+        ],
+        "config":{
+            "Study1": {
+                "execute": True,
+                "user_params": {
+                    "parameter1": None,
+                    "parameter2": None,
+                    "parameter3": None,
+                    "parameter4": None,
+                    "parameter5": None,
+                    "parameter6": None,
+                },
+                "user_paths": {
+                    "input1.txt": None,
+                    "input2": None,
+                    "input3.txt": None,
+                },
+                "clean_outputs": {
+                    "output1.txt": False,
+                    "output2.txt": False,
+                    "output3.txt": False,
+                    "output4.txt": False,
+                    "output5": False,
+                    "output6.txt": False,
+                }
             },
-            "user_paths": {
-                "input1.txt": None,
-                "input2": None,
-                "input3.txt": None
-            },
-            "clean_outputs": {
-                "output1.txt": False,
-                "output2.txt": False,
-                "output3.txt": False,
-                "output4.txt": False,
-                "output5": False,
-                "output6.txt": False
-            }
-        },
-        "Study2": {
-            "execute": True,
-            "user_params": {
-                "parameter1": None,
-                "parameter2": None,
-                "parameter3": None,
-                "parameter4": None,
-                "parameter5": None,
-                "parameter6": None
-            },
-            "user_paths": {
-                "input1.txt": None,
-                "input2": None,
-                "input3.txt": None
-            },
-            "clean_outputs": {
-                "output1.txt": False,
-                "output2.txt": False,
-                "output3.txt": False,
-                "output4.txt": False,
-                "output5": False,
-                "output6.txt": False
+            "Study2": {
+                "execute": True,
+                "user_params": {
+                    "parameter1": None,
+                    "parameter2": None,
+                    "parameter3": None,
+                    "parameter4": None,
+                    "parameter5": None,
+                    "parameter6": None,
+                },
+                "user_paths": {
+                    "input1.txt": None,
+                    "input2": None,
+                    "input3.txt": None,
+                },
+                "clean_outputs": {
+                    "output1.txt": False,
+                    "output2.txt": False,
+                    "output3.txt": False,
+                    "output4.txt": False,
+                    "output5": False,
+                    "output6.txt": False,
+                }
             }
         }
     }
     assert dict_studies == dict_studies_ref
     
-    dict_studies["Study1"]["user_params"]["parameter1"] = False
-    dict_studies["Study1"]["user_params"]["parameter2"] = False
-    dict_studies["Study1"]["user_params"]["parameter3"] = False
-    dict_studies["Study1"]["user_params"]["parameter4"] = False
-    dict_studies["Study1"]["user_params"]["parameter5"] = False
-    dict_studies["Study1"]["user_params"]["parameter6"] = True
-    dict_studies["Study1"]["user_paths"]["input1.txt"] = True
-    dict_studies["Study1"]["user_paths"]["input2"] = False
-    dict_studies["Study1"]["user_paths"]["input3.txt"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter1"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter2"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter3"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter4"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter5"] = False
+    dict_studies["config"]["Study1"]["user_params"]["parameter6"] = True
+    dict_studies["config"]["Study1"]["user_paths"]["input1.txt"] = True
+    dict_studies["config"]["Study1"]["user_paths"]["input2"] = False
+    dict_studies["config"]["Study1"]["user_paths"]["input3.txt"] = False
 
-    dict_studies["Study2"]["user_params"]["parameter1"] = False
-    dict_studies["Study2"]["user_params"]["parameter2"] = False
-    dict_studies["Study2"]["user_params"]["parameter3"] = False
-    dict_studies["Study2"]["user_params"]["parameter4"] = True
-    dict_studies["Study2"]["user_params"]["parameter5"] = True
-    dict_studies["Study2"]["user_params"]["parameter6"] = False
-    dict_studies["Study2"]["user_paths"]["input1.txt"] = False
-    dict_studies["Study2"]["user_paths"]["input2"] = True
-    dict_studies["Study2"]["user_paths"]["input3.txt"] = True
+    dict_studies["config"]["Study2"]["user_params"]["parameter1"] = False
+    dict_studies["config"]["Study2"]["user_params"]["parameter2"] = False
+    dict_studies["config"]["Study2"]["user_params"]["parameter3"] = False
+    dict_studies["config"]["Study2"]["user_params"]["parameter4"] = True
+    dict_studies["config"]["Study2"]["user_params"]["parameter5"] = True
+    dict_studies["config"]["Study2"]["user_params"]["parameter6"] = False
+    dict_studies["config"]["Study2"]["user_paths"]["input1.txt"] = False
+    dict_studies["config"]["Study2"]["user_paths"]["input2"] = True
+    dict_studies["config"]["Study2"]["user_paths"]["input3.txt"] = True
 
     with open(studies_file, "w") as f:
         json.dump(dict_studies, f, indent=4)
@@ -228,7 +249,7 @@ def test_state_set_inputs(shared_tmp_path, test_config):
         with open(study_json) as f:
             dict_study:dict = json.load(f)
         
-        assert dict_study == dict_studies[study]
+        assert dict_study == dict_studies["config"][study]
 
         dict_process_ref = {
             "Process1": {

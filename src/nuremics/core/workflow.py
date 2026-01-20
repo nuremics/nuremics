@@ -117,7 +117,6 @@ class WorkFlow:
         if self.app_name not in self.dict_settings["apps"]:
             self.dict_settings["apps"][self.app_name] = {
                 "working_dir": None,
-                "studies": [],
             }
 
         # ----------------------------- #
@@ -713,56 +712,63 @@ class WorkFlow:
     def define_studies(self):
         """Define studies"""
 
+        # ---------------------------- #
+        # Initialize studies json file #
+        # ---------------------------- #
+        self.studies_file = self.working_dir / "studies.json"
+        if self.studies_file.exists():
+            with open(self.studies_file) as f:
+                self.dict_studies = json.load(f)
+        else:
+            self.dict_studies["studies"] = []
+            self.dict_studies["config"] = {}
+            with open(self.studies_file, "w") as f:
+                json.dump(self.dict_studies, f, indent=4)
+
         print()
         print(
             colored("> STUDIES <", "blue", attrs=["reverse"]),
         )
 
-        settings_file = self.config_path / "settings.json"
-        if len(self.dict_settings["apps"][self.app_name]["studies"]) == 0:
+        if len(self.dict_studies["studies"]) == 0:
             print()
             print(colored(f"(X) Please declare at least one study in file :", "red"))
-            print(colored(f"> {str(settings_file)}", "red"))
+            print(colored(f"> {str(self.studies_file)}", "red"))
             sys.exit(1)
         else:
-            self.studies = self.dict_settings["apps"][self.app_name]["studies"]
+            self.studies = self.dict_studies["studies"]
 
     def init_studies(self):
         """Initialize studies"""
 
-        # Open studies json file if existing
-        if os.path.exists("studies.json"):
-            with open("studies.json") as f:
-                self.dict_studies = json.load(f)
-
         # Clean studies
-        for study in list(self.dict_studies.keys()):
+        for study in list(self.dict_studies["config"].keys()):
             if study not in self.studies:
-                del self.dict_studies[study]
+                del self.dict_studies["config"][study]
 
         # Clean input parameters
-        for study in list(self.dict_studies.keys()):
-            for param in list(self.dict_studies[study]["user_params"]):
+        for study in list(self.dict_studies["config"].keys()):
+            for param in list(self.dict_studies["config"][study]["user_params"]):
                 if param not in self.user_params:
-                    del self.dict_studies[study]["user_params"][param]
+                    del self.dict_studies["config"][study]["user_params"][param]
 
         # Clean input paths
-        for study in list(self.dict_studies.keys()):
-            for path in list(self.dict_studies[study]["user_paths"]):
+        for study in list(self.dict_studies["config"].keys()):
+            for path in list(self.dict_studies["config"][study]["user_paths"]):
                 if path not in self.user_paths:
-                    del self.dict_studies[study]["user_paths"][path]
+                    del self.dict_studies["config"][study]["user_paths"][path]
 
         # Clean output paths
-        for study in list(self.dict_studies.keys()):
-            for path in list(self.dict_studies[study]["clean_outputs"]):
+        for study in list(self.dict_studies["config"].keys()):
+            for path in list(self.dict_studies["config"][study]["clean_outputs"]):
                 if path not in self.output_paths:
-                    del self.dict_studies[study]["clean_outputs"][path]
+                    del self.dict_studies["config"][study]["clean_outputs"][path]
 
         # Initialize input parameters/paths
         for study in self.studies:
 
-            if study not in self.dict_studies:
-                self.dict_studies[study] = {
+            if study not in self.dict_studies["config"]:
+                self.dict_studies["config"][study] = {
                     "execute": True,
                     "user_params": {},
                     "user_paths": {},
@@ -770,29 +776,29 @@ class WorkFlow:
                 }
 
             for param in self.user_params:
-                if param not in self.dict_studies[study]["user_params"]:
+                if param not in self.dict_studies["config"][study]["user_params"]:
                     if study == "Default":
-                        self.dict_studies[study]["user_params"][param] = False
+                        self.dict_studies["config"][study]["user_params"][param] = False
                     else:
-                        self.dict_studies[study]["user_params"][param] = None
+                        self.dict_studies["config"][study]["user_params"][param] = None
 
             for file in self.user_paths:
-                if file not in self.dict_studies[study]["user_paths"]:
+                if file not in self.dict_studies["config"][study]["user_paths"]:
                     if study == "Default":
-                        self.dict_studies[study]["user_paths"][file] = False
+                        self.dict_studies["config"][study]["user_paths"][file] = False
                     else:
-                        self.dict_studies[study]["user_paths"][file] = None
+                        self.dict_studies["config"][study]["user_paths"][file] = None
 
             for path in self.output_paths:
-                if path not in self.dict_studies[study]["clean_outputs"]:
-                    self.dict_studies[study]["clean_outputs"][path] = False
+                if path not in self.dict_studies["config"][study]["clean_outputs"]:
+                    self.dict_studies["config"][study]["clean_outputs"][path] = False
 
             # Reordering
-            self.dict_studies[study]["user_params"] = {k: self.dict_studies[study]["user_params"][k] for k in self.user_params}
-            self.dict_studies[study]["user_paths"] = {k: self.dict_studies[study]["user_paths"][k] for k in self.user_paths}
+            self.dict_studies["config"][study]["user_params"] = {k: self.dict_studies["config"][study]["user_params"][k] for k in self.user_params}
+            self.dict_studies["config"][study]["user_paths"] = {k: self.dict_studies["config"][study]["user_paths"][k] for k in self.user_paths}
 
         # Write studies json file
-        with open("studies.json", "w") as f:
+        with open(self.studies_file, "w") as f:
             json.dump(self.dict_studies, f, indent=4)
 
     def test_studies_modification(self):
@@ -807,8 +813,8 @@ class WorkFlow:
             if study_file.exists():
                 with open(study_file) as f:
                     dict_study = json.load(f)
-                if (self.dict_studies[study]["user_params"] != dict_study["user_params"]) or \
-                   (self.dict_studies[study]["user_paths"] != dict_study["user_paths"]):
+                if (self.dict_studies["config"][study]["user_params"] != dict_study["user_params"]) or \
+                   (self.dict_studies["config"][study]["user_paths"] != dict_study["user_paths"]):
                     self.studies_modif[study] = True
 
     def test_studies_settings(self):
@@ -821,20 +827,20 @@ class WorkFlow:
             self.studies_config[study] = True
 
             for param in self.user_params:
-                if self.dict_studies[study]["user_params"][param] is None:
+                if self.dict_studies["config"][study]["user_params"][param] is None:
                     self.studies_messages[study].append(f"(X) {param} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["user_params"][param]: text = "variable"
+                    if self.dict_studies["config"][study]["user_params"][param]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {param} is {text}.")
 
             for file in self.user_paths:
-                if self.dict_studies[study]["user_paths"][file] is None:
+                if self.dict_studies["config"][study]["user_paths"][file] is None:
                     self.studies_messages[study].append(f"(X) {file} not configured.")
                     self.studies_config[study] = False
                 else:
-                    if self.dict_studies[study]["user_paths"][file]: text = "variable"
+                    if self.dict_studies["config"][study]["user_paths"][file]: text = "variable"
                     else: text = "fixed"
                     self.studies_messages[study].append(f"(V) {file} is {text}.")
 
@@ -910,14 +916,14 @@ class WorkFlow:
             # Define list of fixed/variable parameters
             fixed_params = []
             variable_params = []
-            for key, value in self.dict_studies[study]["user_params"].items():
+            for key, value in self.dict_studies["config"][study]["user_params"].items():
                 if value is True: variable_params.append(key)
                 else: fixed_params.append(key)
 
             # Define list of fixed/variable paths
             fixed_paths = []
             variable_paths = []
-            for key, value in self.dict_studies[study]["user_paths"].items():
+            for key, value in self.dict_studies["config"][study]["user_paths"].items():
                 if value is True: variable_paths.append(key)
                 else: fixed_paths.append(key)
 
@@ -941,7 +947,7 @@ class WorkFlow:
 
             # Write study json file
             with open(study_dir / ".study.json", "w") as f:
-                json.dump(self.dict_studies[study], f, indent=4)
+                json.dump(self.dict_studies["config"][study], f, indent=4)
 
             # Initialize inputs csv
             inputs_file:Path = study_dir / "inputs.csv"
@@ -1505,7 +1511,7 @@ class WorkFlow:
                     output_path.unlink()
 
         # Loop over studies
-        for study, study_dict in self.dict_studies.items():
+        for study, study_dict in self.dict_studies["config"].items():
 
             # Delete specified outputs
             for key, value in study_dict["clean_outputs"].items():
@@ -1552,7 +1558,7 @@ class WorkFlow:
             colored("> RUNNING <", "blue", attrs=["reverse"]),
         )
 
-        for study, dict_study in self.dict_studies.items():
+        for study, dict_study in self.dict_studies["config"].items():
 
             # Check if study must be executed
             if not dict_study["execute"]:
