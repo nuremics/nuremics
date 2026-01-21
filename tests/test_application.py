@@ -14,13 +14,11 @@ def test_state_settings(shared_tmp_path, test_config):
 
     workflow = test_config
 
-    with pytest.raises(SystemExit) as exc_info:
-        Application(
-            app_name=APP_NAME,
-            config_path=shared_tmp_path,
-            workflow=workflow,
-        )
-        assert exc_info.value.code == 1
+    Application(
+        app_name=APP_NAME,
+        config_path=shared_tmp_path,
+        workflow=workflow,
+    )
 
     settings_file = shared_tmp_path / "settings.json"
     assert settings_file.is_file()
@@ -44,11 +42,12 @@ def test_state_settings(shared_tmp_path, test_config):
         json.dump(dict_settings, f, indent=4)
 
     with pytest.raises(SystemExit) as exc_info:
-        Application(
+        app = Application(
             app_name=APP_NAME,
             config_path=shared_tmp_path,
             workflow=workflow,
         )
+        app.configure()
         assert exc_info.value.code == 1
     
     with open(settings_file) as f:
@@ -80,12 +79,13 @@ def test_state_studies_config(shared_tmp_path, test_config):
     workflow = test_config
 
     with pytest.raises(SystemExit) as exc_info:
-        Application(
+        app = Application(
             app_name=APP_NAME,
             config_path=shared_tmp_path,
             workflow=workflow,
         )
-    assert exc_info.value.code == 1
+        app.configure()
+        assert exc_info.value.code == 1
 
     app_dir:Path = shared_tmp_path / APP_NAME
     assert app_dir.is_dir()
@@ -110,12 +110,13 @@ def test_state_studies_config(shared_tmp_path, test_config):
         json.dump(dict_studies, f, indent=4)
 
     with pytest.raises(SystemExit) as exc_info:
-        Application(
+        app = Application(
             app_name=APP_NAME,
             config_path=shared_tmp_path,
             workflow=workflow,
         )
-    assert exc_info.value.code == 1
+        app.configure()
+        assert exc_info.value.code == 1
 
     with open(studies_file) as f:
         dict_studies:dict = json.load(f)
@@ -207,12 +208,13 @@ def test_state_set_inputs(shared_tmp_path, test_config):
     workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
-        Application(
+        app = Application(
             app_name=APP_NAME,
             config_path=shared_tmp_path,
             workflow=workflow,
         )
-    assert exc_info.value.code == 1
+        app.configure()
+        assert exc_info.value.code == 1
 
     studies_file:Path = shared_tmp_path / APP_NAME / "studies.json"
     with open(studies_file) as f:
@@ -354,12 +356,13 @@ def test_state_define_datasets(shared_tmp_path, test_config):
     workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
-        Application(
+        app = Application(
             app_name=APP_NAME,
             config_path=shared_tmp_path,
             workflow=workflow,
         )
-    assert exc_info.value.code == 1
+        app.configure()
+        assert exc_info.value.code == 1
     
     for study in ["Study1", "Study2"]:
 
@@ -426,6 +429,7 @@ def test_state_run(shared_tmp_path, test_config):
         config_path=shared_tmp_path,
         workflow=workflow,
     )
+    app.configure()
     app()
 
     dict_outputs = {}

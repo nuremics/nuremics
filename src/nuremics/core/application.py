@@ -29,6 +29,9 @@ class Application:
             workflow=workflow,
             silent=silent,
         )
+    
+    def configure(self):
+        
         self.workflow.print_logo()
         self.workflow.print_application()
 
