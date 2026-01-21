@@ -29,9 +29,7 @@ class Application:
             workflow=workflow,
             silent=silent,
         )
-    
-    def configure(self):
-        
+
         self.workflow.print_logo()
         self.workflow.print_application()
 
@@ -45,6 +43,8 @@ class Application:
         self.workflow.set_user_params_types()
 
         self.workflow.print_io()
+    
+    def configure(self):
 
         self.workflow.set_working_directory()
 
