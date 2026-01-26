@@ -214,6 +214,7 @@ def test_state_set_inputs(shared_tmp_path, test_config):
             workflow=workflow,
         )
         app.configure()
+        app.settings()
         assert exc_info.value.code == 1
 
     studies_file:Path = shared_tmp_path / APP_NAME / "studies.json"
@@ -362,6 +363,7 @@ def test_state_define_datasets(shared_tmp_path, test_config):
             workflow=workflow,
         )
         app.configure()
+        app.settings()
         assert exc_info.value.code == 1
     
     for study in ["Study1", "Study2"]:
@@ -430,6 +432,7 @@ def test_state_run(shared_tmp_path, test_config):
         workflow=workflow,
     )
     app.configure()
+    app.settings()
     app()
 
     dict_outputs = {}

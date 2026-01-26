@@ -59,6 +59,8 @@ class Application:
 
         self.workflow.init_process_settings()
 
+    def settings(self):
+        
         self.workflow.set_inputs()
         self.workflow.test_inputs_settings()
         self.workflow.print_inputs_settings()
