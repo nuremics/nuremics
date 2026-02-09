@@ -101,6 +101,9 @@ class Process1(Process):
     # Paths
     path1: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
 
+    # Outputs
+    out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
+
     # Internal
     variable: float = attrs.field(init=False)
 
@@ -135,6 +138,9 @@ class Process2(Process):
     path2: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
     path3: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
 
+    # Outputs
+    out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
+
     # Internal
     variable: int = attrs.field(init=False)
 
@@ -160,6 +166,10 @@ class Process3(Process):
 
     # Paths
     path1: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
+
+    # Outputs
+    out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
+    out2: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
 
     # Internal
     variable: bool = attrs.field(init=False)
@@ -203,6 +213,9 @@ class Process4(Process):
     path2: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
     path3: Path = attrs.field(init=False, metadata={"input": True}, converter=Path)
 
+    # Outputs
+    out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
+
     # Internal
     variable: str = attrs.field(init=False)
 
@@ -238,6 +251,9 @@ class Process5(Process):
         }
     }
     analysis1: str = attrs.field(init=False, metadata=metadata)
+
+    # Outputs
+    out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
 
     def __call__(self):
         super().__call__()

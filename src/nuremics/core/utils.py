@@ -122,37 +122,9 @@ def extract_analysis(obj) -> dict:
     return analysis, settings
 
 
-# From ChatGPT
-def extract_self_output_keys(method):
-    """
-    Extracts all dictionary keys used in self.output_paths[...] from a method.
-    Returns a list of key names as strings.
-    """
-    keys = []
-
-    # Get and clean source code
-    source = inspect.getsource(method)
-    source = textwrap.dedent(source)
-    tree = ast.parse(source)
-
-    class OutputKeyVisitor(ast.NodeVisitor):
-        def visit_Subscript(self, node):
-            # Check if it's self.output_paths[...]
-            if (isinstance(node.value, ast.Attribute) and
-                isinstance(node.value.value, ast.Name) and
-                node.value.value.id == "self" and
-                node.value.attr == "output_paths"):
-
-                # Extract the key if it's a constant (string)
-                if isinstance(node.slice, ast.Constant):
-                    keys.append(node.slice.value)
-                # Compatibility with Python <3.9: slice is an Index node
-                elif isinstance(node.slice, ast.Index) and isinstance(node.slice.value, ast.Constant):
-                    keys.append(node.slice.value.value)
-
-            # Continue visiting child nodes
-            self.generic_visit(node)
-
-    OutputKeyVisitor().visit(tree)
-    
-    return keys
+def extract_outputs(obj) -> dict:
+    outputs = []
+    for field in attrs.fields(obj.__class__):
+        if field.metadata.get("output", False):
+            outputs.append(field.name)
+    return outputs

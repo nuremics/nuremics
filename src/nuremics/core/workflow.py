@@ -17,7 +17,7 @@ from .utils import (
     only_function_calls,
     extract_inputs_and_types,
     extract_analysis,
-    extract_self_output_keys,
+    extract_outputs,
 )
 from importlib.resources import files
 
@@ -347,14 +347,8 @@ class WorkFlow:
             name = proc["process"].__name__
             this_process:Process = process()
 
-            self.outputs_by_process[name] = []
+            self.outputs_by_process[name] = extract_outputs(this_process)
             self.outputs_plug[name] = {}
-
-            for op in self.operations_by_process[name]:
-                output_paths = extract_self_output_keys(getattr(this_process, op))
-                for output_path in output_paths:
-                    if output_path not in self.outputs_by_process[name]:
-                        self.outputs_by_process[name].append(output_path)
 
             for output in self.outputs_by_process[name]:
                 if ("output_paths" in proc) and (output in proc["output_paths"]):

@@ -154,6 +154,10 @@ class Process():
         for out, value in self.overall_analysis.items():
             self.dict_inputs[out] = value
 
+        # Add output paths
+        for out, value in self.output_paths.items():
+            self.dict_inputs[out] = value
+
         # Write json file containing all parameters
         with open("inputs.json", "w") as f:
             json.dump(self.dict_inputs, f, indent=4)
