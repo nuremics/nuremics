@@ -617,27 +617,7 @@ def test_state_run(shared_tmp_path, test_config):
         if study == "Study1":
 
             dict_analysis_ref = {
-                "output1.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output2.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output3.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output4.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output5": {
+                "Process5": {
                     "Test1": {
                         "setting1": False,
                         "setting2": 5,
@@ -654,7 +634,6 @@ def test_state_run(shared_tmp_path, test_config):
                         "setting3": "Label"
                     }
                 },
-                "output6.txt": {}
             }
 
             dict_paths_ref = {
@@ -689,23 +668,7 @@ def test_state_run(shared_tmp_path, test_config):
         if study == "Study2":
 
             dict_analysis_ref = {
-                "output1.txt": {},
-                "output2.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output3.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output4.txt": {
-                    "Test1": {},
-                    "Test2": {},
-                    "Test3": {}
-                },
-                "output5": {
+                "Process5": {
                     "Test1": {
                         "setting1": False,
                         "setting2": 5,
@@ -722,7 +685,6 @@ def test_state_run(shared_tmp_path, test_config):
                         "setting3": "Label"
                     }
                 },
-                "output6.txt": {}
             }
 
             dict_paths_ref = {

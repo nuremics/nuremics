@@ -84,6 +84,11 @@ def test_config():
             "output_paths": {
                 "out1": "output6.txt",
             },
+            "settings": {
+                "setting1": False,
+                "setting2": 5,
+                "setting3": "Label",
+            },
         },
     ]
 
@@ -244,11 +249,6 @@ class Process5(Process):
     metadata = {
         "input": True,
         "analysis": True,
-        "settings": {
-            "setting1": False,
-            "setting2": 5,
-            "setting3": "Label",
-        }
     }
     analysis1: str = attrs.field(init=False, metadata=metadata)
 

@@ -2,7 +2,6 @@ import attrs
 import ast
 import inspect
 import textwrap
-from pathlib import Path
 
 import numpy as np
 
@@ -111,18 +110,15 @@ def extract_inputs_and_types(obj) -> dict:
     return params
 
 
-def extract_analysis(obj) -> dict:
+def extract_analysis(obj) -> list:
     analysis = []
-    settings = {}
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("analysis", False):
             analysis.append(field.name)
-            if field.metadata.get("settings", False):
-                settings[field.name] = field.metadata.get("settings")
-    return analysis, settings
+    return analysis
 
 
-def extract_outputs(obj) -> dict:
+def extract_outputs(obj) -> list:
     outputs = []
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("output", False):

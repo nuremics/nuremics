@@ -220,7 +220,7 @@ class Process():
             sys.exit(1)
 
         output = self.dict_paths[out]
-        analysis = self.dict_analysis[out]
+        analysis = self.dict_analysis[self.name]
         if isinstance(output, dict):
             func(output, analysis, **kwargs)
 

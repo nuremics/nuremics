@@ -50,7 +50,6 @@ class WorkFlow:
         self.user_paths = []
         self.output_paths = []
         self.overall_analysis = []
-        self.analysis_settings = {}
         self.params_type = {}
         self.operations_by_process = {}
         self.inputs_by_process = {}
@@ -293,7 +292,9 @@ class WorkFlow:
             this_process:Process = process()
 
             self.inputs_by_process[name] = extract_inputs_and_types(this_process)
-            self.analysis_by_process[name], self.settings_by_process[name] = extract_analysis(this_process)
+            self.analysis_by_process[name] = extract_analysis(this_process)
+
+            if "settings" in proc: self.settings_by_process[name] = proc["settings"]
 
             self.params_by_process[name] = {}
             self.paths_by_process[name] = []
@@ -433,16 +434,6 @@ class WorkFlow:
         self.user_params = list(dict.fromkeys(self.user_params))
         self.user_paths = list(dict.fromkeys(self.user_paths))
         self.overall_analysis = list(dict.fromkeys(self.overall_analysis))
-
-        # Define analysis settings
-        for output in self.overall_analysis:
-            self.analysis_settings[output] = {}
-
-        for proc, settings in self.settings_by_process.items():
-            if settings:
-                for out, setting in settings.items():
-                    output = self.analysis_plug[proc][out]
-                    self.analysis_settings[output].update(setting)
 
     def print_processes(self):
         """Print processes"""
@@ -1460,34 +1451,27 @@ class WorkFlow:
             else:
                 self.dict_analysis[study] = {}
 
-            # Browse all outputs
-            for out, value in self.dict_paths[study].items():
+            # Browse all datasets
+            for proc, settings in self.settings_by_process.items():
 
-                if out in self.analysis_settings:
-                    dict_out = self.analysis_settings[out]
-                else:
-                    dict_out = {}
-
-                if out not in self.dict_analysis[study]:
-                    self.dict_analysis[study][out] = {}
-                    if isinstance(value, dict):
-                        for case in value:
-                            self.dict_analysis[study][out][case] = dict_out
-
-                else:
-                    if isinstance(value, dict):
-                        for case in value:
-                            if case not in self.dict_analysis[study][out]:
-                                self.dict_analysis[study][out][case] = dict_out
-
-                        cases_to_delete = []
-                        for case in self.dict_analysis[study][out]:
-                            if case not in value:
-                                cases_to_delete.append(case)
-
-                        for case in cases_to_delete:
-                            if case in self.dict_analysis[study][out]:
-                                del self.dict_analysis[study][out][case]
+                # Initialize proc key
+                if proc not in self.dict_analysis[study]:
+                    self.dict_analysis[study][proc] = {}
+                
+                # Add missing datasets
+                for dataset in self.dict_datasets[study]:
+                    if dataset not in self.dict_analysis[study][proc]:
+                        self.dict_analysis[study][proc][dataset] = settings
+            
+                # Delete useless datasets
+                datasets_to_delete = []
+                for dataset in self.dict_analysis[study][proc]:
+                    if dataset not in self.dict_datasets[study]:
+                        datasets_to_delete.append(dataset)
+                
+                for dataset in datasets_to_delete:
+                    if dataset in self.dict_analysis[study][proc]:
+                        del self.dict_analysis[study][proc][dataset]
 
             with open(analysis_file, "w") as f:
                 json.dump(self.dict_analysis[study], f, indent=4)
