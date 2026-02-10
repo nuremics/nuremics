@@ -1,25 +1,25 @@
 from __future__ import annotations
 
+import json
 import os
 import pathlib
-import sys
-
-import json
 import shutil
+import sys
+from importlib.resources import files
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from termcolor import colored
 
 from .process import Process
 from .utils import (
+    extract_analysis,
+    extract_inputs_and_types,
+    extract_outputs,
     get_self_method_calls,
     only_function_calls,
-    extract_inputs_and_types,
-    extract_analysis,
-    extract_outputs,
 )
-from importlib.resources import files
 
 
 class WorkFlow:
@@ -33,7 +33,6 @@ class WorkFlow:
         silent: bool = False,
     ):
         """Initialization."""
-
         # -------------------- #
         # Initialize variables #
         # -------------------- #
@@ -103,13 +102,13 @@ class WorkFlow:
             }
             with open(settings_file, "w") as f:
                 json.dump(dict_settings, f, indent=4)
-        
+
         # -------------------------- #
         # Define settings dictionary #
         # -------------------------- #
         with open(settings_file) as f:
             self.dict_settings = json.load(f)
-        
+
         # ------------------------------- #
         # Initialize application settings #
         # ------------------------------- #
@@ -141,9 +140,8 @@ class WorkFlow:
 
     def print_logo(self):
         """Print ASCII NUREMICS logo"""
-
         ascii_logo_path:str = files("nuremics.resources").joinpath("logo.txt")
-        f = open(ascii_logo_path, "r")
+        f = open(ascii_logo_path)
         for line in f:
             lines = f.readlines()
         print()
@@ -152,7 +150,6 @@ class WorkFlow:
 
     def print_application(self):
         """Print application"""
-
         # Printing
         print()
         print(
@@ -160,7 +157,7 @@ class WorkFlow:
         )
         print()
         print(
-            colored(f"| Workflow |", "magenta"),
+            colored("| Workflow |", "magenta"),
         )
         print(
             colored(f"{self.app_name}_____", "blue"),
@@ -186,7 +183,7 @@ class WorkFlow:
             # Test if process call contains only call to operations
             valid_call = only_function_calls(
                 method=this_process.__call__,
-                allowed_methods=self.operations_by_process[proc_name]
+                allowed_methods=self.operations_by_process[proc_name],
             )
 
             # Printing
@@ -208,7 +205,7 @@ class WorkFlow:
             else:
                 print(
                     colored(" "*nb_spaces_app+f"|_____{proc_name}_____", "blue") + \
-                    colored("(X)", "red")
+                    colored("(X)", "red"),
                 )
                 error = True
 
@@ -219,20 +216,19 @@ class WorkFlow:
 
         if error:
             print()
-            print(colored(f"(X) Each process must only call its internal function(s):", "red"))
+            print(colored("(X) Each process must only call its internal function(s):", "red"))
             print()
-            print(colored(f"    def __call__(self):", "red"))
-            print(colored(f"        super().__call__()", "red"))
+            print(colored("    def __call__(self):", "red"))
+            print(colored("        super().__call__()", "red"))
             print()
-            print(colored(f"        self.operation1()", "red"))
-            print(colored(f"        self.operation2()", "red"))
-            print(colored(f"        self.operation3()", "red"))
-            print(colored(f"        ...", "red"))
+            print(colored("        self.operation1()", "red"))
+            print(colored("        self.operation2()", "red"))
+            print(colored("        self.operation3()", "red"))
+            print(colored("        ...", "red"))
             sys.exit(1)
 
     def set_working_directory(self):
         """Set working directory"""
-        
         # --------------------- #
         # Set working directory #
         # --------------------- #
@@ -240,7 +236,7 @@ class WorkFlow:
         if self.dict_settings["apps"][self.app_name]["working_dir"] is None:
             print()
             print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
-            print(colored(f"> {str(settings_file)}", "red"))
+            print(colored(f"> {settings_file!s}", "red"))
             sys.exit(1)
             # if self.dict_settings["default_working_dir"] is None:
             #     print()
@@ -260,9 +256,9 @@ class WorkFlow:
             #             print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
             #             print(colored(f"> {str(settings_file)}", "red"))
             #             sys.exit(1)
-        
+
         self.working_dir = Path(self.dict_settings["apps"][self.app_name]["working_dir"]) / self.app_name
-        
+
         # ------------------- #
         # Write settings file #
         # ------------------- #
@@ -284,7 +280,6 @@ class WorkFlow:
 
     def get_inputs(self):
         """Get inputs"""
-
         for proc in self.list_workflow:
 
             process = proc["process"]
@@ -333,15 +328,13 @@ class WorkFlow:
                         else:
                             self.params_plug[name][key] = None
 
+                elif ("overall_analysis" in proc) and (key in proc["overall_analysis"]):
+                    self.analysis_plug[name][key] = proc["overall_analysis"][key]
                 else:
-                    if ("overall_analysis" in proc) and (key in proc["overall_analysis"]):
-                        self.analysis_plug[name][key] = proc["overall_analysis"][key]
-                    else:
-                        self.analysis_plug[name][key] = None
+                    self.analysis_plug[name][key] = None
 
     def get_outputs(self):
         """Get outputs"""
-
         for proc in self.list_workflow:
 
             process = proc["process"]
@@ -359,7 +352,6 @@ class WorkFlow:
 
     def init_config(self):
         """Initialize configuration"""
-
         for _, process in enumerate(self.list_workflow):
 
             name = process["process"].__name__
@@ -437,7 +429,6 @@ class WorkFlow:
 
     def print_processes(self):
         """Print processes"""
-
         for proc in self.list_workflow:
 
             name = proc["process"].__name__
@@ -452,7 +443,7 @@ class WorkFlow:
             # Input parameters #
             # ---------------- #
             print(
-                colored(f"> Input Parameter(s) :", "blue"),
+                colored("> Input Parameter(s) :", "blue"),
             )
             if len(self.params_by_process[name]) == 0:
                 print(
@@ -499,7 +490,7 @@ class WorkFlow:
             # Input paths #
             # ----------- #
             print(
-                colored(f"> Input Path(s) :", "blue"),
+                colored("> Input Path(s) :", "blue"),
             )
             if len(self.paths_by_process[name]) == 0:
                 print(
@@ -543,7 +534,7 @@ class WorkFlow:
             # Input analysis #
             # ---------------- #
             print(
-                colored(f"> Input Analysis :", "blue"),
+                colored("> Input Analysis :", "blue"),
             )
             if len(self.analysis_by_process[name]) == 0:
                 print(
@@ -587,7 +578,7 @@ class WorkFlow:
             # Output paths #
             # ------------ #
             print(
-                colored(f"> Output Path(s) :", "blue"),
+                colored("> Output Path(s) :", "blue"),
             )
             if len(self.outputs_by_process[name]) == 0:
                 print(
@@ -629,7 +620,6 @@ class WorkFlow:
 
     def set_user_params_types(self):
         """Set types of user parameters"""
-
         # Gather all types of parameters
         for proc, params in self.params_by_process.items():
             for param, type in params.items():
@@ -638,13 +628,12 @@ class WorkFlow:
                     if (user_param in self.params_type) and (self.params_type[user_param][0] != type[0]):
                         print()
                         print(colored(f"(X) {user_param} is defined both as ({self.params_type[user_param][1]}) and ({type[1]}) :", "red"))
-                        print(colored(f'> Please consider defining a new user parameter in "user_params".', "red"))
+                        print(colored('> Please consider defining a new user parameter in "user_params".', "red"))
                         sys.exit(1)
                     self.params_type[user_param] = type
 
     def print_io(self):
         """Print inputs / outputs"""
-
         # Printing
         print()
         print(
@@ -654,7 +643,7 @@ class WorkFlow:
         # Print input parameters
         print()
         print(
-            colored(f"| User Parameters |", "magenta"),
+            colored("| User Parameters |", "magenta"),
         )
         for param, type in self.params_type.items():
             print(
@@ -668,7 +657,7 @@ class WorkFlow:
         # Print input paths
         print()
         print(
-            colored(f"| User Paths |", "magenta"),
+            colored("| User Paths |", "magenta"),
         )
         for path in self.user_paths:
             print(
@@ -696,7 +685,6 @@ class WorkFlow:
 
     def define_studies(self):
         """Define studies"""
-
         # ---------------------------- #
         # Initialize studies json file #
         # ---------------------------- #
@@ -717,15 +705,14 @@ class WorkFlow:
 
         if len(self.dict_studies["studies"]) == 0:
             print()
-            print(colored(f"(X) Please declare at least one study in file :", "red"))
-            print(colored(f"> {str(self.studies_file)}", "red"))
+            print(colored("(X) Please declare at least one study in file :", "red"))
+            print(colored(f"> {self.studies_file!s}", "red"))
             sys.exit(1)
         else:
             self.studies = self.dict_studies["studies"]
 
     def init_studies(self):
         """Initialize studies"""
-
         # Clean studies
         for study in list(self.dict_studies["config"].keys()):
             if study not in self.studies:
@@ -788,7 +775,6 @@ class WorkFlow:
 
     def test_studies_modification(self):
         """Test if studies configurations have been modified"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -804,7 +790,6 @@ class WorkFlow:
 
     def test_studies_settings(self):
         """Check if studies has been properly configured"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -831,7 +816,6 @@ class WorkFlow:
 
     def print_studies(self):
         """Print studies"""
-
         for study in self.studies:
 
             # Printing
@@ -841,7 +825,7 @@ class WorkFlow:
             )
             if self.studies_modif[study]:
                 print(
-                    colored(f"(!) Configuration has been modified.", "yellow"),
+                    colored("(!) Configuration has been modified.", "yellow"),
                 )
                 self.clean_output_tree(study)
 
@@ -855,13 +839,12 @@ class WorkFlow:
 
             if not self.studies_config[study]:
                 print()
-                print(colored(f"(X) Please configure file :", "red"))
-                print(colored(f"> {str(Path.cwd() / 'studies.json')}", "red"))
+                print(colored("(X) Please configure file :", "red"))
+                print(colored(f"> {Path.cwd() / 'studies.json'!s}", "red"))
                 sys.exit(1)
 
     def init_process_settings(self):
         """Initialize process settings"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -895,7 +878,6 @@ class WorkFlow:
 
     def configure_inputs(self):
        """Configure inputs with lists of fixed/variable parameters/paths"""
-
        for study in self.studies:
 
             # Define list of fixed/variable parameters
@@ -919,7 +901,6 @@ class WorkFlow:
 
     def init_data_tree(self):
         """Initialize data tree"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -973,9 +954,8 @@ class WorkFlow:
                 # Define list of datasets
                 self.dict_datasets[study] = df_inputs.index.tolist()
 
-            else:
-                # Delete file
-                if inputs_file.exists(): inputs_file.unlink()
+            # Delete file
+            elif inputs_file.exists(): inputs_file.unlink()
 
             # Initialize inputs json file
             inputs_file:Path = study_dir / "inputs.json"
@@ -1030,7 +1010,7 @@ class WorkFlow:
                         if not isinstance(existing_values, dict):
                             existing_values = {}
                         dict_variable_paths[path] = {
-                            idx: existing_values.get(idx, None)
+                            idx: existing_values.get(idx)
                             for idx in df_inputs.index
                         }
 
@@ -1102,20 +1082,17 @@ class WorkFlow:
                         if id not in self.dict_datasets[study]:
                             shutil.rmtree(folder)
 
-                else:
 
-                    # Delete datasets folder (if necessary)
-                    if datasets_dir.exists(): shutil.rmtree(datasets_dir)
+                # Delete datasets folder (if necessary)
+                elif datasets_dir.exists(): shutil.rmtree(datasets_dir)
 
-            else:
-                # Delete inputs directory (if necessary)
-                if inputs_dir.exists(): shutil.rmtree(inputs_dir)
+            # Delete inputs directory (if necessary)
+            elif inputs_dir.exists(): shutil.rmtree(inputs_dir)
 
     def clean_output_tree(self,
         study: str,
     ):
         """Clean output data for a specific study"""
-
         # Initialize study directory
         study_dir:Path = self.working_dir / study
 
@@ -1131,7 +1108,6 @@ class WorkFlow:
 
     def set_inputs(self):
         """Set all inputs"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -1197,7 +1173,6 @@ class WorkFlow:
 
     def test_inputs_settings(self):
         """Test that inputs have been properly set"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -1221,11 +1196,10 @@ class WorkFlow:
                 if value is None:
                     self.fixed_params_messages[study].append(f"(X) {param}")
                     self.fixed_params_config[study] = False
+                elif not isinstance(value, self.params_type[param][0]):
+                    self.fixed_params_messages[study].append(f"(!) {param} ({self.params_type[param][1]} expected)")
                 else:
-                    if not isinstance(value, self.params_type[param][0]):
-                        self.fixed_params_messages[study].append(f"(!) {param} ({self.params_type[param][1]} expected)")
-                    else:
-                        self.fixed_params_messages[study].append(f"(V) {param}")
+                    self.fixed_params_messages[study].append(f"(V) {param}")
 
             # Fixed paths
             for file in self.fixed_paths[study]:
@@ -1275,7 +1249,6 @@ class WorkFlow:
 
     def print_inputs_settings(self):
         """Print inputs settings"""
-
         print()
         print(
             colored("> SETTINGS <", "blue", attrs=["reverse"]),
@@ -1295,7 +1268,7 @@ class WorkFlow:
             # ------------ #
             # Fixed inputs #
             # ------------ #
-            list_text = [colored(f"> Common :", "blue")]
+            list_text = [colored("> Common :", "blue")]
             list_errors = []
             config = True
             type_error = False
@@ -1307,7 +1280,7 @@ class WorkFlow:
                 elif "(X)" in message:
                     list_text.append(colored(message, "red"))
                     if config:
-                        list_errors.append(colored(f"> {str(Path.cwd() / 'inputs.json')}", "red"))
+                        list_errors.append(colored(f"> {Path.cwd() / 'inputs.json'!s}", "red"))
                     config = False
                 elif "(!)" in message:
                     list_text.append(colored(message, "yellow"))
@@ -1325,21 +1298,21 @@ class WorkFlow:
 
             # Printing
             if len(list_text) == 1:
-                print(colored(f"None.", "blue"))
+                print(colored("None.", "blue"))
             else:
                 print(*list_text)
 
             if not self.fixed_params_config[study] or not self.fixed_paths_config[study]:
                 print()
-                print(colored(f"(X) Please set inputs :", "red"))
+                print(colored("(X) Please set inputs :", "red"))
                 for error in list_errors:
                     print(error)
                 sys.exit(1)
 
             if type_error:
                 print()
-                print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
-                print(colored(f"> {str(Path.cwd() / 'inputs.json')}", "red"))
+                print(colored("(X) Please set parameter(s) with expected type(s) in file :", "red"))
+                print(colored(f"> {Path.cwd() / 'inputs.json'!s}", "red"))
                 sys.exit(1)
 
             # --------------- #
@@ -1355,8 +1328,8 @@ class WorkFlow:
                 # Check if datasets have been defined
                 if len(self.dict_variable_params[study].index) == 0:
                     print()
-                    print(colored(f"(X) Please declare at least one experiment in file :", "red"))
-                    print(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
+                    print(colored("(X) Please declare at least one experiment in file :", "red"))
+                    print(colored(f"> {Path.cwd() / 'inputs.csv'!s}", "red"))
                     sys.exit(1)
 
                 for index in self.dict_variable_params[study].index:
@@ -1370,7 +1343,7 @@ class WorkFlow:
                         elif "(X)" in message:
                             list_text.append(colored(message, "red"))
                             if config:
-                                list_errors.append(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
+                                list_errors.append(colored(f"> {Path.cwd() / 'inputs.csv'!s}", "red"))
                             config = False
                         elif "(!)" in message:
                             list_text.append(colored(message, "yellow"))
@@ -1392,15 +1365,15 @@ class WorkFlow:
                 list_errors.sort(key=lambda x: 0 if "inputs.csv" in x else 1)
                 if len(list_errors) > 0:
                     print()
-                    print(colored(f"(X) Please set inputs :", "red"))
+                    print(colored("(X) Please set inputs :", "red"))
                     for error in list_errors:
                         print(error)
                     sys.exit(1)
 
                 if type_error:
                     print()
-                    print(colored(f"(X) Please set parameter(s) with expected type(s) in file :", "red"))
-                    print(colored(f"> {str(Path.cwd() / 'inputs.csv')}", "red"))
+                    print(colored("(X) Please set parameter(s) with expected type(s) in file :", "red"))
+                    print(colored(f"> {Path.cwd() / 'inputs.csv'!s}", "red"))
                     sys.exit(1)
 
             # Go back to working directory
@@ -1408,7 +1381,6 @@ class WorkFlow:
 
     def init_paths(self):
         """Initialize dictionary containing all paths"""
-
         # Loop over studies
         for study in self.studies:
 
@@ -1457,18 +1429,18 @@ class WorkFlow:
                 # Initialize proc key
                 if proc not in self.dict_analysis[study]:
                     self.dict_analysis[study][proc] = {}
-                
+
                 # Add missing datasets
                 for dataset in self.dict_datasets[study]:
                     if dataset not in self.dict_analysis[study][proc]:
                         self.dict_analysis[study][proc][dataset] = settings
-            
+
                 # Delete useless datasets
                 datasets_to_delete = []
                 for dataset in self.dict_analysis[study][proc]:
                     if dataset not in self.dict_datasets[study]:
                         datasets_to_delete.append(dataset)
-                
+
                 for dataset in datasets_to_delete:
                     if dataset in self.dict_analysis[study][proc]:
                         del self.dict_analysis[study][proc][dataset]
@@ -1504,7 +1476,6 @@ class WorkFlow:
         study: str,
     ):
         """Purge output datasets for a specific study"""
-
         datasets_paths = [f for f in Path.cwd().iterdir()]
         for path in datasets_paths:
             resolved_path = path.resolve().name
@@ -1515,7 +1486,6 @@ class WorkFlow:
         process: Process,
     ):
         """Update workflow diagram for specific process"""
-
         self.diagram[process.name] = {
             "params": list(process.params.values()),
             "allparams": process.allparams,
@@ -1527,7 +1497,6 @@ class WorkFlow:
 
     def __call__(self):
         """Launch workflow of processes."""
-
         # --------------- #
         # Launch workflow #
         # --------------- #

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from platformdirs import user_config_path
 from pathlib import Path
+
+from platformdirs import user_config_path
+
 from .workflow import WorkFlow
 
 CONFIG_PATH = user_config_path(
@@ -12,7 +14,7 @@ CONFIG_PATH = user_config_path(
 
 class Application:
     """Create application."""
-    
+
     def __init__(
         self,
         app_name: str,
@@ -43,7 +45,7 @@ class Application:
         self.workflow.set_user_params_types()
 
         self.workflow.print_io()
-    
+
     def configure(self):
 
         self.workflow.set_working_directory()
@@ -60,7 +62,7 @@ class Application:
         self.workflow.init_process_settings()
 
     def settings(self):
-        
+
         self.workflow.set_inputs()
         self.workflow.test_inputs_settings()
         self.workflow.print_inputs_settings()
@@ -68,7 +70,7 @@ class Application:
         self.workflow.init_paths()
 
     def __call__(self):
-        
+
         # --------------- #
         # Launch workflow #
         # --------------- #

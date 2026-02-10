@@ -1,26 +1,24 @@
-import attrs
 import ast
 import inspect
 import textwrap
 
+import attrs
 import numpy as np
 
 
 def convert_value(value):
     """Function to convert values in python native types"""
-
     if value == "NA":
         return None
-    elif isinstance(value, (bool, np.bool_)):
+    if isinstance(value, (bool, np.bool_)):
         return bool(value)
-    elif isinstance(value, (int, np.int64)):
+    if isinstance(value, (int, np.int64)):
         return int(value)
-    elif isinstance(value, (float, np.float64)):
+    if isinstance(value, (float, np.float64)):
         return float(value)
-    elif isinstance(value, str):
+    if isinstance(value, str):
         return str(value)
-    else:
-        return value
+    return value
 
 
 def concat_lists_unique(
@@ -33,7 +31,6 @@ def concat_lists_unique(
 # From ChatGPT
 def get_self_method_calls(cls, method_name="__call__"):
     """Get list of functions called in a specific class"""
-
     method = getattr(cls, method_name, None)
     if method is None:
         return []
@@ -64,10 +61,10 @@ def only_function_calls(method, allowed_methods):
     # Get and dedent source code
     source = inspect.getsource(method)
     source = textwrap.dedent(source)
-    
+
     # Parse the AST
     tree = ast.parse(source)
-    
+
     # Expect a FunctionDef node at top level
     func_def = tree.body[0]
     if not isinstance(func_def, ast.FunctionDef):
