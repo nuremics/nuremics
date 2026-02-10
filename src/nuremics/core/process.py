@@ -51,7 +51,7 @@ class Process:
     diagram: dict = attrs.field(default={})
     set_inputs: bool = attrs.field(default=False)
 
-    def initialize(self):
+    def initialize(self) -> None:
 
         self.variable_params_proc = [x for x in self.variable_params if x in list(self.params.values())]
         self.fixed_params_proc = [x for x in self.fixed_params if x in list(self.params.values())]
@@ -81,7 +81,7 @@ class Process:
         if self.is_case:
             self.on_params_update()
 
-    def __call__(self):
+    def __call__(self) -> None:
 
         # Update dictionary of parameters
         if not self.set_inputs:
@@ -96,7 +96,7 @@ class Process:
         # Printing
         print(colored(">>> START", "green"))
 
-    def on_params_update(self):
+    def on_params_update(self) -> None:
 
         # Create parameters dataframe and fill with variable parameters
         if (len(self.variable_params_proc) > 0) or (len(self.variable_paths_proc) > 0):
@@ -121,7 +121,7 @@ class Process:
             for param in self.fixed_params_proc:
                 self.df_params[param] = self.dict_user_params[param]
 
-    def update_dict_inputs(self):
+    def update_dict_inputs(self) -> None:
 
         # Add user parameters
         if self.is_case:
@@ -164,7 +164,7 @@ class Process:
 
     def get_output_path(self,
         output_path: str,
-    ):
+    ) -> Path:
         """Function to get the path to an output within the paths dictionary"""
         # Initialize path to return
         path = None
@@ -175,7 +175,6 @@ class Process:
                     path = value
         else:
             path = self.dict_paths[output_path]
-
 
         if not Path(path).exists():
 
@@ -191,7 +190,8 @@ class Process:
     def update_output(self,
         output_path: str,
         dump: str,
-    ):
+    ) -> None:
+
         if output_path not in self.dict_paths:
             self.dict_paths[output_path] = None
 
@@ -212,8 +212,9 @@ class Process:
     def process_output(self,
         out: str,
         func: Callable[..., None],
-        **kwargs,
-    ):
+        **kwargs: object,
+    ) -> None:
+
         if not getattr(func, "_is_analysis", False):
             print(colored(f'(X) Function "{func.__name__}" is not a valid analysis function.', "red"))
             sys.exit(1)
@@ -223,7 +224,7 @@ class Process:
         if isinstance(output, dict):
             func(output, analysis, **kwargs)
 
-    def finalize(self):
+    def finalize(self) -> None:
 
         for _, value in self.output_paths.items():
             self.update_output(

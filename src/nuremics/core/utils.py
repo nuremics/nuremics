@@ -1,12 +1,15 @@
 import ast
 import inspect
 import textwrap
+from typing import Optional, Union, Any, Type, Callable
 
 import attrs
 import numpy as np
 
 
-def convert_value(value):
+def convert_value(
+    value: object,
+) -> Optional[Union[bool, int, float, str, object]]:
     """Function to convert values in python native types"""
     if value == "NA":
         return None
@@ -24,12 +27,15 @@ def convert_value(value):
 def concat_lists_unique(
     list1: list,
     list2: list,
-):
+) -> list:
     return list(dict.fromkeys(list1 + list2))
 
 
 # From ChatGPT
-def get_self_method_calls(cls, method_name="__call__"):
+def get_self_method_calls(
+    cls: Type,
+    method_name: str = "__call__",
+) -> list:
     """Get list of functions called in a specific class"""
     method = getattr(cls, method_name, None)
     if method is None:
@@ -42,7 +48,9 @@ def get_self_method_calls(cls, method_name="__call__"):
     called_methods = []
 
     class SelfCallVisitor(ast.NodeVisitor):
-        def visit_Call(self, node):
+        def visit_Call(self,
+            node: object,
+        ) -> list:
             if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                 if node.func.value.id == "self":
                     called_methods.append(node.func.attr)
@@ -53,7 +61,10 @@ def get_self_method_calls(cls, method_name="__call__"):
 
 
 # From ChatGPT
-def only_function_calls(method, allowed_methods):
+def only_function_calls(
+    method: Callable[..., Any],
+    allowed_methods: list[str],
+) -> bool:
     """
     Checks that the method contains only function calls,
     and that all calls are either super().__call__() or self.<allowed_method>().
@@ -99,7 +110,7 @@ def only_function_calls(method, allowed_methods):
 
 
 # From ChatGPT
-def extract_inputs_and_types(obj) -> dict:
+def extract_inputs_and_types(obj: object) -> dict:
     params = {}
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("input", False):
@@ -107,7 +118,7 @@ def extract_inputs_and_types(obj) -> dict:
     return params
 
 
-def extract_analysis(obj) -> list:
+def extract_analysis(obj: object) -> list:
     analysis = []
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("analysis", False):
@@ -115,7 +126,7 @@ def extract_analysis(obj) -> list:
     return analysis
 
 
-def extract_outputs(obj) -> list:
+def extract_outputs(obj: object) -> list:
     outputs = []
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("output", False):

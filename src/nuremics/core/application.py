@@ -21,7 +21,7 @@ class Application:
         config_path: Path = CONFIG_PATH,
         workflow: list = [],
         silent: bool = False,
-    ):
+    ) -> None:
         # ---------------------- #
         # Define workflow object #
         # ---------------------- #
@@ -46,7 +46,7 @@ class Application:
 
         self.workflow.print_io()
 
-    def configure(self):
+    def configure(self) -> None:
 
         self.workflow.set_working_directory()
 
@@ -61,7 +61,7 @@ class Application:
 
         self.workflow.init_process_settings()
 
-    def settings(self):
+    def settings(self) -> None:
 
         self.workflow.set_inputs()
         self.workflow.test_inputs_settings()
@@ -69,7 +69,7 @@ class Application:
 
         self.workflow.init_paths()
 
-    def __call__(self):
+    def __call__(self) -> None:
 
         # --------------- #
         # Launch workflow #
