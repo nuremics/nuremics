@@ -196,7 +196,8 @@ class Process:
             self.dict_paths[output_path] = None
 
         if self.is_case:
-            if self.dict_paths[output_path] is None: self.dict_paths[output_path] = {}
+            if self.dict_paths[output_path] is None:
+                self.dict_paths[output_path] = {}
             self.dict_paths[output_path][self.index] = os.path.join(os.getcwd(), dump)
         else:
             self.dict_paths[output_path] = os.path.join(os.getcwd(), dump)
