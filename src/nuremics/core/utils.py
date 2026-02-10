@@ -10,7 +10,7 @@ import numpy as np
 def convert_value(
     value: object,
 ) -> Optional[Union[bool, int, float, str, object]]:
-    """Function to convert values in python native types"""
+    """Function to convert values in python native types."""
     if value == "NA":
         return None
     if isinstance(value, (bool, np.bool_)):
@@ -36,7 +36,7 @@ def get_self_method_calls(
     cls: Type,
     method_name: str = "__call__",
 ) -> list:
-    """Get list of functions called in a specific class"""
+    """Get list of functions called in a specific class."""
     method = getattr(cls, method_name, None)
     if method is None:
         return []

@@ -165,7 +165,7 @@ class Process:
     def get_output_path(self,
         output_path: str,
     ) -> Path:
-        """Function to get the path to an output within the paths dictionary"""
+        """Function to get the path to an output within the paths dictionary."""
         # Initialize path to return
         path = None
 
