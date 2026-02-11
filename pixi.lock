@@ -1307,7 +1307,7 @@ packages:
 - pypi: ./
   name: nuremics
   version: 1.0.0
-  sha256: 2e4e23f75d771d4c206297a2e07c2717e9e0eb6076a8667663804c6c44e006ca
+  sha256: c5f50406cdc1b18221f54b24483abc138d812025b51c939fb32e2bc428c178dd
   requires_dist:
   - attrs>=22.1.0
   - pandas>=2.1.1

@@ -1096,6 +1096,12 @@ class WorkFlow:
             # Delete inputs directory (if necessary)
             elif inputs_dir.exists():
                 shutil.rmtree(inputs_dir)
+        
+        # Delete useless study directories
+        studies_folders = [f for f in self.working_dir.iterdir() if f.is_dir()]
+        for folder in studies_folders:
+            if os.path.split(folder)[-1] not in self.studies:
+                shutil.rmtree(folder)
 
     def clean_output_tree(self,
         study: str,
@@ -1534,7 +1540,6 @@ class WorkFlow:
 
             for step, proc in enumerate(self.list_workflow):
 
-                # Update analysis
                 self.update_analysis()
 
                 if "hard_params" in proc:
