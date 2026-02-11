@@ -1,8 +1,0 @@
-indent-width = 4
-line-length = 200
-target-version = "py39"
-
-[lint]
-preview = true
-select = ["ANN", "E", "F", "I"]
-ignore = []

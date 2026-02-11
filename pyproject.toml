@@ -1,19 +1,11 @@
 [project]
-name = "nuremics" 
+name = "nuremics"
 version = "1.0.0"
 description = "nuRemics is an open-source Python framework for building software-grade scientific tools."
 authors = [
   { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = [
-  "attrs>=22.1.0",
-  "pandas>=2.1.1",
-  "numpy>=1.26.0",
-  "termcolor>=1.1.0",
-  "platformdirs>=3.5",
-]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
@@ -23,9 +15,26 @@ license-files = [
   "LICENSE",
   "LICENSE_TRADEMARK",
 ]
+requires-python = ">=3.9"
+dependencies = [
+  "attrs>=22.1.0",
+  "pandas>=2.1.1",
+  "numpy>=1.26.0",
+  "termcolor>=1.1.0",
+  "platformdirs>=3.5",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/nuremics/nuremics"
+
+[dependency-groups]
+dev = [
+  "pre-commit>=4.2.0",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 include-package-data = true
@@ -39,11 +48,36 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[dependency-groups]
-dev = [
-    "pre-commit>=4.2.0",
-]
+[tool.ruff]
+indent-width = 4
+line-length = 200
+target-version = "py39"
 
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.ruff.lint]
+preview = true
+select = ["ANN", "E", "F", "I"]
+ignore = []
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+pandas = ">=2.1.1"
+
+[tool.pixi.pypi-dependencies]
+nuremics = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.dependencies]
+ruff = ">=0.12.7"
+pytest = ">=8.1.1"
+
+[tool.pixi.feature.dev.tasks]
+ruff-check = "ruff check"
+ruff-fix = "ruff check --fix"
+tests = "pytest"
+tests-basetemp = "pytest --basetemp=./.pytest_tmp"
+tests-cov = "pytest --cov=nuremics --cov-report=html tests/"
+
+[tool.pixi.environments]
+dev = ["dev"]
