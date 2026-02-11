@@ -1,7 +1,7 @@
 [project]
 name = "nuremics" 
 version = "1.0.0"
-description = "nuRemics is an open-source Python framework for developing software-grade scientific workflows."
+description = "nuRemics is an open-source Python framework for building software-grade scientific tools."
 authors = [
   { name = "Julien SIGUENZA", email = "contact@julien-siguenza.com" },
 ]
@@ -12,7 +12,6 @@ dependencies = [
   "pandas>=2.1.1",
   "numpy>=1.26.0",
   "termcolor>=1.1.0",
-  "GitPython>=3.1.0",
   "ruff>=0.12.7",
   "platformdirs>=3.5",
   "pytest>=8.1.1",
@@ -35,8 +34,8 @@ include-package-data = true
 
 [tool.setuptools.package-data]
 "nuremics.resources" = [
-  "logo.txt",
-  "logo.png",
+  "*.png",
+  "*.txt",
 ]
 
 [tool.setuptools.packages.find]
@@ -53,136 +52,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 indent-width = 4
-line-length = 88
+line-length = 200
 target-version = "py39"
 
-[tool.ruff.format]
-# Configures the way Ruff formats your code.
-docstring-code-format = true  # Whether to format code snippets in docstrings. (default: false)
-indent-style = "space"
-
 [tool.ruff.lint]
-# Configures how Ruff checks your code.
-select = [# A list of rule codes or prefixes to enable. (default: ["E4", "E7", "E9", "F"])
-    # Security and reliability
-    "S", # flake8-bandit
-    "PGH", # pygrep-hooks
-    "TID", # flake8-tidy-imports
-
-    # Software defects
-    ## Priority 1
-    "B", # flake8-bugbear
-    "BLE", # flake8-blind-except
-    ## Priority 2
-    "LOG", # flake8-logging
-    "G", # flake8-logging-format
-    ## Priority 3
-    "YTT", # flake8-2020
-    "INT", # flake8-gettext
-    "INP", # flake8-no-pep420
-    ## Priority 4
-    "C90", # mccabe (recommended max-complexity = 30)
-    "PERF", # Perflint
-
-    # Updates and deadcode
-    "ERA", # eradicate
-    "T10", # flake8-debugger
-    "FA", # flake8-future-annotations
-    "PTH", # flake8-use-pathlib
-    "UP", # pyupgrade
-
-    # Conventions
-    "ICN", # flake8-import-conventions
-    "SLF", # flake8-self
-    "I", # isort
-    "N", # pep8-naming
-    "E", # pycodestyle Error
-    "W", # pycodestyle Warning
-
-    # Quality and antipatterns
-    ## Priority 1
-    "ANN", # flake8-annotations
-    "ASYNC", # flake8-async
-    "RET", # flake8-return
-    "C90", # mccabe (recommended max-complexity = 20)
-    ## Priority 2
-    "FBT", # flake8-boolean-trap
-    "A", # flake8-builtins
-    "ARG", # flake8-unused-arguments
-    "C90", # mccabe (recommended max-complexity = 17)
-    ## Priority 3
-    "ISC", # flake8-implicit-str-concat
-    "C4", # flake8-comprehensions
-    "RSE", # flake8-raise
-    "C90", # mccabe (recommended max-complexity = 15)
-    ## Priority 4
-    "COM", # flake8-commas
-    "DTZ", # flake8-datetimez
-    "EM", # flake8-errmsg
-    "C90", # mccabe (recommended max-complexity = 12)
-    ## Priority 5
-    "PYI", # flake8-pyi
-    "C90", # mccabe (recommended max-complexity = 10)
-    ## Priority 6
-    "PIE", # flake8-pie
-    "EXE", # flake8-executable
-    "T20", # flake8-print
-    ## Priority 7
-    "FIX", # flake8-fixme
-    "TD", # flake8-todos
-    "SIM", # flake8-simplify
-    "SLOT", # flake8-slots
-    ## Priority 8
-    "TC", # flake8-type-checking
-    "FLY", # flynt
-    ## Priority 9
-    "D", # pydocstyle
-    "F", # Pyflakes
-    ## Priority 10
-    "PT", # flake8-pytest-style
-    "DOC", # pydoclint
-    ## Priority 11
-    "PL", # Pylint
-    "FURB", # refurb
-    "RUF", # Ruff-specific rules
-    "TRY", # tryceratops
-
-    # Misc
-#    "CPY",  # flake8-copyright
-#    "Q", # flake8-quotes
-#    "PLC", # Pylint Convention
-#    "PLE", # Pylint Error
-#    "PLR", # Pylint Refactor
-#    "PLW", # Pylint Warning
-
-    ## Quality and antipatterns
-#     "AIR", # Airflow
-#     "FAST", # FastAPI
-#     "DJ",  # flake8-django
-#     "NPY",  # NumPy-specific rules
-#     "PD",  # pandas-vet
-]
-ignore = [  # A list of rule codes or prefixes to ignore.
-    "FIX002", # Checks for "TODO" comments.
-    "DOC201", # return is not documented in docstring
-    "DOC402", # yield is not documented in docstring
-]
-
-[tool.ruff.per-file-ignores]
-# A list of mappings from file pattern to rule codes or prefixes to exclude, when considering any matching files.
-"tests/**/*.py" = [
-#    "ARG", # flake8-unused-arguments: use @pytest.mark.usefixtures or noqa: ARG
-    "S101",  # Use of assert detected
-    "S311",  # Standard pseudo-random generators are not suitable for cryptographic purposes
-]
-
-[tool.ruff.lint.flake8-annotations]
-suppress-dummy-args = true
-
-[tool.ruff.lint.pydocstyle]
-convention = "pep257"
-ignore-decorators = ["typing.overload"]
-
-[tool.ruff.lint.mccabe]
-# Checks for functions with a high McCabe complexity. (default: 10)
-max-complexity = 10
+preview = true
+select = ["ANN", "E", "F", "I"]
+ignore = []

@@ -1,17 +1,22 @@
-import pytest
-import attrs
 from pathlib import Path
+from typing import Any
+
+import attrs
+import pytest
 
 from nuremics import Process
 
 
 @pytest.fixture(scope="module")
-def shared_tmp_path(tmp_path_factory):
+def shared_tmp_path(
+    tmp_path_factory: Path
+) -> Path:
+
     return tmp_path_factory.mktemp("app_test")
 
 
 @pytest.fixture
-def test_config():
+def test_config() -> list[dict[str, Any]]:
     
     workflow = [
         {
@@ -37,7 +42,7 @@ def test_config():
                 "path1": "input1.txt",
                 "path2": "input2",
             },
-            "required_paths":{
+            "required_paths": {
                 "path3": "output1.txt",
             },
             "output_paths": {
@@ -51,7 +56,7 @@ def test_config():
                 "param2": "parameter4",
                 "param3": "parameter5",
             },
-            "required_paths":{
+            "required_paths": {
                 "path1": "output2.txt",
             },
             "output_paths": {
@@ -68,7 +73,7 @@ def test_config():
             "user_paths": {
                 "path1": "input3.txt",
             },
-            "required_paths":{
+            "required_paths": {
                 "path2": "output3.txt",
                 "path3": "output4.txt",
             },
@@ -112,20 +117,20 @@ class Process1(Process):
     # Internal
     variable: float = attrs.field(init=False)
 
-    def __call__(self):
+    def __call__(self) -> None:
         super().__call__()
 
         self.operation1()
         self.operation2()
         self.operation3()
 
-    def operation1(self):
+    def operation1(self) -> None:
         ...
 
-    def operation2(self):
+    def operation2(self) -> None:
         ...
 
-    def operation3(self):
+    def operation3(self) -> None:
 
         file = self.output_paths["out1"]
         with open(file, "w") as f:
@@ -149,12 +154,12 @@ class Process2(Process):
     # Internal
     variable: int = attrs.field(init=False)
 
-    def __call__(self):
+    def __call__(self) -> None:
         super().__call__()
 
         self.operation1()
 
-    def operation1(self):
+    def operation1(self) -> None:
 
         file = self.output_paths["out1"]
         with open(file, "w") as f:
@@ -179,7 +184,7 @@ class Process3(Process):
     # Internal
     variable: bool = attrs.field(init=False)
 
-    def __call__(self):
+    def __call__(self) -> None:
         super().__call__()
 
         self.operation1()
@@ -187,19 +192,19 @@ class Process3(Process):
         self.operation3()
         self.operation4()
 
-    def operation1(self):
+    def operation1(self) -> None:
         ...
 
-    def operation2(self):
+    def operation2(self) -> None:
 
         file = self.output_paths["out1"]
         with open(file, "w") as f:
             f.write("")
 
-    def operation3(self):
+    def operation3(self) -> None:
         ...
 
-    def operation4(self):
+    def operation4(self) -> None:
         
         file = self.output_paths["out2"]
         with open(file, "w") as f:
@@ -224,16 +229,16 @@ class Process4(Process):
     # Internal
     variable: str = attrs.field(init=False)
 
-    def __call__(self):
+    def __call__(self) -> None:
         super().__call__()
 
         self.operation1()
         self.operation2()
 
-    def operation1(self):
+    def operation1(self) -> None:
         ...
 
-    def operation2(self):
+    def operation2(self) -> None:
 
         dir = Path(self.output_paths["out1"])
         dir.mkdir(
@@ -255,12 +260,12 @@ class Process5(Process):
     # Outputs
     out1: Path = attrs.field(init=False, metadata={"output": True}, converter=Path)
 
-    def __call__(self):
+    def __call__(self) -> None:
         super().__call__()
 
         self.operation1()
     
-    def operation1(self):
+    def operation1(self) -> None:
         
         file = self.output_paths["out1"]
         with open(file, "w") as f:

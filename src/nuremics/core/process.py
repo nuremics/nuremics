@@ -18,7 +18,6 @@ from .utils import (
 
 @attrs.define
 class Process:
-    """Mother class of all classes of process."""
 
     name: str = attrs.field(default=None)
     study: str = attrs.field(default=None)
@@ -165,7 +164,7 @@ class Process:
     def get_output_path(self,
         output_path: str,
     ) -> Path:
-        """Function to get the path to an output within the paths dictionary."""
+        
         # Initialize path to return
         path = None
 

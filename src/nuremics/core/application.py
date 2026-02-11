@@ -13,7 +13,6 @@ CONFIG_PATH = user_config_path(
 
 
 class Application:
-    """Create application."""
 
     def __init__(
         self,
@@ -22,9 +21,7 @@ class Application:
         workflow: list = [],
         silent: bool = False,
     ) -> None:
-        # ---------------------- #
-        # Define workflow object #
-        # ---------------------- #
+        
         self.workflow = WorkFlow(
             app_name=app_name,
             config_path=config_path,
@@ -71,7 +68,4 @@ class Application:
 
     def __call__(self) -> None:
 
-        # --------------- #
-        # Launch workflow #
-        # --------------- #
         self.workflow()

@@ -1,2 +1,2 @@
-from .application import Application
-from .process import Process
+from .application import Application as Application
+from .process import Process as Process

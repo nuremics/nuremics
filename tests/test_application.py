@@ -1,16 +1,20 @@
-import pytest
 import json
+from pathlib import Path
+from typing import Any
+
 import pandas as pd
 import pandas.testing as pdt
-from pathlib import Path
-from unittest.mock import patch
+import pytest
 
 from nuremics import Application
 
 APP_NAME = "TEST_APP"
 
 
-def test_state_settings(shared_tmp_path, test_config):
+def test_state_settings(
+    shared_tmp_path: Path,
+    test_config: list[dict[str, Any]],
+) -> None:
 
     workflow = test_config
 
@@ -55,26 +59,11 @@ def test_state_settings(shared_tmp_path, test_config):
 
     assert dict_settings["default_working_dir"] == str(shared_tmp_path)
 
-    # dict_settings["apps"]["TEST_APP"]["working_dir"] = None
-    # with open(settings_file, "w") as f:
-    #     json.dump(dict_settings, f, indent=4)
-    
-    # with pytest.raises(SystemExit) as exc_info:
-    #     with patch('builtins.input', side_effect="Y"):
-    #         Application(
-    #             app_name=APP_NAME,
-    #             config_path=shared_tmp_path,
-    #             workflow=workflow,
-    #         )
-    #     assert exc_info.value.code == 1
-    
-    # with open(settings_file) as f:
-    #     dict_settings = json.load(f)
-    
-    # assert dict_settings["apps"]["TEST_APP"]["working_dir"] == str(shared_tmp_path)
 
-
-def test_state_studies_config(shared_tmp_path, test_config):
+def test_state_studies_config(
+    shared_tmp_path: Path,
+    test_config: list[dict[str, Any]],
+) -> None:
 
     workflow = test_config
 
@@ -87,14 +76,14 @@ def test_state_studies_config(shared_tmp_path, test_config):
         app.configure()
         assert exc_info.value.code == 1
 
-    app_dir:Path = shared_tmp_path / APP_NAME
+    app_dir: Path = shared_tmp_path / APP_NAME
     assert app_dir.is_dir()
 
-    studies_file:Path = app_dir / "studies.json"
+    studies_file: Path = app_dir / "studies.json"
     assert studies_file.is_file()
 
     with open(studies_file) as f:
-        dict_studies:dict = json.load(f)
+        dict_studies: dict = json.load(f)
 
     dict_studies_ref = {
         "studies": [],
@@ -119,14 +108,14 @@ def test_state_studies_config(shared_tmp_path, test_config):
         assert exc_info.value.code == 1
 
     with open(studies_file) as f:
-        dict_studies:dict = json.load(f)
+        dict_studies: dict = json.load(f)
 
     dict_studies_ref = {
         "studies": [
             "Study1",
             "Study2",
         ],
-        "config":{
+        "config": {
             "Study1": {
                 "execute": True,
                 "user_params": {
@@ -203,7 +192,10 @@ def test_state_studies_config(shared_tmp_path, test_config):
         json.dump(dict_studies, f, indent=4)
 
 
-def test_state_set_inputs(shared_tmp_path, test_config):
+def test_state_set_inputs(
+    shared_tmp_path: Path,
+    test_config: list[dict[str, Any]],
+) -> None:
 
     workflow = test_config
     
@@ -217,40 +209,40 @@ def test_state_set_inputs(shared_tmp_path, test_config):
         app.settings()
         assert exc_info.value.code == 1
 
-    studies_file:Path = shared_tmp_path / APP_NAME / "studies.json"
+    studies_file: Path = shared_tmp_path / APP_NAME / "studies.json"
     with open(studies_file) as f:
-        dict_studies:dict = json.load(f)
+        dict_studies: dict = json.load(f)
 
     for study in ["Study1", "Study2"]:
 
-        study_dir:Path = shared_tmp_path / APP_NAME / study
+        study_dir: Path = shared_tmp_path / APP_NAME / study
         assert study_dir.is_dir()
 
-        inputs_dir:Path = study_dir / "0_inputs"
+        inputs_dir: Path = study_dir / "0_inputs"
         assert inputs_dir.is_dir()
 
-        datasets_dir:Path = inputs_dir / "0_datasets"
+        datasets_dir: Path = inputs_dir / "0_datasets"
         assert datasets_dir.is_dir()
 
-        inputs_csv:Path = study_dir / "inputs.csv"
+        inputs_csv: Path = study_dir / "inputs.csv"
         assert inputs_csv.is_file()
 
-        inputs_json:Path = study_dir / "inputs.json"
+        inputs_json: Path = study_dir / "inputs.json"
         assert inputs_json.is_file()
 
-        process_json:Path = study_dir / "process.json"
+        process_json: Path = study_dir / "process.json"
         assert process_json.is_file()
 
-        study_json:Path = study_dir / ".study.json"
+        study_json: Path = study_dir / ".study.json"
         assert study_json.is_file()
 
         df_inputs = pd.read_csv(inputs_csv)
         with open(inputs_json) as f:
-            dict_inputs:dict = json.load(f)
+            dict_inputs: dict = json.load(f)
         with open(process_json) as f:
-            dict_process:dict = json.load(f)
+            dict_process: dict = json.load(f)
         with open(study_json) as f:
-            dict_study:dict = json.load(f)
+            dict_study: dict = json.load(f)
         
         assert dict_study == dict_studies["config"][study]
 
@@ -292,7 +284,7 @@ def test_state_set_inputs(shared_tmp_path, test_config):
             }
             
             list_params = ["parameter6"]
-            df_inputs_ref = pd.DataFrame(columns=["ID"]+list_params+["EXECUTE"])
+            df_inputs_ref = pd.DataFrame(columns=["ID"] + list_params + ["EXECUTE"])
             
             assert dict_inputs == dict_inputs_ref
             pdt.assert_frame_equal(df_inputs, df_inputs_ref)
@@ -326,7 +318,7 @@ def test_state_set_inputs(shared_tmp_path, test_config):
             }
             
             list_params = ["parameter4", "parameter5"]
-            df_inputs_ref = pd.DataFrame(columns=["ID"]+list_params+["EXECUTE"])
+            df_inputs_ref = pd.DataFrame(columns=["ID"] + list_params + ["EXECUTE"])
             
             assert dict_inputs == dict_inputs_ref
             pdt.assert_frame_equal(df_inputs, df_inputs_ref)
@@ -352,7 +344,10 @@ def test_state_set_inputs(shared_tmp_path, test_config):
         )
 
 
-def test_state_define_datasets(shared_tmp_path, test_config):
+def test_state_define_datasets(
+    shared_tmp_path: Path,
+    test_config: list[dict[str, Any]],
+) -> None:
 
     workflow = test_config
     
@@ -368,10 +363,10 @@ def test_state_define_datasets(shared_tmp_path, test_config):
     
     for study in ["Study1", "Study2"]:
 
-        study_dir:Path = shared_tmp_path / APP_NAME / study
-        inputs_dir:Path = study_dir / "0_inputs"
-        datasets_dir:Path = inputs_dir / "0_datasets"
-        inputs_csv:Path = study_dir / "inputs.csv"
+        study_dir: Path = shared_tmp_path / APP_NAME / study
+        inputs_dir: Path = study_dir / "0_inputs"
+        datasets_dir: Path = inputs_dir / "0_datasets"
+        inputs_csv: Path = study_dir / "inputs.csv"
 
         df_inputs = pd.read_csv(
             filepath_or_buffer=inputs_csv,
@@ -379,7 +374,7 @@ def test_state_define_datasets(shared_tmp_path, test_config):
         )
         for idx in df_inputs.index:
 
-            dataset_dir:Path = datasets_dir / idx
+            dataset_dir: Path = datasets_dir / idx
             assert dataset_dir.is_dir()
 
             if study == "Study1":
@@ -422,7 +417,10 @@ def test_state_define_datasets(shared_tmp_path, test_config):
         )
 
 
-def test_state_run(shared_tmp_path, test_config):
+def test_state_run(
+    shared_tmp_path: Path,
+    test_config: list[dict[str, Any]],
+) -> None:
 
     workflow = test_config
     
@@ -439,7 +437,7 @@ def test_state_run(shared_tmp_path, test_config):
     list_processes = []
     for i, proc in enumerate(workflow):
         
-        dir_name = f"{i+1}_{proc['process'].__name__}"
+        dir_name = f"{i + 1}_{proc['process'].__name__}"
         list_processes.append(dir_name)
         
         dict_outputs[dir_name] = []
@@ -449,33 +447,33 @@ def test_state_run(shared_tmp_path, test_config):
 
     for study in ["Study1", "Study2"]:
 
-        study_dir:Path = shared_tmp_path / APP_NAME / study
+        study_dir: Path = shared_tmp_path / APP_NAME / study
         
-        analysis_json:Path = study_dir / "analysis.json"
+        analysis_json: Path = study_dir / "analysis.json"
         assert analysis_json.is_file()
 
-        diagram_json:Path = study_dir / ".diagram.json"
+        diagram_json: Path = study_dir / ".diagram.json"
         assert diagram_json.is_file()
 
-        paths_json:Path = study_dir / ".paths.json"
+        paths_json: Path = study_dir / ".paths.json"
         assert paths_json.is_file()
 
-        inputs_csv:Path = study_dir / "inputs.csv"
+        inputs_csv: Path = study_dir / "inputs.csv"
         df_inputs = pd.read_csv(
             filepath_or_buffer=inputs_csv,
             index_col=0,
         )
 
         with open(analysis_json) as f:
-            dict_analysis:dict = json.load(f)
+            dict_analysis: dict = json.load(f)
         with open(diagram_json) as f:
-            dict_diagram:dict = json.load(f)
+            dict_diagram: dict = json.load(f)
         with open(paths_json) as f:
-            dict_paths:dict = json.load(f)
+            dict_paths: dict = json.load(f)
         
         for proc in list_processes:
             
-            proc_dir:Path = study_dir / proc
+            proc_dir: Path = study_dir / proc
             assert proc_dir.is_dir()
 
             if study == "Study1":
@@ -485,17 +483,17 @@ def test_state_run(shared_tmp_path, test_config):
 
             if proc not in list_proc_no_dataset:
                 for idx in df_inputs.index:
-                    dataset_dir:Path = proc_dir / idx
+                    dataset_dir: Path = proc_dir / idx
                     assert dataset_dir.is_dir()
                     for out in dict_outputs[proc]:
-                        out_path:Path = dataset_dir / out
+                        out_path: Path = dataset_dir / out
                         if len(out.split(".")) > 1:
                             assert out_path.is_file()
                         else:
                             assert out_path.is_dir()
             else:
                 for out in dict_outputs[proc]:
-                    out_path:Path = proc_dir / out
+                    out_path: Path = proc_dir / out
                     if len(out.split(".")) > 1:
                         assert out_path.is_file()
                     else:

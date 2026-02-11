@@ -1,7 +1,7 @@
 import ast
 import inspect
 import textwrap
-from typing import Optional, Union, Any, Type, Callable
+from typing import Any, Callable, Optional, Type, Union
 
 import attrs
 import numpy as np
@@ -10,7 +10,7 @@ import numpy as np
 def convert_value(
     value: object,
 ) -> Optional[Union[bool, int, float, str, object]]:
-    """Function to convert values in python native types."""
+    
     if value == "NA":
         return None
     if isinstance(value, (bool, np.bool_)):
@@ -21,6 +21,7 @@ def convert_value(
         return float(value)
     if isinstance(value, str):
         return str(value)
+    
     return value
 
 
@@ -28,15 +29,15 @@ def concat_lists_unique(
     list1: list,
     list2: list,
 ) -> list:
+    
     return list(dict.fromkeys(list1 + list2))
 
 
-# From ChatGPT
 def get_self_method_calls(
     cls: Type,
     method_name: str = "__call__",
 ) -> list:
-    """Get list of functions called in a specific class."""
+    
     method = getattr(cls, method_name, None)
     if method is None:
         return []
@@ -69,6 +70,7 @@ def only_function_calls(
     Checks that the method contains only function calls,
     and that all calls are either super().__call__() or self.<allowed_method>().
     """
+    
     # Get and dedent source code
     source = inspect.getsource(method)
     source = textwrap.dedent(source)
@@ -109,26 +111,37 @@ def only_function_calls(
     return True
 
 
-# From ChatGPT
-def extract_inputs_and_types(obj: object) -> dict:
+def extract_inputs_and_types(
+    obj: object,
+) -> dict:
+    
     params = {}
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("input", False):
             params[field.name] = field.type
+    
     return params
 
 
-def extract_analysis(obj: object) -> list:
+def extract_analysis(
+    obj: object,
+) -> list:
+    
     analysis = []
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("analysis", False):
             analysis.append(field.name)
+    
     return analysis
 
 
-def extract_outputs(obj: object) -> list:
+def extract_outputs(
+    obj: object,
+) -> list:
+
     outputs = []
     for field in attrs.fields(obj.__class__):
         if field.metadata.get("output", False):
             outputs.append(field.name)
+    
     return outputs

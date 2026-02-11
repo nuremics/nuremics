@@ -1,6 +1,5 @@
 __pycache__/
 .coverage
 .pytest_tmp/
+.vscode/
 *.egg-info/
-
-memo.txt
