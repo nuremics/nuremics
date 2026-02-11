@@ -3,3 +3,7 @@ __pycache__/
 .pytest_tmp/
 .vscode/
 *.egg-info/
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml

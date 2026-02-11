@@ -12,9 +12,7 @@ dependencies = [
   "pandas>=2.1.1",
   "numpy>=1.26.0",
   "termcolor>=1.1.0",
-  "ruff>=0.12.7",
   "platformdirs>=3.5",
-  "pytest>=8.1.1",
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
@@ -49,13 +47,3 @@ dev = [
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.ruff]
-indent-width = 4
-line-length = 200
-target-version = "py39"
-
-[tool.ruff.lint]
-preview = true
-select = ["ANN", "E", "F", "I"]
-ignore = []
