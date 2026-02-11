@@ -47,37 +47,3 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.ruff]
-indent-width = 4
-line-length = 200
-target-version = "py39"
-
-[tool.ruff.lint]
-preview = true
-select = ["ANN", "E", "F", "I"]
-ignore = []
-
-[tool.pixi.workspace]
-channels = ["conda-forge"]
-platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
-
-[tool.pixi.dependencies]
-pandas = ">=2.1.1"
-
-[tool.pixi.pypi-dependencies]
-nuremics = { path = ".", editable = true }
-
-[tool.pixi.feature.dev.dependencies]
-ruff = ">=0.12.7"
-pytest = ">=8.1.1"
-
-[tool.pixi.feature.dev.tasks]
-ruff-check = "ruff check"
-ruff-fix = "ruff check --fix"
-tests = "pytest"
-tests-basetemp = "pytest --basetemp=./.pytest_tmp"
-tests-cov = "pytest --cov=nuremics --cov-report=html tests/"
-
-[tool.pixi.environments]
-dev = ["dev"]
