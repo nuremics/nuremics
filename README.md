@@ -41,7 +41,7 @@ It defines the entry points required by the application to function (e.g., Input
 
 **OUTPUTS**
 
-It defines the delivery points where results are produced during execution (e.g., Output1–4). Each software process generates its associated outputs, which are either stored as final results or re-routed as inputs of subsequent software processes within the workflow.
+It defines the delivery points where results are produced during execution (e.g., Output1–4). Each software process generates its own outputs, which are either stored as final results or re-routed as inputs of subsequent software processes within the workflow.
 
 **CONFIGURATION**
 
