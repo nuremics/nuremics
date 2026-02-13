@@ -1,11 +1,11 @@
 <img src="https://raw.githubusercontent.com/nuremics/nuremics.github.io/main/images/banner.jpg" width="100%">
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3.9+-ffcd3b?style=flat&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/attrs-22.1.0+-000000?style=flat" />
+  <img src="https://img.shields.io/badge/attrs-22.1.0+-000000" />
   <img src="https://img.shields.io/badge/Pandas-2.1.1+-0b0153?style=flat&logo=pandas&logoColor=white" />
   <img src="https://img.shields.io/badge/NumPy-1.26.0+-4dabcf?style=flat&logo=numpy&logoColor=white" />
-  <img src="https://img.shields.io/badge/termcolor-1.1.0+-0dbc5a?style=flat" />
-  <img src="https://img.shields.io/badge/platformdirs-3.5+-364f87?style=flat" />
+  <img src="https://img.shields.io/badge/termcolor-1.1.0+-0dbc5a" />
+  <img src="https://img.shields.io/badge/platformdirs-3.5+-364f87" />
   <a href="https://nuremics.github.io/coverage"
      target="_blank"
      rel="noopener noreferrer">
