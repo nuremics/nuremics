@@ -13,7 +13,8 @@
   </a>
 </p>
 
-**nuRemics is an open-source Python framework for building software-grade scientific tools.**
+# nuRemics
+_An open-source Python framework for building software-grade scientific tools._
 
 🔬 Scientific agility — engineering rigor.<br>
 🧩 Modular by design — no more siloed tools.<br>
