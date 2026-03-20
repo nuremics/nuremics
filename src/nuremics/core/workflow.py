@@ -955,9 +955,14 @@ class WorkFlow:
                 # Define list of datasets
                 self.dict_datasets[study] = df_inputs.index.tolist()
 
-            # Delete file
-            elif inputs_file.exists():
-                inputs_file.unlink()
+            else:
+
+                # Define empty list of datasets
+                self.dict_datasets[study] = []
+
+                # Delete file
+                if inputs_file.exists():
+                    inputs_file.unlink()
 
             # Initialize inputs json file
             inputs_file: Path = study_dir / "inputs.json"
