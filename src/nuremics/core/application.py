@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
 from platformdirs import user_config_path
 
 from .workflow import WorkFlow
+from .utils import resolve_process
 
 CONFIG_PATH = user_config_path(
     appname="nuRemics",
@@ -16,16 +18,38 @@ class Application:
 
     def __init__(
         self,
-        app_name: str,
+        app_id: list,
+        apps_dir: Path,
+        stage: str = "run",
         config_path: Path = CONFIG_PATH,
-        workflow: list = [],
         silent: bool = False,
     ) -> None:
+
+        apps_factory = {}
+        for f in apps_dir.glob("apps/**/*.yaml"):
+            category = f.parent.parent.name
+            app_name = f.parent.name
+
+            if category not in apps_factory:
+                apps_factory[category] = {}
+
+            apps_factory[category][app_name] = f
+
+        app_file = apps_factory[app_id[0]][app_id[1]]
+        with open(app_file) as f:
+            dict_app = yaml.safe_load(f)
+
+        self.stage = stage
+        self.list_workflow = dict_app["workflow"]
+        self.default_params = dict_app["default_params"]
+
+        for step in self.list_workflow:
+            step["process"] = resolve_process(step["process"])
         
         self.workflow = WorkFlow(
-            app_name=app_name,
+            app_name=app_file.parent.name,
             config_path=config_path,
-            workflow=workflow,
+            workflow=self.list_workflow,
             silent=silent,
         )
 
@@ -68,4 +92,12 @@ class Application:
 
     def __call__(self) -> None:
 
-        self.workflow()
+        if self.stage == "config":
+            self.configure()
+        elif self.stage == "settings":
+            self.configure()
+            self.settings()
+        elif self.stage == "run":
+            self.configure()
+            self.settings()
+            self.workflow()

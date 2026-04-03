@@ -1,10 +1,23 @@
 import ast
+import importlib
 import inspect
 import textwrap
 from typing import Any, Callable, Optional, Type, Union
 
 import attrs
 import numpy as np
+
+
+def resolve_process(path: str):
+
+    parts = path.split(".")
+    
+    module_path = ".".join(parts)
+    class_name = parts[-1]
+
+    module = importlib.import_module(module_path)
+    
+    return getattr(module, class_name)
 
 
 def convert_value(
