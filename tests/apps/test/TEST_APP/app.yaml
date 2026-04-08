@@ -1,0 +1,54 @@
+workflow:
+  - process: tests.apps.test.TEST_APP.procs.Process1
+    user_params:
+      param1: parameter1
+      param2: parameter2
+      param3: parameter3
+    user_paths:
+      path1: input1.txt
+    output_paths:
+      out1: output1.txt
+
+  - process: tests.apps.test.TEST_APP.procs.Process2
+    hard_params:
+      param1: 0.887
+    user_paths:
+      path1: input1.txt
+      path2: input2
+    required_paths:
+      path3: output1.txt
+    output_paths:
+      out1: output2.txt
+
+  - process: tests.apps.test.TEST_APP.procs.Process3
+    user_params:
+      param1: parameter2
+      param2: parameter4
+      param3: parameter5
+    required_paths:
+      path1: output2.txt
+    output_paths:
+      out1: output3.txt
+      out2: output4.txt
+
+  - process: tests.apps.test.TEST_APP.procs.Process4
+    user_params:
+      param1: parameter3
+      param2: parameter6
+    user_paths:
+      path1: input3.txt
+    required_paths:
+      path2: output3.txt
+      path3: output4.txt
+    output_paths:
+      out1: output5
+
+  - process: tests.apps.test.TEST_APP.procs.Process5
+    overall_analysis:
+      analysis1: output5
+    output_paths:
+      out1: output6.txt
+    settings:
+      setting1: false
+      setting2: 5
+      setting3: Label

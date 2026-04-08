@@ -8,7 +8,7 @@ import attrs
 import numpy as np
 
 
-def resolve_process(path: str):
+def resolve_process(path: str) -> Type:
 
     parts = path.split(".")
     

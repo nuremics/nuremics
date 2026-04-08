@@ -5,8 +5,8 @@ from pathlib import Path
 import yaml
 from platformdirs import user_config_path
 
-from .workflow import WorkFlow
 from .utils import resolve_process
+from .workflow import WorkFlow
 
 CONFIG_PATH = user_config_path(
     appname="nuRemics",
@@ -41,13 +41,16 @@ class Application:
 
         self.stage = stage
         self.list_workflow = dict_app["workflow"]
-        self.default_params = dict_app["default_params"]
+        if "default_params" in dict_app:
+            self.default_params = dict_app["default_params"]
+        else:
+            self.default_params = {}
 
         for step in self.list_workflow:
             step["process"] = resolve_process(step["process"])
         
         self.workflow = WorkFlow(
-            app_name=app_file.parent.name,
+            app_id=app_id,
             config_path=config_path,
             workflow=self.list_workflow,
             silent=silent,

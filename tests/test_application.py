@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 import pandas.testing as pdt
@@ -8,20 +7,18 @@ import pytest
 
 from nuremics import Application
 
-APP_NAME = "TEST_APP"
+APPS_DIR = Path(__file__).parent
 
 
 def test_state_settings(
     shared_tmp_path: Path,
-    test_config: list[dict[str, Any]],
 ) -> None:
 
-    workflow = test_config
-
-    Application(
-        app_name=APP_NAME,
+    app = Application(
+        app_id=["test", "TEST_APP"],
+        apps_dir=APPS_DIR,
+        stage="config",
         config_path=shared_tmp_path,
-        workflow=workflow,
     )
 
     settings_file = shared_tmp_path / "settings.json"
@@ -32,26 +29,28 @@ def test_state_settings(
 
     dict_settings_ref = {
         "default_working_dir": None,
-        "apps":
-        {
-            "TEST_APP": {
-                "working_dir": None,
+        "apps": {
+            "test": {
+                "TEST_APP": {
+                    "working_dir": None,
+                }
             }
         }
     }
     assert dict_settings == dict_settings_ref
 
-    dict_settings["apps"]["TEST_APP"]["working_dir"] = str(shared_tmp_path)
+    dict_settings["apps"]["test"]["TEST_APP"]["working_dir"] = str(shared_tmp_path)
     with open(settings_file, "w") as f:
         json.dump(dict_settings, f, indent=4)
 
     with pytest.raises(SystemExit) as exc_info:
         app = Application(
-            app_name=APP_NAME,
+            app_id=["test", "TEST_APP"],
+            apps_dir=APPS_DIR,
+            stage="config",
             config_path=shared_tmp_path,
-            workflow=workflow,
         )
-        app.configure()
+        app()
         assert exc_info.value.code == 1
     
     with open(settings_file) as f:
@@ -62,21 +61,19 @@ def test_state_settings(
 
 def test_state_studies_config(
     shared_tmp_path: Path,
-    test_config: list[dict[str, Any]],
 ) -> None:
-
-    workflow = test_config
 
     with pytest.raises(SystemExit) as exc_info:
         app = Application(
-            app_name=APP_NAME,
+            app_id=["test", "TEST_APP"],
+            apps_dir=APPS_DIR,
+            stage="config",
             config_path=shared_tmp_path,
-            workflow=workflow,
         )
-        app.configure()
+        app()
         assert exc_info.value.code == 1
 
-    app_dir: Path = shared_tmp_path / APP_NAME
+    app_dir: Path = shared_tmp_path / "TEST_APP"
     assert app_dir.is_dir()
 
     studies_file: Path = app_dir / "studies.json"
@@ -100,11 +97,12 @@ def test_state_studies_config(
 
     with pytest.raises(SystemExit) as exc_info:
         app = Application(
-            app_name=APP_NAME,
+            app_id=["test", "TEST_APP"],
+            apps_dir=APPS_DIR,
+            stage="config",
             config_path=shared_tmp_path,
-            workflow=workflow,
         )
-        app.configure()
+        app()
         assert exc_info.value.code == 1
 
     with open(studies_file) as f:
@@ -194,28 +192,25 @@ def test_state_studies_config(
 
 def test_state_set_inputs(
     shared_tmp_path: Path,
-    test_config: list[dict[str, Any]],
 ) -> None:
-
-    workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
         app = Application(
-            app_name=APP_NAME,
+            app_id=["test", "TEST_APP"],
+            apps_dir=APPS_DIR,
+            stage="settings",
             config_path=shared_tmp_path,
-            workflow=workflow,
         )
-        app.configure()
-        app.settings()
+        app()
         assert exc_info.value.code == 1
 
-    studies_file: Path = shared_tmp_path / APP_NAME / "studies.json"
+    studies_file: Path = shared_tmp_path / "TEST_APP" / "studies.json"
     with open(studies_file) as f:
         dict_studies: dict = json.load(f)
 
     for study in ["Study1", "Study2"]:
 
-        study_dir: Path = shared_tmp_path / APP_NAME / study
+        study_dir: Path = shared_tmp_path / "TEST_APP" / study
         assert study_dir.is_dir()
 
         inputs_dir: Path = study_dir / "0_inputs"
@@ -346,24 +341,21 @@ def test_state_set_inputs(
 
 def test_state_define_datasets(
     shared_tmp_path: Path,
-    test_config: list[dict[str, Any]],
 ) -> None:
-
-    workflow = test_config
     
     with pytest.raises(SystemExit) as exc_info:
         app = Application(
-            app_name=APP_NAME,
+            app_id=["test", "TEST_APP"],
+            apps_dir=APPS_DIR,
+            stage="settings",
             config_path=shared_tmp_path,
-            workflow=workflow,
         )
-        app.configure()
-        app.settings()
+        app()
         assert exc_info.value.code == 1
     
     for study in ["Study1", "Study2"]:
 
-        study_dir: Path = shared_tmp_path / APP_NAME / study
+        study_dir: Path = shared_tmp_path / "TEST_APP" / study
         inputs_dir: Path = study_dir / "0_inputs"
         datasets_dir: Path = inputs_dir / "0_datasets"
         inputs_csv: Path = study_dir / "inputs.csv"
@@ -419,23 +411,19 @@ def test_state_define_datasets(
 
 def test_state_run(
     shared_tmp_path: Path,
-    test_config: list[dict[str, Any]],
 ) -> None:
-
-    workflow = test_config
     
     app = Application(
-        app_name=APP_NAME,
+        app_id=["test", "TEST_APP"],
+        apps_dir=APPS_DIR,
+        stage="run",
         config_path=shared_tmp_path,
-        workflow=workflow,
     )
-    app.configure()
-    app.settings()
     app()
 
     dict_outputs = {}
     list_processes = []
-    for i, proc in enumerate(workflow):
+    for i, proc in enumerate(app.list_workflow):
         
         dir_name = f"{i + 1}_{proc['process'].__name__}"
         list_processes.append(dir_name)
@@ -447,7 +435,7 @@ def test_state_run(
 
     for study in ["Study1", "Study2"]:
 
-        study_dir: Path = shared_tmp_path / APP_NAME / study
+        study_dir: Path = shared_tmp_path / "TEST_APP" / study
         
         analysis_json: Path = study_dir / "analysis.json"
         assert analysis_json.is_file()

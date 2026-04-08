@@ -26,7 +26,7 @@ class WorkFlow:
 
     def __init__(
         self,
-        app_name: str,
+        app_id: list,
         config_path: Path,
         workflow: list,
         silent: bool = False,
@@ -35,7 +35,8 @@ class WorkFlow:
         # -------------------- #
         # Initialize variables #
         # -------------------- #
-        self.app_name = app_name
+        self.app_category = app_id[0]
+        self.app_name = app_id[1]
         self.config_path = config_path
         self.list_workflow = workflow
         self.list_processes = []
@@ -111,8 +112,10 @@ class WorkFlow:
         # ------------------------------- #
         # Initialize application settings #
         # ------------------------------- #
-        if self.app_name not in self.dict_settings["apps"]:
-            self.dict_settings["apps"][self.app_name] = {
+        if self.app_category not in self.dict_settings["apps"]:
+            self.dict_settings["apps"][self.app_category] = {}
+        if self.app_name not in self.dict_settings["apps"][self.app_category]:
+            self.dict_settings["apps"][self.app_category][self.app_name] = {
                 "working_dir": None,
             }
 
@@ -120,10 +123,11 @@ class WorkFlow:
         # Set default working directory #
         # ----------------------------- #
         if self.dict_settings["default_working_dir"] is None:
-            for _, value in self.dict_settings["apps"].items():
-                if value["working_dir"] is not None:
-                    self.dict_settings["default_working_dir"] = value["working_dir"]
-                    break
+            for _, category in self.dict_settings["apps"].items():
+                for _, app in category.items():
+                    if app["working_dir"] is not None:
+                        self.dict_settings["default_working_dir"] = app["working_dir"]
+                        break
 
         # ------------------- #
         # Write settings file #
@@ -232,13 +236,13 @@ class WorkFlow:
         # Set working directory #
         # --------------------- #
         settings_file = self.config_path / "settings.json"
-        if self.dict_settings["apps"][self.app_name]["working_dir"] is None:
+        if self.dict_settings["apps"][self.app_category][self.app_name]["working_dir"] is None:
             print()
             print(colored(f'(X) Please define {self.app_name} "working_dir" in file :', "red"))
             print(colored(f"> {settings_file}", "red"))
             sys.exit(1)
 
-        self.working_dir = Path(self.dict_settings["apps"][self.app_name]["working_dir"]) / self.app_name
+        self.working_dir = Path(self.dict_settings["apps"][self.app_category][self.app_name]["working_dir"]) / self.app_name
 
         # ------------------- #
         # Write settings file #

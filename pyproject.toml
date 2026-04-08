@@ -30,6 +30,7 @@ dependencies = [
   "numpy>=1.26.0",
   "termcolor>=1.1.0",
   "platformdirs>=3.5",
+  "pyyaml>=5.4.1",
 ]
 
 [project.urls]
