@@ -31,7 +31,7 @@ The difference isn't about the quality of the underlying science. It's about whe
 
 **nuRemics** bridges this gap. It's an open-source Python framework that brings software engineering best practices into scientific development, without requiring a team of software engineers. The goal isn't perfection. It's durability.
 
-🎥 [Watch the video](https://www.suffisciens.com/nuremics)
+🎥 [Watch the presentation video](https://www.suffisciens.com/nuremics)
 
 ## Overview
 
