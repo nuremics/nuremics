@@ -48,15 +48,15 @@ It is the execution engine where the core scientific logic is formalized and imp
 
 **INPUTS**
 
-It defines the entry points required by the application to function (e.g., Input1–6) and ensures that each input is routed to its respective software process, in order to satisfy the corresponding data requirements.
+It defines the entry points required by the application to function (e.g., Input1-6) and ensures that each input is routed to its respective software process, in order to satisfy the corresponding data requirements.
 
 **OUTPUTS**
 
-It defines the delivery points where results are produced during execution (e.g., Output1–4). Each software process generates its own outputs, which are either stored as final results or re-routed as inputs of subsequent software processes within the workflow.
+It defines the delivery points where results are produced during execution (e.g., Output1-4). Each software process generates its own outputs, which are either stored as final results or re-routed as inputs of subsequent software processes within the workflow.
 
 **CONFIGURATION**
 
-It orchestrates how the application is controlled by the operator across different study scenarios (e.g., Study1–2). For each study, the operator defines which inputs are _Fixed_ (constant throughout the study) and which are _Variable_ (changing between individual tests). This enables automated batch execution of multiple tests (e.g., Test1–3) by systematically updating the inputs.
+It orchestrates how the application is controlled by the operator across different study scenarios (e.g., Study1-2). For each study, the operator defines which inputs are _Fixed_ (constant throughout the study) and which are _Variable_ (changing between individual tests). This enables automated batch execution of multiple tests (e.g., Test1-3) by systematically updating the inputs.
 
 **TRACEABILITY**
 
