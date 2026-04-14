@@ -6,10 +6,11 @@
   <img src="https://img.shields.io/badge/NumPy-1.26.0+-4dabcf?style=flat&logo=numpy&logoColor=white" />
   <img src="https://img.shields.io/badge/termcolor-1.1.0+-0dbc5a" />
   <img src="https://img.shields.io/badge/platformdirs-3.5+-364f87" />
+  <img src="https://img.shields.io/badge/pyyaml-5.4.1+-cb171e" />
   <a href="https://nuremics.github.io/coverage"
      target="_blank"
      rel="noopener noreferrer">
-    <img src="https://img.shields.io/badge/Coverage-83%25-magenta?style=flat"/>
+    <img src="https://img.shields.io/badge/Coverage-84%25-magenta?style=flat"/>
   </a>
 </p>
 
