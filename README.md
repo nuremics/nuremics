@@ -27,10 +27,9 @@ A research tool is fundamentally different:
 - **Versioned** — so every result can be traced back to the exact code that produced it.
 - **Collaborative** — so the whole team builds on the same foundation.
 
+The difference isn't about the quality of the underlying science. It's about whether the science can grow beyond the person who created it.
+
 **nuRemics** bridges this gap. It's an open-source Python framework that brings software engineering best practices into scientific development, without requiring a team of software engineers. The goal isn't perfection. It's durability.
-
-
-## Why nuRemics?
 
 🎥 [Watch the video](https://www.suffisciens.com/nuremics)
 
