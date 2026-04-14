@@ -17,12 +17,18 @@
 # nuRemics
 _An open-source Python framework for building software-grade scientific tools._
 
-🔬 Scientific agility — engineering rigor.<br>
-🧩 Modular by design — no more siloed tools.<br>
-📊 Parametric exploration — iterate without limits.<br>
-📋 Full traceability — every experiment accounted for.<br>
-📈 Built to scale — from lab to industry. <br>
-🌐 Community-driven — innovation thrives together.
+Most R&D teams never turn their research scripts into lasting tools. Not because they lack talent, but because nobody ever showed them how. A research script solves a problem once: it's written fast, in a notebook or a standalone `.py` file, by one person, for one purpose. It works brilliantly, sometimes. Then it gets used once, saved somewhere, and forgotten. Six months later, nobody can run it. Not even the person who wrote it.
+
+A research tool is fundamentally different:
+
+- **Documented** — not just for you, but for a stranger.
+- **Tested** — not just "it ran on my machine", but verified against known results.
+- **Modular** — so others can extend it without breaking everything.
+- **Versioned** — so every result can be traced back to the exact code that produced it.
+- **Collaborative** — so the whole team builds on the same foundation.
+
+**nuRemics** bridges this gap. It's an open-source Python framework that brings software engineering best practices into scientific development, without requiring a team of software engineers. The goal isn't perfection. It's durability.
+
 
 ## Why nuRemics?
 
