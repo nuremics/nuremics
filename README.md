@@ -21,11 +21,11 @@ Most R&D teams never turn their research scripts into lasting tools. Not because
 
 A research tool is fundamentally different:
 
-- **Documented** — not just for you, but for a stranger.
-- **Tested** — not just "it ran on my machine", but verified against known results.
-- **Modular** — so others can extend it without breaking everything.
-- **Versioned** — so every result can be traced back to the exact code that produced it.
-- **Collaborative** — so the whole team builds on the same foundation.
+- 📚 **Documented** — not just for you, but for a stranger.
+- ✅ **Tested** — not just "it ran on my machine", but verified against known results.
+- 🧩 **Modular** — so others can extend it without breaking everything.
+- 🔄 **Versioned** — so every result can be traced back to the exact code that produced it.
+- 👥 **Collaborative** — so the whole team builds on the same foundation.
 
 The difference isn't about the quality of the underlying science. It's about whether the science can grow beyond the person who created it.
 
