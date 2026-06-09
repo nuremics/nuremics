@@ -942,6 +942,7 @@ class WorkFlow:
                     df_inputs = pd.read_csv(
                         filepath_or_buffer=inputs_file,
                         index_col=0,
+                        dtype={"ID": str},
                     )
 
                     # Update variable parameters
