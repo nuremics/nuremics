@@ -1161,6 +1161,7 @@ class WorkFlow:
                     filepath_or_buffer="inputs.csv",
                     index_col=0,
                 )
+                self.dict_variable_params[study].index = self.dict_variable_params[study].index.astype(str)
 
             else:
                 self.dict_variable_params[study] = pd.DataFrame()
@@ -1183,6 +1184,7 @@ class WorkFlow:
                     filepath_or_buffer="inputs.csv",
                     index_col=0,
                 )
+                df_inputs.index = df_inputs.index.astype(str)
                 for file in self.variable_paths[study]:
                     dict_input_paths[file] = {}
                     for idx in df_inputs.index:
